@@ -175,7 +175,6 @@ def commitfest(request, cfid):
 
 def global_search(request):
 	if not request.GET.has_key('searchterm'):
-		print request.GET.keys()
 		return HttpResponseRedirect('/')
 	searchterm = request.GET['searchterm']
 
