@@ -282,6 +282,9 @@ def newpatch(request, cfid):
 				form._errors['threadmsgid'] = form.error_class(('Selected thread did not exist in the archives',))
 			except Exception:
 				form._errors['threadmsgid'] = form.error_class(('An error occurred looking up the thread in the archives.',))
+			# In this case, we have created a patch - delete it. This causes a agp in id's, but it should
+			# not happen very often. If we successfully attached to it, we will have already returned.
+			patch.delete()
 	else:
 		form = NewPatchForm()
 

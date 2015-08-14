@@ -3,6 +3,7 @@ from django.forms import ValidationError
 from django.forms.widgets import HiddenInput
 from django.db.models import Q
 from django.contrib.auth.models import User
+from django.http import Http404
 
 from selectable.forms.widgets import AutoCompleteSelectMultipleWidget
 
@@ -57,6 +58,15 @@ class NewPatchForm(forms.ModelForm):
 	class Meta:
 		model = Patch
 		exclude = ('commitfests', 'mailthreads', 'modified', 'authors', 'reviewers', 'committer', 'wikilink', 'gitlink', 'lastmail', )
+
+	def clean_threadmsgid(self):
+		try:
+			_archivesAPI('/message-id.json/%s' % self.cleaned_data['threadmsgid'])
+		except Http404:
+			raise ValidationError("Message not found in archives")
+		except:
+			raise ValidationError("Error in API call to validate thread")
+		return self.cleaned_data['threadmsgid']
 
 def _fetch_thread_choices(patch):
 	for mt in patch.mailthread_set.order_by('-latestmessage'):
