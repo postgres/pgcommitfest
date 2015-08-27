@@ -455,20 +455,25 @@ def close(request, cfid, patchid, status):
 			# future one.
 			newcf = CommitFest.objects.filter(status=CommitFest.STATUS_FUTURE)
 			if len(newcf) == 0:
-				raise Exception("No open and no future commitfest exists!")
+				messages.error(request,"No open and no future commitfest exists!")
+				return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
 			elif len(newcf) != 1:
-				raise Exception("No open and multiple future commitfests exist!")
+				messages.error(request, "No open and multiple future commitfests exist!")
+				return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
 		elif len(newcf) != 1:
-			raise Exception("Multiple open commitfests exists!")
+			messages.error(request, "Multiple open commitfests exists!")
+			return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
 		elif newcf[0] == poc.commitfest:
 			# The current open CF is the same one that we are already on.
 			# In this case, try to see if there is a future CF we can
 			# move it to.
 			newcf = CommitFest.objects.filter(status=CommitFest.STATUS_FUTURE)
 			if len(newcf) == 0:
-				raise Exception("Cannot move patch to the same commitfest, and no future commitfests exist!")
+				messages.error(request, "Cannot move patch to the same commitfest, and no future commitfests exist!")
+				return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
 			elif len(newcf) != 1:
-				raise Exception("Cannot move patch to the same commitfest, and multiple future commitfests exist!")
+				messages.error(request, "Cannot move patch to the same commitfest, and multiple future commitfests exist!")
+				return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
 		# Create a mapping to the new commitfest that we are bouncing
 		# this patch to.
 		newpoc = PatchOnCommitFest(patch=poc.patch, commitfest=newcf[0], enterdate=datetime.now())
