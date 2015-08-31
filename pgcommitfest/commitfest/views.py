@@ -80,13 +80,20 @@ def activity(request, cfid=None, rss=None):
 
 def redir(request, what):
 	if what == 'open':
-		cf = get_object_or_404(CommitFest, status=CommitFest.STATUS_OPEN)
+		cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
 	elif what == 'inprogress':
-		cf = get_object_or_404(CommitFest, status=CommitFest.STATUS_INPROGRESS)
+		cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
 	else:
 		raise Http404()
 
-	return HttpResponseRedirect("/%s/" % cf.id)
+	if len(cfs) == 0:
+		messages.warning(request, "No {0} commitfests exist, redirecting to startpage.".format(what))
+		return HttpResponseRedirect("/")
+	if len(cfs) != 1:
+		messages.warning(request, "More than one {0} commitfest exists, redirecting to startpage instead.".format(what))
+		return HttpResponseRedirect("/")
+
+	return HttpResponseRedirect("/%s/" % cfs[0].id)
 
 def commitfest(request, cfid):
 	# Find ourselves
