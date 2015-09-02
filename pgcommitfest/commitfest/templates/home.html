@@ -7,7 +7,7 @@ The following commitfests exist in the system.
 </p>
 <ul>
 {%for c in commitfests%}
- <li><a href="/{{c.id}}/">{{c}}</a> ({{c.statusstring}})</li>
+ <li><a href="/{{c.id}}/">{{c}}</a> ({{c.statusstring}}{%if c.startdate%} - {{c.periodstring}}{%endif%})</li>
 {%endfor%}
 </ul>
 <br/>

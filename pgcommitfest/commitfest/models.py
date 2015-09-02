@@ -43,6 +43,12 @@ class CommitFest(models.Model):
 		return [v for k,v in self._STATUS_CHOICES if k==self.status][0]
 
 	@property
+	def periodstring(self):
+		if self.startdate and self.enddate:
+			return "{0} - {1}".format(self.startdate, self.enddate)
+		return ""
+
+	@property
 	def title(self):
 		return "Commitfest %s" % self.name
 
