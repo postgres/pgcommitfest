@@ -27,7 +27,7 @@
     <tr>
       <th>Status</th>
       <td>{%for c in patch_commitfests %}
-	<div style="margin-bottom: 3px;">{{c.commitfest}}: <span class="label label-default">{{c.statusstring}}</span></div>
+	<div style="margin-bottom: 3px;">{{c.commitfest}}: <span class="label label-{{c.status|patchstatuslabel}}">{{c.statusstring}}</span></div>
 	{%endfor%}
       </td>
     </tr>
