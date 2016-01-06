@@ -4,7 +4,7 @@ from selectable.registry import registry
 from selectable.decorators import login_required
 
 
-#@login_required
+@login_required
 class UserLookup(ModelLookup):
 	model = User
 	search_fields = (
