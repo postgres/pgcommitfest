@@ -73,7 +73,7 @@ def getMessages(request):
 	r = _archivesAPI('/message-id.json/%s' % thread.messageid)
 	return sorted(r, key=lambda x: x['date'], reverse=True)
 
-@transaction.commit_on_success
+@transaction.atomic
 def annotateMessage(request):
 	thread = get_object_or_404(MailThread, pk=int(request.POST['t']))
 	msgid = request.POST['msgid']
@@ -102,7 +102,7 @@ def annotateMessage(request):
 			return 'OK'
 	return 'Message not found in thread!'
 
-@transaction.commit_on_success
+@transaction.atomic
 def deleteAnnotation(request):
 	annotation = get_object_or_404(MailThreadAnnotation, pk=request.POST['id'])
 
@@ -132,7 +132,7 @@ def parse_and_add_attachments(threadinfo, mailthread):
 		# In theory we should remove objects if they don't have an
 		# attachment, but how could that ever happen? Ignore for now.
 
-@transaction.commit_on_success
+@transaction.atomic
 def attachThread(request):
 	cf = get_object_or_404(CommitFest, pk=int(request.POST['cf']))
 	patch = get_object_or_404(Patch, pk=int(request.POST['p']), commitfests=cf)
@@ -185,7 +185,7 @@ def doAttachThread(cf, patch, msgid, user):
 
 	return 'OK'
 
-@transaction.commit_on_success
+@transaction.atomic
 def detachThread(request):
 	cf = get_object_or_404(CommitFest, pk=int(request.POST['cf']))
 	patch = get_object_or_404(Patch, pk=int(request.POST['p']), commitfests=cf)

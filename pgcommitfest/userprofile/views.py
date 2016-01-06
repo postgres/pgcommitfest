@@ -15,7 +15,7 @@ from forms import UserProfileForm, MailForm
 from util import generate_random_token
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def userprofile(request):
 	(profile, created) = UserProfile.objects.get_or_create(user=request.user)
 	form = mailform = None
@@ -62,7 +62,7 @@ def userprofile(request):
 		}, context_instance=RequestContext(request))
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def deletemail(request):
 	try:
 		id = int(request.META['QUERY_STRING'])
@@ -81,7 +81,7 @@ def deletemail(request):
 	return HttpResponseRedirect('../')
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def confirmemail(request, tokenhash):
 	try:
 		e = UserExtraEmail.objects.get(user=request.user, token=tokenhash)

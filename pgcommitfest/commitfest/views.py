@@ -228,7 +228,7 @@ def patch(request, cfid, patchid):
 		}, context_instance=RequestContext(request))
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def patchform(request, cfid, patchid):
 	cf = get_object_or_404(CommitFest, pk=cfid)
 	patch = get_object_or_404(Patch, pk=patchid, commitfests=cf)
@@ -262,7 +262,7 @@ def patchform(request, cfid, patchid):
 	}, context_instance=RequestContext(request))
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def newpatch(request, cfid):
 	cf = get_object_or_404(CommitFest, pk=cfid)
 	if not cf.status == CommitFest.STATUS_OPEN and not request.user.is_staff:
@@ -312,7 +312,7 @@ def _review_status_string(reviewstatus):
 		return "not tested"
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def comment(request, cfid, patchid, what):
 	cf = get_object_or_404(CommitFest, pk=cfid)
 	patch = get_object_or_404(Patch, pk=patchid)
@@ -396,7 +396,7 @@ def comment(request, cfid, patchid, what):
 	}, context_instance=RequestContext(request))
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def status(request, cfid, patchid, status):
 	poc = get_object_or_404(PatchOnCommitFest.objects.select_related(), commitfest__id=cfid, patch__id=patchid)
 
@@ -431,7 +431,7 @@ def status(request, cfid, patchid, status):
 
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def close(request, cfid, patchid, status):
 	poc = get_object_or_404(PatchOnCommitFest.objects.select_related(), commitfest__id=cfid, patch__id=patchid)
 
@@ -504,7 +504,7 @@ def close(request, cfid, patchid, status):
 	return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def reviewer(request, cfid, patchid, status):
 	get_object_or_404(CommitFest, pk=cfid)
 	patch = get_object_or_404(Patch, pk=patchid)
@@ -522,7 +522,7 @@ def reviewer(request, cfid, patchid, status):
 	return HttpResponseRedirect('../../')
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def committer(request, cfid, patchid, status):
 	get_object_or_404(CommitFest, pk=cfid)
 	patch = get_object_or_404(Patch, pk=patchid)
@@ -546,7 +546,7 @@ def committer(request, cfid, patchid, status):
 	return HttpResponseRedirect('../../')
 
 @login_required
-@transaction.commit_on_success
+@transaction.atomic
 def send_email(request, cfid):
 	cf = get_object_or_404(CommitFest, pk=cfid)
 	if not request.user.is_staff:
