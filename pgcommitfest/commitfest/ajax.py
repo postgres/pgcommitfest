@@ -9,7 +9,7 @@ from django.db import transaction
 import httplib
 import socket
 import urllib
-import simplejson
+import json
 
 from auth import user_search
 
@@ -42,7 +42,7 @@ def _archivesAPI(suburl, params=None):
 				raise Http404()
 			raise Exception("JSON call failed: %s" % resp.status)
 
-		r = simplejson.load(resp)
+		r = json.load(resp)
 		resp.close()
 		h.close()
 	except socket.error, e:
@@ -244,7 +244,7 @@ def main(request, command):
 		raise Http404
 	try:
 		resp = HttpResponse(content_type='application/json')
-		simplejson.dump(_ajax_map[command](request), resp)
+		json.dump(_ajax_map[command](request), resp)
 		return resp
 	except Http503, e:
 		return HttpResponseServiceUnavailable(e, mimetype='text/plain')
