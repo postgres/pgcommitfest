@@ -11,10 +11,10 @@ import sys
 import logging
 
 # Set up for accessing django
-from django.core.management import setup_environ
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), '../../pgcommitfest'))
-import settings
-setup_environ(settings)
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), '../../'))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pgcommitfest.settings")
+import django
+django.setup()
 
 from django.db import connection
 
