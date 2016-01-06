@@ -18,8 +18,8 @@ django.setup()
 
 from django.db import connection
 
-from commitfest.models import MailThread
-from commitfest.ajax import _archivesAPI, parse_and_add_attachments
+from pgcommitfest.commitfest.models import MailThread
+from pgcommitfest.commitfest.ajax import _archivesAPI, parse_and_add_attachments
 
 if __name__ == "__main__":
 	debug = "--debug" in sys.argv

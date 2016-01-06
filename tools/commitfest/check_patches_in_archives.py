@@ -23,7 +23,7 @@ django.setup()
 from django.db import connection
 from django.conf import settings
 
-from commitfest.models import MailThreadAttachment
+from pgcommitfest.commitfest.models import MailThreadAttachment
 
 if __name__ == "__main__":
 	debug = "--debug" in sys.argv
