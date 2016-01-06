@@ -7,14 +7,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
-import settings
+from django.conf import settings
 
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
 
-from mailqueue.util import send_mail, send_simple_mail
-from userprofile.util import UserWrapper
+from pgcommitfest.mailqueue.util import send_mail, send_simple_mail
+from pgcommitfest.userprofile.util import UserWrapper
 
 from models import CommitFest, Patch, PatchOnCommitFest, PatchHistory, Committer
 from forms import PatchForm, NewPatchForm, CommentForm, CommitFestFilterForm

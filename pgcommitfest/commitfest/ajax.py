@@ -11,7 +11,7 @@ import socket
 import urllib
 import json
 
-from auth import user_search
+from pgcommitfest.auth import user_search
 
 class HttpResponseServiceUnavailable(HttpResponse): 
 	status_code = 503

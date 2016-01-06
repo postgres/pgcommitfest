@@ -125,10 +125,10 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-	'selectable',
-	'commitfest',
-	'mailqueue',
-	'userprofile',
+	'pgcommitfest.selectable',
+	'pgcommitfest.commitfest',
+	'pgcommitfest.mailqueue',
+	'pgcommitfest.userprofile',
 )
 
 # A sample logging configuration. The only tangible logging

@@ -6,38 +6,38 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^$', 'commitfest.views.home'),
-    url(r'^activity(?P<rss>\.rss)?/', 'commitfest.views.activity'),
-    url(r'^(\d+)/$', 'commitfest.views.commitfest'),
-    url(r'^(open|inprogress)/$', 'commitfest.views.redir'),
-    url(r'^(?P<cfid>\d+)/activity(?P<rss>\.rss)?/$', 'commitfest.views.activity'),
-    url(r'^(\d+)/(\d+)/$', 'commitfest.views.patch'),
-    url(r'^(\d+)/(\d+)/edit/$', 'commitfest.views.patchform'),
-    url(r'^(\d+)/new/$', 'commitfest.views.newpatch'),
-    url(r'^(\d+)/(\d+)/status/(review|author|committer)/$', 'commitfest.views.status'),
-    url(r'^(\d+)/(\d+)/close/(reject|feedback|committed|next)/$', 'commitfest.views.close'),
-    url(r'^(\d+)/(\d+)/reviewer/(become|remove)/$', 'commitfest.views.reviewer'),
-    url(r'^(\d+)/(\d+)/committer/(become|remove)/$', 'commitfest.views.committer'),
-    url(r'^(\d+)/(\d+)/(comment|review)/', 'commitfest.views.comment'),
-    url(r'^(\d+)/send_email/$', 'commitfest.views.send_email'),
-    url(r'^(\d+)/\d+/send_email/$', 'commitfest.views.send_email'),
-    url(r'^search/$', 'commitfest.views.global_search'),
-    url(r'^ajax/(\w+)/$', 'commitfest.ajax.main'),
+    url(r'^$', 'pgcommitfest.commitfest.views.home'),
+    url(r'^activity(?P<rss>\.rss)?/', 'pgcommitfest.commitfest.views.activity'),
+    url(r'^(\d+)/$', 'pgcommitfest.commitfest.views.commitfest'),
+    url(r'^(open|inprogress)/$', 'pgcommitfest.commitfest.views.redir'),
+    url(r'^(?P<cfid>\d+)/activity(?P<rss>\.rss)?/$', 'pgcommitfest.commitfest.views.activity'),
+    url(r'^(\d+)/(\d+)/$', 'pgcommitfest.commitfest.views.patch'),
+    url(r'^(\d+)/(\d+)/edit/$', 'pgcommitfest.commitfest.views.patchform'),
+    url(r'^(\d+)/new/$', 'pgcommitfest.commitfest.views.newpatch'),
+    url(r'^(\d+)/(\d+)/status/(review|author|committer)/$', 'pgcommitfest.commitfest.views.status'),
+    url(r'^(\d+)/(\d+)/close/(reject|feedback|committed|next)/$', 'pgcommitfest.commitfest.views.close'),
+    url(r'^(\d+)/(\d+)/reviewer/(become|remove)/$', 'pgcommitfest.commitfest.views.reviewer'),
+    url(r'^(\d+)/(\d+)/committer/(become|remove)/$', 'pgcommitfest.commitfest.views.committer'),
+    url(r'^(\d+)/(\d+)/(comment|review)/', 'pgcommitfest.commitfest.views.comment'),
+    url(r'^(\d+)/send_email/$', 'pgcommitfest.commitfest.views.send_email'),
+    url(r'^(\d+)/\d+/send_email/$', 'pgcommitfest.commitfest.views.send_email'),
+    url(r'^search/$', 'pgcommitfest.commitfest.views.global_search'),
+    url(r'^ajax/(\w+)/$', 'pgcommitfest.commitfest.ajax.main'),
 
     url(r'^selectable/', include('selectable.urls')),
 
     # Auth system integration
-    (r'^(?:account/)?login/?$', 'auth.login'),
-    (r'^(?:account/)?logout/?$', 'auth.logout'),
-    (r'^auth_receive/$', 'auth.auth_receive'),
+    (r'^(?:account/)?login/?$', 'pgcommitfest.auth.login'),
+    (r'^(?:account/)?logout/?$', 'pgcommitfest.auth.logout'),
+    (r'^auth_receive/$', 'pgcommitfest.auth.auth_receive'),
 
     # Account management
-    (r'^account/profile/$', 'userprofile.views.userprofile'),
-    (r'^account/profile/delmail/$', 'userprofile.views.deletemail'),
-    (r'^account/profile/confirm/([0-9a-f]+)/$', 'userprofile.views.confirmemail'),
+    (r'^account/profile/$', 'pgcommitfest.userprofile.views.userprofile'),
+    (r'^account/profile/delmail/$', 'pgcommitfest.userprofile.views.deletemail'),
+    (r'^account/profile/confirm/([0-9a-f]+)/$', 'pgcommitfest.userprofile.views.confirmemail'),
 
     # Examples:
-    # url(r'^$', 'pgcommitfest.views.home', name='home'),
+    # url(r'^$', 'pgpgcommitfest.commitfest.views.home', name='home'),
     # url(r'^pgcommitfest/', include('pgcommitfest.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:

@@ -8,7 +8,7 @@ from django.conf import settings
 
 from datetime import datetime
 
-from mailqueue.util import send_template_mail
+from pgcommitfest.mailqueue.util import send_template_mail
 
 from models import UserProfile, UserExtraEmail
 from forms import UserProfileForm, MailForm
