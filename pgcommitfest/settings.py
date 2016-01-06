@@ -3,6 +3,7 @@ from django.conf import global_settings
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
+ALLOWED_HOSTS = ['*']
 
 ADMINS = (
 	('webmaster@postgresql.org', 'webmaster@postgresql.org'),
@@ -130,6 +131,11 @@ INSTALLED_APPS = (
 	'pgcommitfest.mailqueue',
 	'pgcommitfest.userprofile',
 )
+
+AUTHENTICATION_BACKENDS = (
+    'pgcommitfest.auth.AuthBackend',
+)
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
