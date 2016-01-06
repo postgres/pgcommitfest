@@ -19,7 +19,7 @@ setup(
     author_email='markdlavin@gmail.com',
     packages=find_packages(exclude=['example']),
     include_package_data=True,
-    url='http://bitbucket.org/mlavin/django-selectable',
+    url='https://github.com/mlavin/django-selectable',
     license='BSD',
     description=' '.join(__import__('selectable').__doc__.splitlines()).strip(),
     classifiers=[
@@ -32,6 +32,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Framework :: Django',
         'Development Status :: 5 - Production/Stable',
         'Operating System :: OS Independent',

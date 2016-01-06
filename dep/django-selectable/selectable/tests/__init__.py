@@ -1,30 +1,34 @@
 from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
 
-from selectable.base import ModelLookup
-from selectable.registry import registry
+from ..base import ModelLookup
+from ..registry import registry
 
 
+@python_2_unicode_compatible
 class Thing(models.Model):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=100)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
+@python_2_unicode_compatible
 class OtherThing(models.Model):
     name = models.CharField(max_length=100)
     thing = models.ForeignKey(Thing)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
+@python_2_unicode_compatible
 class ManyThing(models.Model):
     name = models.CharField(max_length=100)
     things = models.ManyToManyField(Thing)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -36,11 +40,11 @@ class ThingLookup(ModelLookup):
 registry.register(ThingLookup)
 
 
-from selectable.tests.base import *
-from selectable.tests.decorators import *
-from selectable.tests.fields import *
-from selectable.tests.functests import *
-from selectable.tests.forms import *
-from selectable.tests.templatetags import *
-from selectable.tests.views import *
-from selectable.tests.widgets import *
+from .test_base import *
+from .test_decorators import *
+from .test_fields import *
+from .test_functional import *
+from .test_forms import *
+from .test_templatetags import *
+from .test_views import *
+from .test_widgets import *

@@ -2,14 +2,13 @@ from __future__ import unicode_literals
 
 import json
 
-from django import forms
+from django import forms, VERSION as DJANGO_VERSION
 from django.conf import settings
-from django.forms.util import flatatt
 from django.utils.http import urlencode
 from django.utils.safestring import mark_safe
 
 from selectable import __version__
-from selectable.compat import force_text
+from selectable.compat import force_text, flatatt
 from selectable.forms.base import import_lookup_class
 
 __all__ = (
@@ -32,6 +31,7 @@ class SelectableMediaMixin(object):
             'all': ('%scss/dj.selectable.css?v=%s' % (STATIC_PREFIX, __version__),)
         }
         js = ('%sjs/jquery.dj.selectable.js?v=%s' % (STATIC_PREFIX, __version__),)
+
 
 class AutoCompleteWidget(forms.TextInput, SelectableMediaMixin):
 
@@ -65,13 +65,14 @@ class SelectableMultiWidget(forms.MultiWidget):
     def update_query_parameters(self, qs_dict):
         self.widgets[0].update_query_parameters(qs_dict)
 
-    def _has_changed(self, initial, data):
-        "Decects if the widget was changed. This is removed in 1.6."
-        if initial is None and data is None:
-            return False
-        if data and not hasattr(data, '__iter__'):
-            data = self.decompress(data)
-        return super(SelectableMultiWidget, self)._has_changed(initial, data)
+    if DJANGO_VERSION < (1, 6):
+        def _has_changed(self, initial, data):
+            "Detects if the widget was changed. This is removed in Django 1.6."
+            if initial is None and data is None:
+                return False
+            if data and not hasattr(data, '__iter__'):
+                data = self.decompress(data)
+            return super(SelectableMultiWidget, self)._has_changed(initial, data)
 
     def decompress(self, value):
         if value:
@@ -86,8 +87,29 @@ class SelectableMultiWidget(forms.MultiWidget):
             return [item_value, value]
         return [None, None]
 
+    def get_compatible_postdata(self, data, name):
+        """Get postdata built for a normal <select> element.
 
-class AutoCompleteSelectWidget(SelectableMultiWidget, SelectableMediaMixin):
+        Django MultiWidgets create post variables like ``foo_0`` and ``foo_1``,
+        and this behavior is not cleanly overridable.  Non-multiwidgets, like
+        Select, get simple names like ``foo``. In order to keep this widget
+        compatible with requests designed for traditional select widgets,
+        search postdata for a name like ``foo`` and return that value.
+
+        This will return ``None`` if a ``<select>``-compatibile post variable
+        is not found.
+        """
+        return data.get(name, None)
+
+
+class _BaseSingleSelectWidget(SelectableMultiWidget, SelectableMediaMixin):
+    """
+    Common base class for AutoCompleteSelectWidget and AutoComboboxSelectWidget
+    each which use one widget (primary_widget) to select text and a single
+    hidden input to hold the selected id.
+    """
+
+    primary_widget = None
 
     def __init__(self, lookup_class, *args, **kwargs):
         self.lookup_class = import_lookup_class(lookup_class)
@@ -95,20 +117,29 @@ class AutoCompleteSelectWidget(SelectableMultiWidget, SelectableMediaMixin):
         self.limit = kwargs.pop('limit', None)
         query_params = kwargs.pop('query_params', {})
         widgets = [
-            AutoCompleteWidget(
+            self.primary_widget(
                 lookup_class, allow_new=self.allow_new,
                 limit=self.limit, query_params=query_params,
                 attrs=kwargs.get('attrs'),
             ),
             forms.HiddenInput(attrs={'data-selectable-type': 'hidden'})
         ]
-        super(AutoCompleteSelectWidget, self).__init__(widgets, *args, **kwargs)
+        super(_BaseSingleSelectWidget, self).__init__(widgets, *args, **kwargs)
 
     def value_from_datadict(self, data, files, name):
-        value = super(AutoCompleteSelectWidget, self).value_from_datadict(data, files, name)
+        value = super(_BaseSingleSelectWidget, self).value_from_datadict(data, files, name)
+        if not value[1]:
+            compatible_postdata = self.get_compatible_postdata(data, name)
+            if compatible_postdata:
+                value[1] = compatible_postdata
         if not self.allow_new:
             return value[1]
         return value
+
+
+class AutoCompleteSelectWidget(_BaseSingleSelectWidget):
+
+    primary_widget = AutoCompleteWidget
 
 
 class AutoComboboxWidget(AutoCompleteWidget, SelectableMediaMixin):
@@ -119,28 +150,9 @@ class AutoComboboxWidget(AutoCompleteWidget, SelectableMediaMixin):
         return attrs
 
 
-class AutoComboboxSelectWidget(SelectableMultiWidget, SelectableMediaMixin):
+class AutoComboboxSelectWidget(_BaseSingleSelectWidget):
 
-    def __init__(self, lookup_class, *args, **kwargs):
-        self.lookup_class = import_lookup_class(lookup_class)
-        self.allow_new = kwargs.pop('allow_new', False)
-        self.limit = kwargs.pop('limit', None)
-        query_params = kwargs.pop('query_params', {})
-        widgets = [
-            AutoComboboxWidget(
-                lookup_class, allow_new=self.allow_new,
-                limit=self.limit, query_params=query_params,
-                attrs=kwargs.get('attrs'),
-            ),
-            forms.HiddenInput(attrs={'data-selectable-type': 'hidden'})
-        ]
-        super(AutoComboboxSelectWidget, self).__init__(widgets, *args, **kwargs)
-
-    def value_from_datadict(self, data, files, name):
-        value = super(AutoComboboxSelectWidget, self).value_from_datadict(data, files, name)
-        if not self.allow_new:
-            return value[1]
-        return value
+    primary_widget = AutoComboboxWidget
 
 
 class LookupMultipleHiddenInput(forms.MultipleHiddenInput):
@@ -178,7 +190,14 @@ class LookupMultipleHiddenInput(forms.MultipleHiddenInput):
         return attrs
 
 
-class AutoCompleteSelectMultipleWidget(SelectableMultiWidget, SelectableMediaMixin):
+class _BaseMultipleSelectWidget(SelectableMultiWidget, SelectableMediaMixin):
+    """
+    Common base class for AutoCompleteSelectMultipleWidget and AutoComboboxSelectMultipleWidget
+    each which use one widget (primary_widget) to select text and a multiple
+    hidden inputs to hold the selected ids.
+    """
+
+    primary_widget = None
 
     def __init__(self, lookup_class, *args, **kwargs):
         self.lookup_class = import_lookup_class(lookup_class)
@@ -191,71 +210,44 @@ class AutoCompleteSelectMultipleWidget(SelectableMultiWidget, SelectableMediaMix
         attrs.update(kwargs.get('attrs', {}))
         query_params = kwargs.pop('query_params', {})
         widgets = [
-            AutoCompleteWidget(
+            self.primary_widget(
                 lookup_class, allow_new=False,
                 limit=self.limit, query_params=query_params, attrs=attrs
             ),
             LookupMultipleHiddenInput(lookup_class)
         ]
-        super(AutoCompleteSelectMultipleWidget, self).__init__(widgets, *args, **kwargs)
+        super(_BaseMultipleSelectWidget, self).__init__(widgets, *args, **kwargs)
 
     def value_from_datadict(self, data, files, name):
-        return self.widgets[1].value_from_datadict(data, files, name + '_1')
+        value = self.widgets[1].value_from_datadict(data, files, name + '_1')
+        if not value:
+            # Fall back to the compatible POST name
+            value = self.get_compatible_postdata(data, name)
+        return value
 
     def render(self, name, value, attrs=None):
         if value and not hasattr(value, '__iter__'):
             value = [value]
         value = ['', value]
-        return super(AutoCompleteSelectMultipleWidget, self).render(name, value, attrs)
+        return super(_BaseMultipleSelectWidget, self).render(name, value, attrs)
 
-    def _has_changed(self, initial, data):
-        """"
-        Decects if the widget was changed. This is removed in 1.6.
+    if DJANGO_VERSION < (1, 6):
+        def _has_changed(self, initial, data):
+            """"
+            Detects if the widget was changed. This is removed in Django 1.6.
 
-        For the multi-select case we only care if the hidden inputs changed.
-        """
-        initial = ['', initial]
-        data = ['', data]
-        return super(AutoCompleteSelectMultipleWidget, self)._has_changed(initial, data)
+            For the multi-select case we only care if the hidden inputs changed.
+            """
+            initial = ['', initial]
+            data = ['', data]
+            return super(_BaseMultipleSelectWidget, self)._has_changed(initial, data)
 
 
+class AutoCompleteSelectMultipleWidget(_BaseMultipleSelectWidget):
 
-class AutoComboboxSelectMultipleWidget(SelectableMultiWidget, SelectableMediaMixin):
+    primary_widget = AutoCompleteWidget
 
-    def __init__(self, lookup_class, *args, **kwargs):
-        self.lookup_class = import_lookup_class(lookup_class)
-        self.limit = kwargs.pop('limit', None)
-        position = kwargs.pop('position', 'bottom')
-        attrs = {
-            'data-selectable-multiple': 'true',
-            'data-selectable-position': position
-        }
-        attrs.update(kwargs.get('attrs', {}))
-        query_params = kwargs.pop('query_params', {})
-        widgets = [
-            AutoComboboxWidget(
-                lookup_class, allow_new=False,
-                limit=self.limit, query_params=query_params, attrs=attrs
-            ),
-            LookupMultipleHiddenInput(lookup_class)
-        ]
-        super(AutoComboboxSelectMultipleWidget, self).__init__(widgets, *args, **kwargs)
 
-    def value_from_datadict(self, data, files, name):
-        return self.widgets[1].value_from_datadict(data, files, name + '_1')
+class AutoComboboxSelectMultipleWidget(_BaseMultipleSelectWidget):
 
-    def render(self, name, value, attrs=None):
-        if value and not hasattr(value, '__iter__'):
-            value = [value]
-        value = ['', value]
-        return super(AutoComboboxSelectMultipleWidget, self).render(name, value, attrs)
-
-    def _has_changed(self, initial, data):
-        """"
-        Decects if the widget was changed. This is removed in 1.6.
-
-        For the multi-select case we only care if the hidden inputs changed.
-        """
-        initial = ['', initial]
-        data = ['', data]
-        return super(AutoComboboxSelectMultipleWidget, self)._has_changed(initial, data)
+    primary_widget = AutoComboboxWidget
