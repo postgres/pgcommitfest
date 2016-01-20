@@ -1,5 +1,6 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import Http404
+from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 
@@ -42,4 +43,4 @@ ORDER BY last_name, first_name
 		'report': cursor.fetchall(),
 		'title': 'Author stats',
 		'breadcrumbs': [{'title': cf.title, 'href': '/%s/' % cf.pk},],
-	})
+	}, context_instance=RequestContext(request))
