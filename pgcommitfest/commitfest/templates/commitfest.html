@@ -102,6 +102,13 @@
     <li><a href="send_email/?authors={{openpatchids|join:","}}&reviewers={{openpatchids|join:","}}">All authors and reviewers (open patches)</a></li>
   </ul>
  </div>
+
+ <div class="btn-group dropup">
+   <button type="button" class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#">Reports <span class="caret"></span></button>
+   <ul class="dropdown-menu">
+     <li><a href="reports/authorstats/">Author stats</a></li>
+   </ul>
+ </div>
 {%endif%}
 </div>
 {%endblock%}

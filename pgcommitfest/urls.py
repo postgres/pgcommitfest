@@ -21,6 +21,7 @@ urlpatterns = patterns('',
     url(r'^(\d+)/(\d+)/(comment|review)/', 'pgcommitfest.commitfest.views.comment'),
     url(r'^(\d+)/send_email/$', 'pgcommitfest.commitfest.views.send_email'),
     url(r'^(\d+)/\d+/send_email/$', 'pgcommitfest.commitfest.views.send_email'),
+    url(r'^(\d+)/reports/authorstats/$', 'pgcommitfest.commitfest.reports.authorstats'),
     url(r'^search/$', 'pgcommitfest.commitfest.views.global_search'),
     url(r'^ajax/(\w+)/$', 'pgcommitfest.commitfest.ajax.main'),
 
