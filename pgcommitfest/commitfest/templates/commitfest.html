@@ -11,6 +11,9 @@
     <li><a href="?reviewer=-3">Patches where you are reviewer</a></li>
   </ul>
 </div>
+{%if cf.isopen or user.is_staff %}
+<a class="btn btn-default" href="new/">New patch</a>
+{%endif%}
 <div id="collapseFilters" class="collapse {%if has_filter%}in{%endif%}">
     <form id="filterform" method="GET" action="." style="margin-bottom: 0px">
       <table class="table table-condensed" style="margin-bottom: 0px">
