@@ -12,8 +12,8 @@
  {%for field in form%}
  {%if not field.is_hidden%}
  <div class="form-group">
-   {{field|label_class:"control-label col-lg-1"}}
-   <div class="col-lg-11 controls">
+   {{field|label_class:"control-label col-lg-2"}}
+   <div class="col-lg-10 controls">
   {%if field.errors %}
    {%for e in field.errors%}
  <div class="alert alert-danger">{{e}}</div>

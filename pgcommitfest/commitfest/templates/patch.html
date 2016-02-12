@@ -130,6 +130,9 @@
 	  </tbody>
 	</table>
 	</div>
+	{%if user.is_authenticated%}
+	<a href="{{is_subscribed|yesno:"unsubscribe,subscribe"}}/" class="btn btn-default">{{is_subscribed|yesno:"Unsubscribe,Subscribe"}}</a>
+	{%endif%}
       </td>
     </tr>
   </tbody>

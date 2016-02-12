@@ -18,7 +18,8 @@ def send_simple_mail(sender, receiver, subject, msgtxt, sending_username, attach
 	msg['From'] = sender
 	msg['Date'] = formatdate(localtime=True)
 	msg['User-Agent'] = 'pgcommitfest'
-	msg['X-cfsender'] = sending_username
+	if sending_username:
+		msg['X-cfsender'] = sending_username
 
 	msg.attach(MIMEText(msgtxt, _charset='utf-8'))
 

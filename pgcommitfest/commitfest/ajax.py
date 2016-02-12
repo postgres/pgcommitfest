@@ -95,7 +95,7 @@ def annotateMessage(request):
 			annotation.save()
 
 			for p in thread.patches.all():
-				PatchHistory(patch=p, by=request.user, what='Added annotation "%s" to %s' % (msg, msgid)).save()
+				PatchHistory(patch=p, by=request.user, what='Added annotation "%s" to %s' % (msg, msgid)).save_and_notify()
 				p.set_modified()
 				p.save()
 
@@ -107,7 +107,7 @@ def deleteAnnotation(request):
 	annotation = get_object_or_404(MailThreadAnnotation, pk=request.POST['id'])
 
 	for p in annotation.mailthread.patches.all():
-		PatchHistory(patch=p, by=request.user, what='Deleted annotation "%s" from %s' % (annotation.annotationtext, annotation.msgid)).save()
+		PatchHistory(patch=p, by=request.user, what='Deleted annotation "%s" from %s' % (annotation.annotationtext, annotation.msgid)).save_and_notify()
 		p.set_modified()
 		p.save()
 
@@ -178,7 +178,7 @@ def doAttachThread(cf, patch, msgid, user):
 		m.save()
 		parse_and_add_attachments(r, m)
 
-	PatchHistory(patch=patch, by=user, what='Attached mail thread %s' % r[0]['msgid']).save()
+	PatchHistory(patch=patch, by=user, what='Attached mail thread %s' % r[0]['msgid']).save_and_notify()
 	patch.update_lastmail()
 	patch.set_modified()
 	patch.save()
@@ -192,7 +192,7 @@ def detachThread(request):
 	thread = get_object_or_404(MailThread, messageid=request.POST['msg'])
 
 	patch.mailthread_set.remove(thread)
-	PatchHistory(patch=patch, by=request.user, what='Detached mail thread %s' % request.POST['msg']).save()
+	PatchHistory(patch=patch, by=request.user, what='Detached mail thread %s' % request.POST['msg']).save_and_notify()
 	patch.update_lastmail()
 	patch.set_modified()
 	patch.save()

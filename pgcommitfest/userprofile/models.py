@@ -17,9 +17,15 @@ class UserExtraEmail(models.Model):
 
 
 class UserProfile(models.Model):
-	user = models.ForeignKey(User, null=False, blank=False)
+	user = models.OneToOneField(User, null=False, blank=False)
 	selectedemail = models.ForeignKey(UserExtraEmail, null=True, blank=True,
 									  verbose_name='Sender email')
+	notifyemail = models.ForeignKey(UserExtraEmail, null=True, blank=True,
+									verbose_name='Notifications sent to',
+									related_name='notifier')
+	notify_all_author = models.BooleanField(null=False, blank=False, default=False, verbose_name="Notify on all where author")
+	notify_all_reviewer = models.BooleanField(null=False, blank=False, default=False, verbose_name="Notify on all where reviewer")
+	notify_all_committer = models.BooleanField(null=False, blank=False, default=False, verbose_name="Notify on all where committer")
 
 	def __unicode__(self):
 		return unicode(self.user)

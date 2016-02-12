@@ -209,10 +209,12 @@ def patch(request, cfid, patchid):
 			is_committer = is_this_committer = False
 
 		is_reviewer = request.user in patch.reviewers.all()
+		is_subscribed = patch.subscribers.filter(id=request.user.id).exists()
 	else:
 		is_committer = False
 		is_this_committer = False
 		is_reviewer = False
+		is_subscribed = False
 
 	return render_to_response('patch.html', {
 		'cf': cf,
@@ -221,6 +223,7 @@ def patch(request, cfid, patchid):
 		'is_committer': is_committer,
 		'is_this_committer': is_this_committer,
 		'is_reviewer': is_reviewer,
+		'is_subscribed': is_subscribed,
 		'committers': committers,
 		'attachnow': request.GET.has_key('attachthreadnow'),
 		'title': patch.name,
@@ -233,6 +236,10 @@ def patchform(request, cfid, patchid):
 	cf = get_object_or_404(CommitFest, pk=cfid)
 	patch = get_object_or_404(Patch, pk=patchid, commitfests=cf)
 
+	prevreviewers = list(patch.reviewers.all())
+	prevauthors = list(patch.authors.all())
+	prevcommitter = patch.committer
+
 	if request.method == 'POST':
 		form = PatchForm(data=request.POST, instance=patch)
 		if form.is_valid():
@@ -244,7 +251,7 @@ def patchform(request, cfid, patchid):
 
 			# Track all changes
 			for field, values in r.diff.items():
-				PatchHistory(patch=patch, by=request.user, what='Changed %s to %s' % (field, values[1])).save()
+				PatchHistory(patch=patch, by=request.user, what='Changed %s to %s' % (field, values[1])).save_and_notify(prevcommitter=prevcommitter, prevreviewers=prevreviewers, prevauthors=prevauthors)
 			r.set_modified()
 			r.save()
 			return HttpResponseRedirect('../../%s/' % r.pk)
@@ -347,7 +354,7 @@ def comment(request, cfid, patchid, what):
 			if int(form.cleaned_data['newstatus']) != poc.status:
 				poc.status = int(form.cleaned_data['newstatus'])
 				poc.save()
-				PatchHistory(patch=poc.patch, by=request.user, what='New status: %s' % poc.statusstring).save()
+				PatchHistory(patch=poc.patch, by=request.user, what='New status: %s' % poc.statusstring).save_and_notify()
 				txt += "\n\nThe new status of this patch is: %s\n" % poc.statusstring
 
 			msg = MIMEText(txt, _charset='utf-8')
@@ -425,7 +432,7 @@ def status(request, cfid, patchid, status):
 		poc.patch.save()
 		poc.save()
 
-		PatchHistory(patch=poc.patch, by=request.user, what='New status: %s' % poc.statusstring).save()
+		PatchHistory(patch=poc.patch, by=request.user, what='New status: %s' % poc.statusstring).save_and_notify()
 
 	return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
 
@@ -489,8 +496,9 @@ def close(request, cfid, patchid, status):
 		committer = get_object_or_404(Committer, user__username=request.GET['c'])
 		if committer != poc.patch.committer:
 			# Committer changed!
+			prevcommitter = poc.patch.committer
 			poc.patch.committer = committer
-			PatchHistory(patch=poc.patch, by=request.user, what='Changed committer to %s' % committer).save()
+			PatchHistory(patch=poc.patch, by=request.user, what='Changed committer to %s' % committer).save_and_notify(prevcommitter=prevcommitter)
 		poc.status = PatchOnCommitFest.STATUS_COMMITTED
 	else:
 		raise Exception("Can't happen")
@@ -499,7 +507,7 @@ def close(request, cfid, patchid, status):
 	poc.patch.save()
 	poc.save()
 
-	PatchHistory(patch=poc.patch, by=request.user, what='Closed in commitfest %s with status: %s' % (poc.commitfest, poc.statusstring)).save()
+	PatchHistory(patch=poc.patch, by=request.user, what='Closed in commitfest %s with status: %s' % (poc.commitfest, poc.statusstring)).save_and_notify()
 
 	return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
 
@@ -514,11 +522,11 @@ def reviewer(request, cfid, patchid, status):
 	if status=='become' and not is_reviewer:
 		patch.reviewers.add(request.user)
 		patch.set_modified()
-		PatchHistory(patch=patch, by=request.user, what='Added %s as reviewer' % request.user.username).save()
+		PatchHistory(patch=patch, by=request.user, what='Added %s as reviewer' % request.user.username).save_and_notify()
 	elif status=='remove' and is_reviewer:
 		patch.reviewers.remove(request.user)
 		patch.set_modified()
-		PatchHistory(patch=patch, by=request.user, what='Removed %s from reviewers' % request.user.username).save()
+		PatchHistory(patch=patch, by=request.user, what='Removed %s from reviewers' % request.user.username).save_and_notify()
 	return HttpResponseRedirect('../../')
 
 @login_required
@@ -534,16 +542,32 @@ def committer(request, cfid, patchid, status):
 
 	is_committer = committer == patch.committer
 
+	prevcommitter = patch.committer
 	if status=='become' and not is_committer:
 		patch.committer = committer
 		patch.set_modified()
-		PatchHistory(patch=patch, by=request.user, what='Added %s as committer' % request.user.username).save()
+		PatchHistory(patch=patch, by=request.user, what='Added %s as committer' % request.user.username).save_and_notify(prevcommitter=prevcommitter)
 	elif status=='remove' and is_committer:
 		patch.committer = None
 		patch.set_modified()
-		PatchHistory(patch=patch, by=request.user, what='Removed %s from committers' % request.user.username).save()
+		PatchHistory(patch=patch, by=request.user, what='Removed %s from committers' % request.user.username).save_and_notify(prevcommitter=prevcommitter)
 	patch.save()
 	return HttpResponseRedirect('../../')
+
+@login_required
+@transaction.atomic
+def subscribe(request, cfid, patchid, sub):
+	get_object_or_404(CommitFest, pk=cfid)
+	patch = get_object_or_404(Patch, pk=patchid)
+
+	if sub == 'un':
+		patch.subscribers.remove(request.user)
+		messages.info(request, "You have been unsubscribed from updates on this patch")
+	else:
+		patch.subscribers.add(request.user)
+		messages.info(request, "You have been subscribed to updates on this patch")
+	patch.save()
+	return HttpResponseRedirect("../")
 
 @login_required
 @transaction.atomic

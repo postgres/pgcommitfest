@@ -91,6 +91,9 @@ class Patch(models.Model, DiffableModel):
 
 	committer = models.ForeignKey(Committer, blank=True, null=True)
 
+	# Users to be notified when something happens
+	subscribers = models.ManyToManyField(User, related_name='patch_subscriber', blank=True)
+
 	# Datestamps for tracking activity
 	created = models.DateTimeField(blank=False, null=False, auto_now_add=True)
 	modified = models.DateTimeField(blank=False, null=False)
@@ -210,6 +213,34 @@ class PatchHistory(models.Model):
 	class Meta:
 		ordering = ('-date', )
 
+	def save_and_notify(self, prevcommitter=None,
+						prevreviewers=None, prevauthors=None):
+		# Save this model, and then trigger notifications if there are any. There are
+		# many different things that can trigger notifications, so try them all.
+		self.save()
+
+		recipients = []
+		recipients.extend(self.patch.subscribers.all())
+
+		# Current or previous committer wants all notifications
+		if self.patch.committer and self.patch.committer.user.userprofile.notify_all_committer:
+			recipients.append(self.patch.committer.user)
+		if prevcommitter and prevcommitter.user.userprofile.notify_all_committer:
+			recipients.append(prevcommitter.user)
+
+		# Current or previous reviewers wants all notifications
+		recipients.extend(self.patch.reviewers.filter(userprofile__notify_all_reviewer=True))
+		if prevreviewers:
+			# prevreviewers is a list
+			recipients.extend(User.objects.filter(id__in=[p.id for p in prevreviewers], userprofile__notify_all_reviewer=True))
+
+		# Current or previous authors wants all notifications
+		recipients.extend(self.patch.authors.filter(userprofile__notify_all_author=True))
+
+		for u in set(recipients):
+			if u != self.by: # Don't notify for changes we make ourselves
+				PendingNotification(history=self, user=u).save()
+
 class MailThread(models.Model):
 	# This class tracks mail threads from the main postgresql.org
 	# mailinglist archives. For each thread, we store *one* messageid.
@@ -270,3 +301,8 @@ class PatchStatus(models.Model):
 	status = models.IntegerField(null=False, blank=False, primary_key=True)
 	statusstring = models.TextField(max_length=50, null=False, blank=False)
 	sortkey = models.IntegerField(null=False, blank=False, default=10)
+
+
+class PendingNotification(models.Model):
+	history = models.ForeignKey(PatchHistory, blank=False, null=False)
+	user = models.ForeignKey(User, blank=False, null=False)

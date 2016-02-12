@@ -14,6 +14,8 @@ class UserProfileForm(forms.ModelForm):
 
 		self.fields['selectedemail'].empty_label=self.user.email
 		self.fields['selectedemail'].queryset=UserExtraEmail.objects.filter(user=self.user, confirmed=True)
+		self.fields['notifyemail'].empty_label=self.user.email
+		self.fields['notifyemail'].queryset=UserExtraEmail.objects.filter(user=self.user, confirmed=True)
 
 class MailForm(forms.Form):
 	email = forms.EmailField()
