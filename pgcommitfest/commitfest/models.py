@@ -9,7 +9,7 @@ from util import DiffableModel
 # need to extend from the user model, so just create a separate
 # class.
 class Committer(models.Model):
-	user = models.ForeignKey(User, null=False, blank=False, primary_key=True)
+	user = models.OneToOneField(User, null=False, blank=False, primary_key=True)
 	active = models.BooleanField(null=False, blank=False, default=True)
 
 	def __unicode__(self):
