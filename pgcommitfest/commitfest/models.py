@@ -5,6 +5,8 @@ from datetime import datetime
 
 from util import DiffableModel
 
+from pgcommitfest.userprofile.models import UserProfile
+
 # We have few enough of these, and it's really the only thing we
 # need to extend from the user model, so just create a separate
 # class.
@@ -223,10 +225,17 @@ class PatchHistory(models.Model):
 		recipients.extend(self.patch.subscribers.all())
 
 		# Current or previous committer wants all notifications
-		if self.patch.committer and self.patch.committer.user.userprofile.notify_all_committer:
-			recipients.append(self.patch.committer.user)
-		if prevcommitter and prevcommitter.user.userprofile.notify_all_committer:
-			recipients.append(prevcommitter.user)
+		try:
+			if self.patch.committer and self.patch.committer.user.userprofile.notify_all_committer:
+				recipients.append(self.patch.committer.user)
+		except UserProfile.DoesNotExist:
+			pass
+
+		try:
+			if prevcommitter and prevcommitter.user.userprofile.notify_all_committer:
+				recipients.append(prevcommitter.user)
+		except UserProfile.DoesNotExist:
+			pass
 
 		# Current or previous reviewers wants all notifications
 		recipients.extend(self.patch.reviewers.filter(userprofile__notify_all_reviewer=True))
