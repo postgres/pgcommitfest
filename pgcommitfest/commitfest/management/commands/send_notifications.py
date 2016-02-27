@@ -5,6 +5,7 @@ from django.conf import settings
 from StringIO import StringIO
 
 from pgcommitfest.commitfest.models import PendingNotification
+from pgcommitfest.userprofile.models import UserProfile
 from pgcommitfest.mailqueue.util import send_template_mail
 
 class Command(BaseCommand):
@@ -27,8 +28,11 @@ class Command(BaseCommand):
 			for v in matches.values():
 				user = v['user']
 				email = user.email
-				if user.userprofile and user.userprofile.notifyemail:
-					email = user.userprofile.notifyemail.email
+				try:
+					if user.userprofile and user.userprofile.notifyemail:
+						email = user.userprofile.notifyemail.email
+				except UserProfile.DoesNotExist:
+					pass
 
 				send_template_mail(settings.NOTIFICATION_FROM,
 								   None,
