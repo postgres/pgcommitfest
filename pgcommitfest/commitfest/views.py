@@ -461,6 +461,24 @@ def close(request, cfid, patchid, status):
 	elif status == 'feedback':
 		poc.status = PatchOnCommitFest.STATUS_RETURNED
 	elif status == 'next':
+		# Only some patch statuses can actually be moved.
+		if poc.status in (PatchOnCommitFest.STATUS_AUTHOR,
+						  PatchOnCommitFest.STATUS_COMMITTED,
+						  PatchOnCommitFest.STATUS_NEXT,
+						  PatchOnCommitFest.STATUS_RETURNED,
+						  PatchOnCommitFest.STATUS_REJECTED):
+			# Can't be moved!
+			messages.error(request, "A patch in status {0} cannot be moved to next commitfest.".format(poc.statusstring))
+			return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
+		elif poc.status in (PatchOnCommitFest.STATUS_REVIEW,
+							PatchOnCommitFest.STATUS_COMMITTER):
+			# This one can be moved
+			pass
+		else:
+			messages.error(request, "Invalid existing patch status")
+
+		oldstatus = poc.status
+
 		poc.status = PatchOnCommitFest.STATUS_NEXT
 		# Figure out the commitfest to actually put it on
 		newcf = CommitFest.objects.filter(status=CommitFest.STATUS_OPEN)
@@ -490,7 +508,10 @@ def close(request, cfid, patchid, status):
 				return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
 		# Create a mapping to the new commitfest that we are bouncing
 		# this patch to.
-		newpoc = PatchOnCommitFest(patch=poc.patch, commitfest=newcf[0], enterdate=datetime.now())
+		newpoc = PatchOnCommitFest(patch=poc.patch,
+								   commitfest=newcf[0],
+								   status=oldstatus,
+								   enterdate=datetime.now())
 		newpoc.save()
 	elif status == 'committed':
 		committer = get_object_or_404(Committer, user__username=request.GET['c'])
