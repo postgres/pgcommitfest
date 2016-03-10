@@ -57,7 +57,7 @@ class NewPatchForm(forms.ModelForm):
 
 	class Meta:
 		model = Patch
-		exclude = ('commitfests', 'mailthreads', 'modified', 'authors', 'reviewers', 'committer', 'wikilink', 'gitlink', 'lastmail', )
+		exclude = ('commitfests', 'mailthreads', 'modified', 'authors', 'reviewers', 'committer', 'wikilink', 'gitlink', 'lastmail', 'subscribers', )
 
 	def clean_threadmsgid(self):
 		try:
