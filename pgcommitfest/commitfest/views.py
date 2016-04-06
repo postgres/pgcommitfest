@@ -366,6 +366,12 @@ def comment(request, cfid, patchid, what):
 
 			msg['To'] = settings.HACKERS_EMAIL
 			msg['From'] = "%s %s <%s>" % (request.user.first_name, request.user.last_name, UserWrapper(request.user).email)
+
+			# CC the authors of a patch, if there are any
+			authors = list(patch.authors.all())
+			if len(authors):
+				msg['Cc'] = ", ".join(["%s %s <%s>" % (a.first_name, a.last_name, UserWrapper(a).email) for a in authors])
+
 			msg['Date'] = formatdate(localtime=True)
 			msg['User-Agent'] = 'pgcommitfest'
 			msg['X-cfsender'] = request.user.username
