@@ -48,10 +48,16 @@ if __name__ == "__main__":
 		url = "/message-id/attachment/%s/attach" % a.attachmentid
 		logging.debug("Checking attachment %s" % a.attachmentid)
 
-		h = httplib.HTTPConnection(settings.ARCHIVES_SERVER,
-								   settings.ARCHIVES_PORT,
-								   True,
-								   settings.ARCHIVES_TIMEOUT)
+		if settings.ARCHIVES_PORT != 443:
+			h = httplib.HTTPConnection(settings.ARCHIVES_SERVER,
+									   settings.ARCHIVES_PORT,
+									   True,
+									   settings.ARCHIVES_TIMEOUT)
+		else:
+			h = httplib.HTTPSConnection(settings.ARCHIVES_SERVER,
+									   settings.ARCHIVES_PORT,
+									   True,
+									   settings.ARCHIVES_TIMEOUT)
 		h.request('GET', url, headers={
 			'Host': settings.ARCHIVES_HOST,
 			})
