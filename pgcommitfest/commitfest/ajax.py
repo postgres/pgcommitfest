@@ -26,15 +26,15 @@ def _archivesAPI(suburl, params=None):
 	try:
 		socket.setdefaulttimeout(settings.ARCHIVES_TIMEOUT)
 		if settings.ARCHIVES_PORT != 443:
-			h = httplib.HTTPConnection(settings.ARCHIVES_SERVER,
-									   settings.ARCHIVES_PORT,
-									   True,
-									   settings.ARCHIVES_TIMEOUT)
+			h = httplib.HTTPConnection(host=settings.ARCHIVES_SERVER,
+									   port=settings.ARCHIVES_PORT,
+									   strict=True,
+									   timeout=settings.ARCHIVES_TIMEOUT)
 		else:
-			h = httplib.HTTPSConnection(settings.ARCHIVES_SERVER,
-									   settings.ARCHIVES_PORT,
-									   True,
-									   settings.ARCHIVES_TIMEOUT)
+			h = httplib.HTTPSConnection(host=settings.ARCHIVES_SERVER,
+									   port=settings.ARCHIVES_PORT,
+									   strict=True,
+									   timeout=settings.ARCHIVES_TIMEOUT)
 		if params:
 			url = "%s?%s" % (suburl, urllib.urlencode(params))
 		else:

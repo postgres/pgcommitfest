@@ -49,15 +49,15 @@ if __name__ == "__main__":
 		logging.debug("Checking attachment %s" % a.attachmentid)
 
 		if settings.ARCHIVES_PORT != 443:
-			h = httplib.HTTPConnection(settings.ARCHIVES_SERVER,
-									   settings.ARCHIVES_PORT,
-									   True,
-									   settings.ARCHIVES_TIMEOUT)
+			h = httplib.HTTPConnection(host=settings.ARCHIVES_SERVER,
+									   port=settings.ARCHIVES_PORT,
+									   strict=True,
+									   timeout=settings.ARCHIVES_TIMEOUT)
 		else:
-			h = httplib.HTTPSConnection(settings.ARCHIVES_SERVER,
-									   settings.ARCHIVES_PORT,
-									   True,
-									   settings.ARCHIVES_TIMEOUT)
+			h = httplib.HTTPSConnection(host=settings.ARCHIVES_SERVER,
+									   port=settings.ARCHIVES_PORT,
+									   strict=True,
+									   timeout=settings.ARCHIVES_TIMEOUT)
 		h.request('GET', url, headers={
 			'Host': settings.ARCHIVES_HOST,
 			})
