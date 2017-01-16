@@ -253,4 +253,4 @@ def main(request, command):
 		json.dump(_ajax_map[command](request), resp)
 		return resp
 	except Http503, e:
-		return HttpResponseServiceUnavailable(e, mimetype='text/plain')
+		return HttpResponseServiceUnavailable(e, content_type='text/plain')
