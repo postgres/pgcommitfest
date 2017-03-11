@@ -1,5 +1,7 @@
 from Crypto.Hash import SHA256
 from Crypto import Random
+from email.utils import formataddr
+from email.header import Header
 
 from models import UserProfile
 
@@ -29,3 +31,9 @@ class UserWrapper(object):
 				return self.user.email
 		except UserProfile.DoesNotExist:
 			return self.user.email
+
+	@property
+	def encoded_email_header(self):
+		return formataddr((
+			str(Header(u"%s %s" % (self.user.first_name, self.user.last_name), 'utf-8')),
+			self.email))

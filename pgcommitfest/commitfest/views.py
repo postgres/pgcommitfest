@@ -11,8 +11,7 @@ from django.conf import settings
 
 from datetime import datetime
 from email.mime.text import MIMEText
-from email.utils import formatdate, make_msgid, formataddr
-from email.header import Header
+from email.utils import formatdate, make_msgid
 
 from pgcommitfest.mailqueue.util import send_mail, send_simple_mail
 from pgcommitfest.userprofile.util import UserWrapper
@@ -366,12 +365,12 @@ def comment(request, cfid, patchid, what):
 				msg['Subject'] = 'Re: %s' % form.thread.subject
 
 			msg['To'] = settings.HACKERS_EMAIL
-			msg['From'] = formataddr((str(Header(u"%s %s" % (request.user.first_name, request.user.last_name), 'utf-8')), UserWrapper(request.user).email))
+			msg['From'] = UserWrapper(request.user).encoded_email_header
 
 			# CC the authors of a patch, if there are any
 			authors = list(patch.authors.all())
 			if len(authors):
-				msg['Cc'] = ", ".join(["%s %s <%s>" % (a.first_name, a.last_name, UserWrapper(a).email) for a in authors])
+				msg['Cc'] = ", ".join([UserWrapper(a).encoded_email_header for a in authors])
 
 			msg['Date'] = formatdate(localtime=True)
 			msg['User-Agent'] = 'pgcommitfest'
