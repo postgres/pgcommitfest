@@ -19,9 +19,14 @@
       <table class="table table-condensed" style="margin-bottom: 0px">
 	<thead>
 	  <tr>
-{%for f in form%}{%if not f.is_hidden%}
+{%for f in form%}
+         {%if not f.is_hidden%}
             <td>{{f.label}}</td>
-{%endif%}{%endfor%}
+	 {%else%}
+	    <td></td>
+	 {%endif%}
+{%endfor%}
+	    {%comment%} Add one extra for buttons {%endcomment%}
 	    <td></td>
 	  </tr>
 	</thead>
