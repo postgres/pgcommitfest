@@ -92,11 +92,11 @@
    <td style="white-space: nowrap;"><input type="checkbox" class="sender_checkbox" id="send_authors_{{p.id}}">Author<br/><input type="checkbox" class="sender_checkbox" id="send_reviewers_{{p.id}}">Reviewer</td>
 {%endif%}
   </tr>
-{%endfor%}
-{%if p%}
+{%if forloop.last%}
  </tbody>
 </table>
 {%endif%}
+{%endfor%}
 
 <div>
 {%if cf.isopen or user.is_staff %}
