@@ -100,7 +100,7 @@
              </table>
              {%endif%}
 	     {%endfor%}
-	     <button class="btn btn-xs btn-default" onclick="addAnnotation({{t.id}})">Add annotation</button>
+	     {%if user.is_authenticated%}<button class="btn btn-xs btn-default" onclick="addAnnotation({{t.id}})">Add annotation</button>{%endif%}
 	   </div>
 	 </dd>
 	{%endfor%}
