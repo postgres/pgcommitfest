@@ -5,7 +5,7 @@ function verify_returned() {
    return confirm('Are you sure you want to close this patch as Returned with Feedback?\n\nThis should be done if the patch is expected to be finished at some future time, but not necessarily in the next commitfest. If work is undergoing and expected in the next commitfest, it should instead be set to "Moved to next CF".\n\nSo - are you sure?');
 }
 function verify_next() {
-    return confirm('Are you sure you want to move this patch to the next commitfest?\n\nThis means the patch will be marked as closed in this commitfest, but will automaticalliy be moved to the next one. If no further work is expected on this patch, it should be closed with "Rejected" or "Returned with Feedback" instead.\n\nSo - are you sure?');
+    return confirm('Are you sure you want to move this patch to the next commitfest?\n\nThis means the patch will be marked as closed in this commitfest, but will automatically be moved to the next one. If no further work is expected on this patch, it should be closed with "Rejected" or "Returned with Feedback" instead.\n\nSo - are you sure?');
 }
 function findLatestThreads() {
    $('#attachThreadListWrap').addClass('loading');
