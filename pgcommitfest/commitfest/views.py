@@ -382,7 +382,13 @@ def comment(request, cfid, patchid, what):
 			msg['References'] = '<%s> <%s>' % (form.thread.messageid, form.respid)
 			msg['Message-ID'] = make_msgid('pgcf')
 
-			send_mail(UserWrapper(request.user).email, settings.HACKERS_EMAIL, msg.as_string())
+			uw = UserWrapper(request.user)
+			msgstring = msg.as_string()
+			send_mail(uw.email, settings.HACKERS_EMAIL, msgstring)
+			for a in authors:
+				# Actually send a copy directly to the author. Just setting the Cc field doesn't
+				# make it deliver the email...
+				send_mail(uw.email, UserWrapper(a).email, msgstring)
 
 			PatchHistory(patch=patch, by=request.user, what='Posted %s with messageid %s' % (what, msg['Message-ID'])).save()
 
