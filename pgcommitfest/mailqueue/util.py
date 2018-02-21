@@ -1,4 +1,3 @@
-from django.template import Context
 from django.template.loader import get_template
 
 from email.mime.text import MIMEText
@@ -42,5 +41,5 @@ def send_mail(sender, receiver, fullmsg):
 
 def send_template_mail(sender, senderaccountname, receiver, subject, templatename, templateattr={}, usergenerated=False):
 	send_simple_mail(sender, receiver, subject,
-					 get_template(templatename).render(Context(templateattr)),
+					 get_template(templatename).render(templateattr),
 					 senderaccountname)

@@ -1,5 +1,7 @@
-from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponseForbidden
+from django.views.decorators.csrf import csrf_exempt
 from django.template import RequestContext
 from django.db import transaction, connection
 from django.db.models import Q
@@ -27,14 +29,14 @@ def home(request):
 	opencf = next((c for c in commitfests if c.status == CommitFest.STATUS_OPEN), None)
 	inprogresscf = next((c for c in commitfests if c.status == CommitFest.STATUS_INPROGRESS), None)
 
-	return render_to_response('home.html', {
+	return render(request, 'home.html', {
 		'commitfests': commitfests,
 		'opencf': opencf,
 		'inprogresscf': inprogresscf,
 		'title': 'Commitfests',
 		'header_activity': 'Activity log',
 		'header_activity_link': '/activity/',
-		}, context_instance=RequestContext(request))
+		})
 
 
 def activity(request, cfid=None, rss=None):
@@ -69,14 +71,14 @@ def activity(request, cfid=None, rss=None):
 		return ActivityFeed(activity, cf)(request)
 	else:
 		# Return regular webpage
-		return render_to_response('activity.html', {
+		return render(request, 'activity.html', {
 			'commitfest': cf,
 			'activity': activity,
 			'title': cf and 'Commitfest activity' or 'Global Commitfest activity',
 			'rss_alternate': cf and '/{0}/activity.rss/'.format(cf.id) or '/activity.rss/',
 			'rss_alternate_title': 'PostgreSQL Commitfest Activity Log',
 			'breadcrumbs': cf and [{'title': cf.title, 'href': '/%s/' % cf.pk},] or None,
-		}, context_instance=RequestContext(request))
+		})
 
 def redir(request, what):
 	if what == 'open':
@@ -166,7 +168,7 @@ def commitfest(request, cfid):
 	# the user is logged in. XXX: Figure out how to avoid doing that..
 	form = CommitFestFilterForm(cf, request.GET)
 
-	return render_to_response('commitfest.html', {
+	return render(request, 'commitfest.html', {
 		'cf': cf,
 		'form': form,
 		'patches': patches,
@@ -178,7 +180,7 @@ def commitfest(request, cfid):
 		'openpatchids': [p.id for p in patches if p.is_open],
 		'header_activity': 'Activity log',
 		'header_activity_link': 'activity/',
-		}, context_instance=RequestContext(request))
+		})
 
 def global_search(request):
 	if not request.GET.has_key('searchterm'):
@@ -187,10 +189,10 @@ def global_search(request):
 
 	patches = Patch.objects.select_related().filter(name__icontains=searchterm).order_by('created',)
 
-	return render_to_response('patchsearch.html', {
+	return render(request, 'patchsearch.html', {
 		'patches': patches,
 		'title': 'Patch search results',
-		}, context_instance=RequestContext(request))
+		})
 
 def patch(request, cfid, patchid):
 	cf = get_object_or_404(CommitFest, pk=cfid)
@@ -216,7 +218,7 @@ def patch(request, cfid, patchid):
 		is_reviewer = False
 		is_subscribed = False
 
-	return render_to_response('patch.html', {
+	return render(request, 'patch.html', {
 		'cf': cf,
 		'patch': patch,
 		'patch_commitfests': patch_commitfests,
@@ -228,7 +230,7 @@ def patch(request, cfid, patchid):
 		'attachnow': request.GET.has_key('attachthreadnow'),
 		'title': patch.name,
 		'breadcrumbs': [{'title': cf.title, 'href': '/%s/' % cf.pk},],
-		}, context_instance=RequestContext(request))
+		})
 
 @login_required
 @transaction.atomic
@@ -259,14 +261,14 @@ def patchform(request, cfid, patchid):
 	else:
 		form = PatchForm(instance=patch)
 
-	return render_to_response('base_form.html', {
+	return render(request, 'base_form.html', {
 		'cf': cf,
 		'form': form,
 		'patch': patch,
 		'title': 'Edit patch',
 		'breadcrumbs': [{'title': cf.title, 'href': '/%s/' % cf.pk},
 						{'title': 'View patch', 'href': '/%s/%s/' % (cf.pk, patch.pk)}],
-	}, context_instance=RequestContext(request))
+	})
 
 @login_required
 @transaction.atomic
@@ -301,13 +303,13 @@ def newpatch(request, cfid):
 	else:
 		form = NewPatchForm()
 
-	return render_to_response('base_form.html', {
+	return render(request, 'base_form.html', {
 		'form': form,
 		'title': 'New patch',
 		'breadcrumbs': [{'title': cf.title, 'href': '/%s/' % cf.pk},],
 		'savebutton': 'Create patch',
 		'threadbrowse': True,
-	}, context_instance=RequestContext(request))
+	})
 
 def _review_status_string(reviewstatus):
 	if '0' in reviewstatus:
@@ -402,7 +404,7 @@ def comment(request, cfid, patchid, what):
 			messages.add_message(request, messages.ERROR, "Failed to build list of response options from the archives: %s" % e)
 			return HttpResponseRedirect('/%s/%s/' % (cf.id, patch.id))
 
-	return render_to_response('base_form.html', {
+	return render(request, 'base_form.html', {
 		'cf': cf,
 		'form': form,
 		'patch': patch,
@@ -412,7 +414,7 @@ def comment(request, cfid, patchid, what):
 		'title': "Add %s" % what,
 		'note': '<b>Note!</b> This form will generate an email to the public mailinglist <i>%s</i>, with sender set to <i>%s</i>!' % (settings.HACKERS_EMAIL, UserWrapper(request.user).email),
 		'savebutton': 'Send %s' % what,
-	}, context_instance=RequestContext(request))
+	})
 
 @login_required
 @transaction.atomic
@@ -653,10 +655,10 @@ def send_email(request, cfid):
 	if len(reviewers):
 		messages.add_message(request, messages.INFO, "The email will be sent to the following reviewers: %s" % ", ".join([_user_and_mail(u) for u in reviewers]))
 
-	return render_to_response('base_form.html', {
+	return render(request, 'base_form.html', {
 		'cf': cf,
 		'form': form,
 		'title': 'Send email',
 		'breadcrumbs': [{'title': cf.title, 'href': '/%s/' % cf.pk},],
 		'savebutton': 'Send email',
-	}, context_instance=RequestContext(request))
+	})

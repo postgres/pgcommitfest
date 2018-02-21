@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.http import Http404
 from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
@@ -38,9 +38,9 @@ ORDER BY last_name, first_name
 	'cid': cf.id,
 })
 
-	return render_to_response('report_authors.html', {
+	return render(request, 'report_authors.html', {
 		'cf': cf,
 		'report': cursor.fetchall(),
 		'title': 'Author stats',
 		'breadcrumbs': [{'title': cf.title, 'href': '/%s/' % cf.pk},],
-	}, context_instance=RequestContext(request))
+	})

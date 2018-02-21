@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.template import RequestContext
 from django.db import transaction
@@ -55,11 +55,11 @@ def userprofile(request):
 
 	extramails = UserExtraEmail.objects.filter(user=request.user)
 
-	return render_to_response('userprofileform.html', {
+	return render(request, 'userprofileform.html', {
 		'form': form,
 		'extramails': extramails,
 		'mailform': mailform,
-		}, context_instance=RequestContext(request))
+		})
 
 @login_required
 @transaction.atomic
