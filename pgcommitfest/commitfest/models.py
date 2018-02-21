@@ -261,7 +261,7 @@ class MailThread(models.Model):
 	# so we can keep track of when there was last a change on the
 	# thread in question.
 	messageid = models.CharField(max_length=1000, null=False, blank=False, unique=True)
-	patches = models.ManyToManyField(Patch, blank=False, null=False)
+	patches = models.ManyToManyField(Patch, blank=False)
 	subject = models.CharField(max_length=500, null=False, blank=False)
 	firstmessage = models.DateTimeField(null=False, blank=False)
 	firstauthor = models.CharField(max_length=500, null=False, blank=False)
