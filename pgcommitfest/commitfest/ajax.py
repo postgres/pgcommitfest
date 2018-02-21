@@ -79,6 +79,22 @@ def getMessages(request):
 	r = _archivesAPI('/message-id.json/%s' % thread.messageid)
 	return sorted(r, key=lambda x: x['date'], reverse=True)
 
+def refresh_single_thread(thread):
+	r = sorted(_archivesAPI('/message-id.json/%s' % thread.messageid), key=lambda x: x['date'])
+	if thread.latestmsgid != r[-1]['msgid']:
+		# There is now a newer mail in the thread!
+		thread.latestmsgid = r[-1]['msgid']
+		thread.latestmessage = r[-1]['date']
+		thread.latestauthor = r[-1]['from']
+		thread.latestsubject = r[-1]['subj']
+		thread.save()
+		parse_and_add_attachments(r, thread)
+		# Potentially update the last mail date - if there wasn't already a mail on each patch
+		# from a *different* thread that had an earlier date.
+		for p in thread.patches.filter(lastmail__lt=thread.latestmessage):
+			p.lastmail = thread.latestmessage
+			p.save()
+
 @transaction.atomic
 def annotateMessage(request):
 	thread = get_object_or_404(MailThread, pk=int(request.POST['t']))

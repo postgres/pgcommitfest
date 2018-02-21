@@ -163,6 +163,7 @@ ARCHIVES_TIMEOUT=10    # Seconds to wait for calls to the archives
 ARCHIVES_SERVER="localhost"
 ARCHIVES_PORT="8001"
 ARCHIVES_HOST="archives.postgresql.org"    # Host: header to send
+ARCHIVES_APIKEY=None
 
 # Email address to pgsql-hackers. Set to something local to test maybe?
 HACKERS_EMAIL="pgsql-hackers-testing@localhost"

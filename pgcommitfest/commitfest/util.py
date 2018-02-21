@@ -41,3 +41,4 @@ class DiffableModel(object):
 		fields = [field.name for field in self._meta.fields]
 		fields.extend([field.name for field in self._meta.many_to_many])
 		return model_to_dict(self, fields=fields)
+

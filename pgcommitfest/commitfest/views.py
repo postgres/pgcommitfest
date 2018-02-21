@@ -14,14 +14,16 @@ from django.conf import settings
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
+import json
 
 from pgcommitfest.mailqueue.util import send_mail, send_simple_mail
 from pgcommitfest.userprofile.util import UserWrapper
 
 from models import CommitFest, Patch, PatchOnCommitFest, PatchHistory, Committer
+from models import MailThread
 from forms import PatchForm, NewPatchForm, CommentForm, CommitFestFilterForm
 from forms import BulkEmailForm
-from ajax import doAttachThread
+from ajax import doAttachThread, refresh_single_thread
 from feeds import ActivityFeed
 
 def home(request):
@@ -662,3 +664,23 @@ def send_email(request, cfid):
 		'breadcrumbs': [{'title': cf.title, 'href': '/%s/' % cf.pk},],
 		'savebutton': 'Send email',
 	})
+
+
+@csrf_exempt
+def thread_notify(request):
+	if request.method != 'POST':
+		return HttpResponseForbidden("Invalid method")
+
+	j = json.loads(request.body)
+	if j['apikey'] != settings.ARCHIVES_APIKEY:
+		return HttpResponseForbidden("Invalid API key")
+
+	for m in j['messageids']:
+		try:
+			t = MailThread.objects.get(messageid=m)
+			refresh_single_thread(t)
+		except Exception, e:
+			# Just ignore it, we'll check again later
+			pass
+
+	return HttpResponse(status=200)
