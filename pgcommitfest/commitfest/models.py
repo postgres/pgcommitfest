@@ -80,10 +80,10 @@ class Patch(models.Model, DiffableModel):
 	commitfests = models.ManyToManyField(CommitFest, through='PatchOnCommitFest')
 
 	# If there is a wiki page discussing this patch
-	wikilink = models.URLField(blank=True, null=True, default='')
+	wikilink = models.URLField(blank=True, null=False, default='')
 
 	# If there is a git repo about this patch
-	gitlink = models.URLField(blank=True, null=True, default='')
+	gitlink = models.URLField(blank=True, null=False, default='')
 
 	# Mailthreads are ManyToMany in the other direction
 	#mailthreads_set = ...
