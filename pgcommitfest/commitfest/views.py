@@ -106,7 +106,12 @@ def commitfest(request, cfid):
 	# Build a dynamic filter based on the filtering options entered
 	q = Q()
 	if request.GET.has_key('status') and request.GET['status'] != "-1":
-		q = q & Q(patchoncommitfest__status=int(request.GET['status']))
+		try:
+			q = q & Q(patchoncommitfest__status=int(request.GET['status']))
+		except ValueError:
+			# int() failed -- so just ignore this filter
+			pass
+
 	if request.GET.has_key('author') and request.GET['author'] != "-1":
 		if request.GET['author'] == '-2':
 			q = q & Q(authors=None)
@@ -116,7 +121,12 @@ def commitfest(request, cfid):
 				return HttpResponseRedirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
 			q = q & Q(authors=request.user)
 		else:
-			q = q & Q(authors__id=int(request.GET['author']))
+			try:
+				q = q & Q(authors__id=int(request.GET['author']))
+			except ValueError:
+				# int() failed -- so just ignore this filter
+				pass
+
 	if request.GET.has_key('reviewer') and request.GET['reviewer'] != "-1":
 		if request.GET['reviewer'] == '-2':
 			q = q & Q(reviewers=None)
@@ -126,7 +136,11 @@ def commitfest(request, cfid):
 				return HttpResponseRedirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
 			q = q & Q(reviewers=request.user)
 		else:
-			q = q & Q(reviewers__id=int(request.GET['reviewer']))
+			try:
+				q = q & Q(reviewers__id=int(request.GET['reviewer']))
+			except ValueError:
+				# int() failed -- so just ignore this filter
+				pass
 
 	if request.GET.has_key('text') and request.GET['text'] != '':
 		q = q & Q(name__icontains=request.GET['text'])
@@ -136,7 +150,10 @@ def commitfest(request, cfid):
 	# Figure out custom ordering
 	ordering = ['-is_open', 'topic__topic', 'created',]
 	if request.GET.has_key('sortkey') and request.GET['sortkey']!='':
-		sortkey=int(request.GET['sortkey'])
+		try:
+			sortkey=int(request.GET['sortkey'])
+		except ValueError:
+			sortkey=0
 
 		if sortkey==1:
 			ordering = ['-is_open', 'modified', 'created',]
