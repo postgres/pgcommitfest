@@ -159,6 +159,8 @@ def commitfest(request, cfid):
 			ordering = ['-is_open', 'modified', 'created',]
 		elif sortkey==2:
 			ordering = ['-is_open', 'lastmail', 'created',]
+		elif sortkey==3:
+			ordering = ['-is_open', '-num_cfs', 'modified', 'created']
 		else:
 			sortkey=0
 	else:
@@ -173,6 +175,7 @@ def commitfest(request, cfid):
 		'author_names':"SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_authors cpa ON cpa.user_id=auth_user.id WHERE cpa.patch_id=commitfest_patch.id",
 		'reviewer_names':"SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_reviewers cpr ON cpr.user_id=auth_user.id WHERE cpr.patch_id=commitfest_patch.id",
 		'is_open':'commitfest_patchoncommitfest.status IN (%s)' % ','.join([str(x) for x in PatchOnCommitFest.OPEN_STATUSES]),
+		'num_cfs': 'SELECT count(1) FROM commitfest_patchoncommitfest pcf WHERE pcf.patch_id=commitfest_patch.id',
 	}).order_by(*ordering))
 
 	# Generate patch status summary.

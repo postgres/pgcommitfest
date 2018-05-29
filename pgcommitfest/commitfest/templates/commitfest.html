@@ -65,6 +65,7 @@
    <th>Author</th>
    <th>Reviewers</th>
    <th>Committer</th>
+   <th>{%if p.is_open%}<a href="#" style="color:#333333;" onclick="return sortpatches(3);">Num cfs</a>{%if sortkey == 3%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%endif%}{%else%}Num cfs{%endif%}</th>
    <th>{%if p.is_open%}<a href="#" style="color:#333333;" onclick="return sortpatches(1);">Latest activity</a>{%if sortkey == 1%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%endif%}{%else%}Latest activity{%endif%}</th>
    <th>{%if p.is_open%}<a href="#" style="color:#333333;" onclick="return sortpatches(2);">Latest mail</a>{%if sortkey == 2%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%endif%}{%else%}Latest mail{%endif%}</th>
 {%if user.is_staff%}
@@ -86,6 +87,7 @@
    <td>{{p.author_names|default:''}}</td>
    <td>{{p.reviewer_names|default:''}}</td>
    <td>{{p.committer|default:''}}</td>
+   <td>{{p.num_cfs}}</td>
    <td style="white-space: nowrap;">{{p.modified|date:"Y-m-d"}}<br/>{{p.modified|date:"H:i"}}</td>
    <td style="white-space: nowrap;">{{p.lastmail|date:"Y-m-d"}}<br/>{{p.lastmail|date:"H:i"}}</td>
 {%if user.is_staff%}
