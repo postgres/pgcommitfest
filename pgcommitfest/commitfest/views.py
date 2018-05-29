@@ -104,48 +104,55 @@ def commitfest(request, cfid):
 	cf = get_object_or_404(CommitFest, pk=cfid)
 
 	# Build a dynamic filter based on the filtering options entered
-	q = Q()
+	whereclauses = []
+	whereparams = {}
 	if request.GET.has_key('status') and request.GET['status'] != "-1":
 		try:
-			q = q & Q(patchoncommitfest__status=int(request.GET['status']))
+			whereclauses.append("poc.status=%(status)s")
+			whereparams['status'] = int(request.GET['status'])
 		except ValueError:
 			# int() failed -- so just ignore this filter
 			pass
 
 	if request.GET.has_key('author') and request.GET['author'] != "-1":
 		if request.GET['author'] == '-2':
-			q = q & Q(authors=None)
+			whereclauses.append("NOT EXISTS (SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id)")
 		elif request.GET['author'] == '-3':
 			# Checking for "yourself" requires the user to be logged in!
 			if not request.user.is_authenticated():
 				return HttpResponseRedirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
-			q = q & Q(authors=request.user)
+			whereclauses.append("EXISTS (SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s)")
+			whereparams['self'] = request.user.id
 		else:
 			try:
-				q = q & Q(authors__id=int(request.GET['author']))
+				whereclauses.append("EXISTS (SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(author)s)")
+				whereparams['author'] = int(request.GET['author'])
 			except ValueError:
 				# int() failed -- so just ignore this filter
 				pass
 
 	if request.GET.has_key('reviewer') and request.GET['reviewer'] != "-1":
 		if request.GET['reviewer'] == '-2':
-			q = q & Q(reviewers=None)
+			whereclauses.append("NOT EXISTS (SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id)")
 		elif request.GET['reviewer'] == '-3':
 			# Checking for "yourself" requires the user to be logged in!
 			if not request.user.is_authenticated():
 				return HttpResponseRedirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
-			q = q & Q(reviewers=request.user)
+			whereclauses.append("EXISTS (SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(self)s)")
+			whereparams['self'] = request.user.id
 		else:
 			try:
-				q = q & Q(reviewers__id=int(request.GET['reviewer']))
+				whereclauses.append("EXISTS (SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(reviewer)s)")
+				whereparams['reviewer'] = int(request.GET['reviewer'])
 			except ValueError:
 				# int() failed -- so just ignore this filter
 				pass
 
 	if request.GET.has_key('text') and request.GET['text'] != '':
-		q = q & Q(name__icontains=request.GET['text'])
+		whereclauses.append("p.name ILIKE '%%' || %(txt)s || '%%'")
+		whereparams['txt'] = request.GET['text']
 
-	has_filter = len(q.children) > 0
+	has_filter = len(whereclauses) > 0
 
 	# Figure out custom ordering
 	ordering = ['-is_open', 'topic__topic', 'created',]
@@ -156,27 +163,46 @@ def commitfest(request, cfid):
 			sortkey=0
 
 		if sortkey==1:
-			ordering = ['-is_open', 'modified', 'created',]
+			orderby_str = 'modified, created'
 		elif sortkey==2:
-			ordering = ['-is_open', 'lastmail', 'created',]
+			orderby_str = 'lastmail, created'
 		elif sortkey==3:
-			ordering = ['-is_open', '-num_cfs', 'modified', 'created']
+			orderby_str = 'num_cfs DESC, modified, created'
 		else:
+			orderby_str = 'p.id'
 			sortkey=0
 	else:
+		orderby_str = 'p.id'
 		sortkey = 0
 
 	if not has_filter and sortkey==0 and request.GET:
 		# Redirect to get rid of the ugly url
 		return HttpResponseRedirect('/%s/' % cf.id)
 
-	patches = list(cf.patch_set.filter(q).select_related().extra(select={
-		'status':'commitfest_patchoncommitfest.status',
-		'author_names':"SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_authors cpa ON cpa.user_id=auth_user.id WHERE cpa.patch_id=commitfest_patch.id",
-		'reviewer_names':"SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_reviewers cpr ON cpr.user_id=auth_user.id WHERE cpr.patch_id=commitfest_patch.id",
-		'is_open':'commitfest_patchoncommitfest.status IN (%s)' % ','.join([str(x) for x in PatchOnCommitFest.OPEN_STATUSES]),
-		'num_cfs': 'SELECT count(1) FROM commitfest_patchoncommitfest pcf WHERE pcf.patch_id=commitfest_patch.id',
-	}).order_by(*ordering))
+	if whereclauses:
+		where_str = 'AND ({0})'.format(' AND '.join(whereclauses))
+	else:
+		where_str = ''
+	params = {
+		'cid': cf.id,
+		'openstatuses': PatchOnCommitFest.OPEN_STATUSES,
+	}
+	params.update(whereparams)
+
+	# Let's not overload the poor django ORM
+	curs = connection.cursor()
+	curs.execute("""SELECT p.id, p.name, poc.status, p.created, p.modified, p.lastmail, committer.username AS committer,
+(poc.status=ANY(%(openstatuses)s)) AS is_open,
+(SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_authors cpa ON cpa.user_id=auth_user.id WHERE cpa.patch_id=p.id) AS author_names,
+(SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_reviewers cpr ON cpr.user_id=auth_user.id WHERE cpr.patch_id=p.id) AS reviewer_names,
+(SELECT count(1) FROM commitfest_patchoncommitfest pcf WHERE pcf.patch_id=p.id) AS num_cfs
+FROM commitfest_patch p
+INNER JOIN commitfest_patchoncommitfest poc ON poc.patch_id=p.id
+LEFT JOIN auth_user committer ON committer.id=p.committer_id
+WHERE poc.commitfest_id=%(cid)s {0}
+GROUP BY p.id, poc.id, committer.id
+ORDER BY is_open DESC, {1}""".format(where_str, orderby_str), params)
+	patches = [dict(zip([col[0] for col in curs.description], row)) for row in curs.fetchall()]
 
 	# Generate patch status summary.
 	curs = connection.cursor()
@@ -199,7 +225,7 @@ def commitfest(request, cfid):
 		'title': cf.title,
 		'grouping': sortkey==0,
 		'sortkey': sortkey,
-		'openpatchids': [p.id for p in patches if p.is_open],
+		'openpatchids': [p['id'] for p in patches if p['is_open']],
 		'header_activity': 'Activity log',
 		'header_activity_link': 'activity/',
 		})
