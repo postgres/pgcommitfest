@@ -108,8 +108,8 @@ def commitfest(request, cfid):
 	whereparams = {}
 	if request.GET.has_key('status') and request.GET['status'] != "-1":
 		try:
-			whereclauses.append("poc.status=%(status)s")
 			whereparams['status'] = int(request.GET['status'])
+			whereclauses.append("poc.status=%(status)s")
 		except ValueError:
 			# int() failed -- so just ignore this filter
 			pass
