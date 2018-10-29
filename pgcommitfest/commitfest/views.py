@@ -125,8 +125,8 @@ def commitfest(request, cfid):
 			whereparams['self'] = request.user.id
 		else:
 			try:
-				whereclauses.append("EXISTS (SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(author)s)")
 				whereparams['author'] = int(request.GET['author'])
+				whereclauses.append("EXISTS (SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(author)s)")
 			except ValueError:
 				# int() failed -- so just ignore this filter
 				pass
@@ -142,8 +142,8 @@ def commitfest(request, cfid):
 			whereparams['self'] = request.user.id
 		else:
 			try:
-				whereclauses.append("EXISTS (SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(reviewer)s)")
 				whereparams['reviewer'] = int(request.GET['reviewer'])
+				whereclauses.append("EXISTS (SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(reviewer)s)")
 			except ValueError:
 				# int() failed -- so just ignore this filter
 				pass
