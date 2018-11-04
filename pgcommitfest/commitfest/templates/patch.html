@@ -131,7 +131,7 @@
 	</table>
 	</div>
 	{%if user.is_authenticated%}
-	<a href="{{is_subscribed|yesno:"unsubscribe,subscribe"}}/" class="btn btn-default">{{is_subscribed|yesno:"Unsubscribe,Subscribe"}}</a>
+	<a href="{{is_subscribed|yesno:"unsubscribe,subscribe"}}/" class="btn btn-default">{{is_subscribed|yesno:"Unsubscribe from patch update emails,Subscribe to patch update emails"}}</a>
 	{%endif%}
       </td>
     </tr>
