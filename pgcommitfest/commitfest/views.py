@@ -442,7 +442,7 @@ def comment(request, cfid, patchid, what):
 
 			PatchHistory(patch=patch, by=request.user, what='Posted %s with messageid %s' % (what, msg['Message-ID'])).save()
 
-			messages.add_message(request, messages.INFO, "Your email has been queued for pgsql-hackers, and will be sent within a few minutes.")
+			messages.add_message(request, messages.INFO, "Your email has been queued for %s, and will be sent within a few minutes." % (settings.HACKERS_EMAIL))
 
 			return HttpResponseRedirect('/%s/%s/' % (cf.id, patch.id))
 	else:
