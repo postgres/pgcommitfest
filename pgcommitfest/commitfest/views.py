@@ -460,7 +460,7 @@ def comment(request, cfid, patchid, what):
 		'breadcrumbs': [{'title': cf.title, 'href': '/%s/' % cf.pk},
 						{'title': 'View patch', 'href': '/%s/%s/' % (cf.pk, patch.pk)}],
 		'title': "Add %s" % what,
-		'note': '<b>Note!</b> This form will generate an email to the public mailinglist <i>%s</i>, with sender set to <i>%s</i>!' % (settings.HACKERS_EMAIL, UserWrapper(request.user).email),
+		'note': '<b>Note!</b> This form will generate an email to the public mailinglist <i>%s</i>, with sender set to <i>%s</i>!<br/>Please ensure that the email settings for your domain (<a href="https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail" target="_blank">DKIM</a>, <a href="https://en.wikipedia.org/wiki/SPF" target="_blank">SPF</a>) allow emails from external sources.' % (settings.HACKERS_EMAIL, UserWrapper(request.user).email),
 		'savebutton': 'Send %s' % what,
 	})
 
