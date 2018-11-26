@@ -2,7 +2,7 @@
 <a class="btn btn-default" href="edit/">Edit</a>
 
 <div class="btn-group">
- <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">Comment <span class="caret"></span></a>
+ <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">Comment/Review <span class="caret"></span></a>
  <ul class="dropdown-menu">
   <li><a href="comment/">Comment</a>
   <li><a href="review/">Review</a>
@@ -10,7 +10,7 @@
 </div>
 
 <div class="btn-group">
- <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">Status <span class="caret"></span></a>
+ <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">Change Status <span class="caret"></span></a>
  <ul class="dropdown-menu" role="menu">
   <li role="presentation" class="dropdown-header">Open statuses</li>
   <li role="presentation"><a href="status/review/">Needs review</a></li>
