@@ -93,8 +93,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=500, verbose_name=b'Description')),
-                ('wikilink', models.URLField(default=b'', null=True, blank=True)),
-                ('gitlink', models.URLField(default=b'', null=True, blank=True)),
+                ('wikilink', models.URLField(default=b'', null=False, blank=True)),
+                ('gitlink', models.URLField(default=b'', null=False, blank=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('modified', models.DateTimeField()),
                 ('lastmail', models.DateTimeField(null=True, blank=True)),
