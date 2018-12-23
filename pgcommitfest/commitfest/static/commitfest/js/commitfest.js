@@ -1,6 +1,9 @@
 function verify_reject() {
    return confirm('Are you sure you want to close this patch as Rejected?\n\nThis should only be done when a patch will never be applied - if more work is needed, it should instead be set to "Returned with Feedback" or "Moved to next CF".\n\nSo - are you sure?');
 }
+function verify_withdrawn() {
+   return confirm('Are you sure you want to close this patch as Withdrawn?\n\nThis should only be done when the author voluntarily withdraws the patch.\n\nSo - are you sure?');
+}
 function verify_returned() {
    return confirm('Are you sure you want to close this patch as Returned with Feedback?\n\nThis should be done if the patch is expected to be finished at some future time, but not necessarily in the next commitfest. If work is undergoing and expected in the next commitfest, it should instead be set to "Moved to next CF".\n\nSo - are you sure?');
 }

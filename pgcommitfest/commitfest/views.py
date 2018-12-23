@@ -520,6 +520,8 @@ def close(request, cfid, patchid, status):
 	# need to check if the individual status has changed.
 	if status == 'reject':
 		poc.status = PatchOnCommitFest.STATUS_REJECTED
+	elif status == 'withdrawn':
+		poc.status = PatchOnCommitFest.STATUS_WITHDRAWN
 	elif status == 'feedback':
 		poc.status = PatchOnCommitFest.STATUS_RETURNED
 	elif status == 'next':

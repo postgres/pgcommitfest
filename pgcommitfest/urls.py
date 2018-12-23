@@ -21,7 +21,7 @@ urlpatterns = [
     url(r'^(\d+)/(\d+)/edit/$', views.patchform),
     url(r'^(\d+)/new/$', views.newpatch),
     url(r'^(\d+)/(\d+)/status/(review|author|committer)/$', views.status),
-    url(r'^(\d+)/(\d+)/close/(reject|feedback|committed|next)/$', views.close),
+    url(r'^(\d+)/(\d+)/close/(reject|withdrawn|feedback|committed|next)/$', views.close),
     url(r'^(\d+)/(\d+)/reviewer/(become|remove)/$', views.reviewer),
     url(r'^(\d+)/(\d+)/committer/(become|remove)/$', views.committer),
     url(r'^(\d+)/(\d+)/(un)?subscribe/$', views.subscribe),
