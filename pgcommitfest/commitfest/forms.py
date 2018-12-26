@@ -28,7 +28,7 @@ class CommitFestFilterForm(forms.Form):
 		self.fields['status'] = forms.ChoiceField(choices=c, required=False)
 
 		q = Q(patch_author__commitfests=cf) | Q(patch_reviewer__commitfests=cf)
-		userchoices = [(-1, '* All'), (-2, '* None'), (-3, '* Yourself') ] + [(u.id, '%s %s (%s)' % (u.first_name, u.last_name, u.username)) for u in User.objects.filter(q).distinct().order_by('last_name', 'first_name')]
+		userchoices = [(-1, '* All'), (-2, '* None'), (-3, '* Yourself') ] + [(u.id, '%s %s (%s)' % (u.first_name, u.last_name, u.username)) for u in User.objects.filter(q).distinct().order_by('first_name', 'last_name')]
 		self.fields['author'] = forms.ChoiceField(choices=userchoices, required=False)
 		self.fields['reviewer'] = forms.ChoiceField(choices=userchoices, required=False)
 
