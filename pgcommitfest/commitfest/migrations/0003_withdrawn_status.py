@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name='status',
             field=models.IntegerField(default=1, choices=[(1, b'Needs review'), (2, b'Waiting on Author'), (3, b'Ready for Committer'), (4, b'Committed'), (5, b'Moved to next CF'), (6, b'Rejected'), (7, b'Returned with feedback'), (8, b'Withdrawn')]),
         ),
-		migrations.RunSQL("""
+        migrations.RunSQL("""
 INSERT INTO commitfest_patchstatus (status, statusstring, sortkey) VALUES
 (1,'Needs review',10),
 (2,'Waiting on Author',15),
@@ -28,5 +28,5 @@ INSERT INTO commitfest_patchstatus (status, statusstring, sortkey) VALUES
 (8,'Withdrawn', 50)
 ON CONFLICT (status) DO UPDATE SET statusstring=excluded.statusstring, sortkey=excluded.sortkey;
 """),
-		migrations.RunSQL("DELETE FROM commitfest_patchstatus WHERE status < 1 OR status > 8"),
+        migrations.RunSQL("DELETE FROM commitfest_patchstatus WHERE status < 1 OR status > 8"),
     ]

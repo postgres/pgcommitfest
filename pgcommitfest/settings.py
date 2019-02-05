@@ -6,7 +6,7 @@ TEMPLATE_DEBUG = DEBUG
 ALLOWED_HOSTS = ['*']
 
 ADMINS = (
-	('webmaster@postgresql.org', 'webmaster@postgresql.org'),
+    ('webmaster@postgresql.org', 'webmaster@postgresql.org'),
 )
 
 MANAGERS = ADMINS
@@ -98,19 +98,19 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'pgcommitfest.urls'
 
 TEMPLATES = [{
-	'BACKEND': 'django.template.backends.django.DjangoTemplates',
-	'DIRS': ['global_templates'],
-	'OPTIONS': {
-		'context_processors': [
-			'django.template.context_processors.request',
-			'django.contrib.auth.context_processors.auth',
-			'django.contrib.messages.context_processors.messages',
-		],
-		'loaders': [
-			'django.template.loaders.filesystem.Loader',
-			'django.template.loaders.app_directories.Loader',
-		],
-	},
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': ['global_templates'],
+    'OPTIONS': {
+        'context_processors': [
+            'django.template.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'django.contrib.messages.context_processors.messages',
+        ],
+        'loaders': [
+            'django.template.loaders.filesystem.Loader',
+            'django.template.loaders.app_directories.Loader',
+        ],
+    },
 }]
 
 INSTALLED_APPS = (
@@ -123,10 +123,10 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
-	'pgcommitfest.selectable',
-	'pgcommitfest.commitfest',
-	'pgcommitfest.mailqueue',
-	'pgcommitfest.userprofile',
+    'pgcommitfest.selectable',
+    'pgcommitfest.commitfest',
+    'pgcommitfest.mailqueue',
+    'pgcommitfest.userprofile',
 )
 
 AUTHENTICATION_BACKENDS = (
