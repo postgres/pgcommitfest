@@ -1,5 +1,6 @@
 from django.contrib.syndication.views import Feed
 
+
 class ActivityFeed(Feed):
     title = description = 'Commitfest Activity Log'
     link = 'https://commitfest.postgresql.org/'
@@ -30,7 +31,7 @@ class ActivityFeed(Feed):
 
     def item_link(self, item):
         if self.cfid:
-            return 'https://commitfest.postgresql.org/{cfid}/{patchid}/'.format(cfid=self.cfid,**item)
+            return 'https://commitfest.postgresql.org/{cfid}/{patchid}/'.format(cfid=self.cfid, **item)
         else:
             return 'https://commitfest.postgresql.org/{cfid}/{patchid}/'.format(**item)
 

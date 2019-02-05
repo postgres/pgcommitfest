@@ -13,7 +13,7 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'pgcommitfest',                      # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
@@ -81,7 +81,6 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -157,25 +156,25 @@ LOGGING = {
     }
 }
 
-DATE_FORMAT='Y-m-d'
-DATETIME_FORMAT='Y-m-d H:i:s'
+DATE_FORMAT = 'Y-m-d'
+DATETIME_FORMAT = 'Y-m-d H:i:s'
 
-LOGIN_URL='/account/login/'
+LOGIN_URL = '/account/login/'
 
-ARCHIVES_TIMEOUT=10    # Seconds to wait for calls to the archives
-ARCHIVES_SERVER="localhost"
-ARCHIVES_PORT="8001"
-ARCHIVES_HOST="archives.postgresql.org"    # Host: header to send
-ARCHIVES_APIKEY=None
+ARCHIVES_TIMEOUT = 10    # Seconds to wait for calls to the archives
+ARCHIVES_SERVER = "localhost"
+ARCHIVES_PORT = "8001"
+ARCHIVES_HOST = "archives.postgresql.org"    # Host: header to send
+ARCHIVES_APIKEY = None
 
 # Email address to pgsql-hackers. Set to something local to test maybe?
-HACKERS_EMAIL="pgsql-hackers-testing@localhost"
+HACKERS_EMAIL = "pgsql-hackers-testing@localhost"
 
 # Email address for outgoing system messages
-NOTIFICATION_FROM="webmaster@postgresql.org"
+NOTIFICATION_FROM = "webmaster@postgresql.org"
 
 # Load local settings overrides
 try:
-       from local_settings import *
+    from local_settings import *
 except ImportError:
-       pass
+    pass

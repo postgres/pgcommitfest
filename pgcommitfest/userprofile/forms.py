@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 from models import UserProfile, UserExtraEmail
 
+
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
@@ -12,10 +13,11 @@ class UserProfileForm(forms.ModelForm):
         super(UserProfileForm, self).__init__(*args, **kwargs)
         self.user = user
 
-        self.fields['selectedemail'].empty_label=self.user.email
-        self.fields['selectedemail'].queryset=UserExtraEmail.objects.filter(user=self.user, confirmed=True)
-        self.fields['notifyemail'].empty_label=self.user.email
-        self.fields['notifyemail'].queryset=UserExtraEmail.objects.filter(user=self.user, confirmed=True)
+        self.fields['selectedemail'].empty_label = self.user.email
+        self.fields['selectedemail'].queryset = UserExtraEmail.objects.filter(user=self.user, confirmed=True)
+        self.fields['notifyemail'].empty_label = self.user.email
+        self.fields['notifyemail'].queryset = UserExtraEmail.objects.filter(user=self.user, confirmed=True)
+
 
 class MailForm(forms.Form):
     email = forms.EmailField()
@@ -32,7 +34,7 @@ class MailForm(forms.Form):
     def clean_email2(self):
         # If the primary email checker had an exception, the data will be gone
         # from the cleaned_data structure
-        if not self.cleaned_data.has_key('email'):
+        if 'email' not in self.cleaned_data:
             return self.cleaned_data['email2']
         email1 = self.cleaned_data['email']
         email2 = self.cleaned_data['email2']

@@ -12,6 +12,7 @@ from lookups import UserLookup
 from widgets import ThreadPickWidget
 from ajax import _archivesAPI
 
+
 class CommitFestFilterForm(forms.Form):
     text = forms.CharField(max_length=50, required=False)
     status = forms.ChoiceField(required=False)
@@ -28,12 +29,13 @@ class CommitFestFilterForm(forms.Form):
         self.fields['status'] = forms.ChoiceField(choices=c, required=False)
 
         q = Q(patch_author__commitfests=cf) | Q(patch_reviewer__commitfests=cf)
-        userchoices = [(-1, '* All'), (-2, '* None'), (-3, '* Yourself') ] + [(u.id, '%s %s (%s)' % (u.first_name, u.last_name, u.username)) for u in User.objects.filter(q).distinct().order_by('first_name', 'last_name')]
+        userchoices = [(-1, '* All'), (-2, '* None'), (-3, '* Yourself')] + [(u.id, '%s %s (%s)' % (u.first_name, u.last_name, u.username)) for u in User.objects.filter(q).distinct().order_by('first_name', 'last_name')]
         self.fields['author'] = forms.ChoiceField(choices=userchoices, required=False)
         self.fields['reviewer'] = forms.ChoiceField(choices=userchoices, required=False)
 
         for f in ('status', 'author', 'reviewer',):
             self.fields[f].widget.attrs = {'class': 'input-medium'}
+
 
 class PatchForm(forms.ModelForm):
     class Meta:
@@ -68,11 +70,12 @@ class NewPatchForm(forms.ModelForm):
             raise ValidationError("Error in API call to validate thread")
         return self.cleaned_data['threadmsgid']
 
+
 def _fetch_thread_choices(patch):
     for mt in patch.mailthread_set.order_by('-latestmessage'):
         ti = sorted(_archivesAPI('/message-id.json/%s' % mt.messageid), key=lambda x: x['date'], reverse=True)
         yield [mt.subject,
-               [('%s,%s' % (mt.messageid, t['msgid']),'From %s at %s' % (t['from'], t['date'])) for t in ti]]
+               [('%s,%s' % (mt.messageid, t['msgid']), 'From %s at %s' % (t['from'], t['date'])) for t in ti]]
 
 
 review_state_choices = (
@@ -80,8 +83,10 @@ review_state_choices = (
     (1, 'Passed'),
 )
 
+
 def reviewfield(label):
     return forms.MultipleChoiceField(choices=review_state_choices, label=label, widget=forms.CheckboxSelectMultiple, required=False)
+
 
 class CommentForm(forms.Form):
     responseto = forms.ChoiceField(choices=[], required=True, label='In response to')
@@ -120,11 +125,12 @@ class CommentForm(forms.Form):
 
     def clean(self):
         if self.is_review:
-            for fn,f in self.fields.items():
-                if fn.startswith('review_') and self.cleaned_data.has_key(fn):
-                    if '1' in self.cleaned_data[fn] and not '0' in self.cleaned_data[fn]:
+            for fn, f in self.fields.items():
+                if fn.startswith('review_') and fn in self.cleaned_data:
+                    if '1' in self.cleaned_data[fn] and '0' not in self.cleaned_data[fn]:
                         self.errors[fn] = (('Cannot pass a test without performing it!'),)
         return self.cleaned_data
+
 
 class BulkEmailForm(forms.Form):
     reviewers = forms.CharField(required=False, widget=HiddenInput())

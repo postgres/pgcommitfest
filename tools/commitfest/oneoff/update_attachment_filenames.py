@@ -27,53 +27,53 @@ from django.db import connection
 from commitfest.models import MailThreadAttachment
 
 if __name__ == "__main__":
-	debug = "--debug" in sys.argv
+    debug = "--debug" in sys.argv
 
-	# Logging always done to stdout, but we can turn on/off how much
-	logging.basicConfig(format='%(asctime)s %(levelname)s: %(msg)s',
-						level=debug and logging.DEBUG or logging.INFO,
-						stream=sys.stdout)
+    # Logging always done to stdout, but we can turn on/off how much
+    logging.basicConfig(format='%(asctime)s %(levelname)s: %(msg)s',
+                        level=debug and logging.DEBUG or logging.INFO,
+                        stream=sys.stdout)
 
-	socket.setdefaulttimeout(settings.ARCHIVES_TIMEOUT)
-	mag = magic.open(magic.MIME)
-	mag.load()
+    socket.setdefaulttimeout(settings.ARCHIVES_TIMEOUT)
+    mag = magic.open(magic.MIME)
+    mag.load()
 
-	logging.info("Fetching attachment filenames from archives")
+    logging.info("Fetching attachment filenames from archives")
 
-	for a in MailThreadAttachment.objects.filter(filename=""):
-		url = "/message-id.json/%s" % a.messageid
-		logging.debug("Checking attachment %s" % a.attachmentid)
+    for a in MailThreadAttachment.objects.filter(filename=""):
+        url = "/message-id.json/%s" % a.messageid
+        logging.debug("Checking attachment %s" % a.attachmentid)
 
-		h = httplib.HTTPConnection(settings.ARCHIVES_SERVER,
-								   settings.ARCHIVES_PORT,
-								   True,
-								   settings.ARCHIVES_TIMEOUT)
-		h.request('GET', url, headers={
-			'Host': settings.ARCHIVES_HOST,
-			})
-		resp = h.getresponse()
-		if resp.status != 200:
-			logging.error("Failed to get %s: %s" % (url, resp.status))
-			continue
+        h = httplib.HTTPConnection(settings.ARCHIVES_SERVER,
+                                   settings.ARCHIVES_PORT,
+                                   True,
+                                   settings.ARCHIVES_TIMEOUT)
+        h.request('GET', url, headers={
+            'Host': settings.ARCHIVES_HOST,
+        })
+        resp = h.getresponse()
+        if resp.status != 200:
+            logging.error("Failed to get %s: %s" % (url, resp.status))
+            continue
 
-		contents = resp.read()
-		resp.close()
-		h.close()
+        contents = resp.read()
+        resp.close()
+        h.close()
 
-		obj = simplejson.loads(contents)
+        obj = simplejson.loads(contents)
 
-		try:
-			for msg in obj:
-				for att in msg['atts']:
-					if att['id'] == a.attachmentid:
-						print "id %s, att id %s, filename %s" % (a.id, a.attachmentid, att['name'])
-						a.filename = att['name']
-						a.save()
-						raise StopIteration
-			logging.error("No match found for attachmentid %s" % a.attachmentid)
-		except StopIteration:
-			# Success
-			pass
+        try:
+            for msg in obj:
+                for att in msg['atts']:
+                    if att['id'] == a.attachmentid:
+                        print "id %s, att id %s, filename %s" % (a.id, a.attachmentid, att['name'])
+                        a.filename = att['name']
+                        a.save()
+                        raise StopIteration
+            logging.error("No match found for attachmentid %s" % a.attachmentid)
+        except StopIteration:
+            # Success
+            pass
 
-	connection.close()
-	logging.debug("Done.")
+    connection.close()
+    logging.debug("Done.")

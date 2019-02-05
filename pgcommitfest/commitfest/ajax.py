@@ -10,27 +10,30 @@ import requests
 import json
 
 from pgcommitfest.auth import user_search
+from models import CommitFest, Patch, MailThread, MailThreadAttachment
+from models import MailThreadAnnotation, PatchHistory
 
-class HttpResponseServiceUnavailable(HttpResponse): 
+
+class HttpResponseServiceUnavailable(HttpResponse):
     status_code = 503
+
 
 class Http503(Exception):
     pass
 
-from models import CommitFest, Patch, MailThread, MailThreadAttachment
-from models import MailThreadAnnotation, PatchHistory
 
 def _archivesAPI(suburl, params=None):
     try:
-        resp = requests.get("http{0}://{1}:{2}{3}".format(settings.ARCHIVES_PORT == 443 and 's' or '',
-                                                          settings.ARCHIVES_SERVER,
-                                                          settings.ARCHIVES_PORT,
-                                                          suburl),
-                            params=params,
-                            headers={
-                                'Host': settings.ARCHIVES_HOST,
-                            },
-                            timeout=settings.ARCHIVES_TIMEOUT,
+        resp = requests.get(
+            "http{0}://{1}:{2}{3}".format(settings.ARCHIVES_PORT == 443 and 's' or '',
+                                          settings.ARCHIVES_SERVER,
+                                          settings.ARCHIVES_PORT,
+                                          suburl),
+            params=params,
+            headers={
+                'Host': settings.ARCHIVES_HOST,
+            },
+            timeout=settings.ARCHIVES_TIMEOUT,
         )
         if resp.status_code != 200:
             if resp.status_code == 404:
@@ -43,9 +46,10 @@ def _archivesAPI(suburl, params=None):
     except Exception as e:
         raise Http503("Failed to communicate with archives backend: %s" % e)
 
+
 def getThreads(request):
-    search = request.GET.has_key('s') and request.GET['s'] or None
-    if request.GET.has_key('a') and request.GET['a'] == "1":
+    search = request.GET.get('s', None)
+    if request.GET.get('a', '0') == '1':
         attachonly = 1
     else:
         attachonly = 0
@@ -58,6 +62,7 @@ def getThreads(request):
     r = _archivesAPI('/list/pgsql-hackers/latest.json', params)
     return sorted(r, key=lambda x: x['date'], reverse=True)
 
+
 def getMessages(request):
     threadid = request.GET['t']
 
@@ -66,6 +71,7 @@ def getMessages(request):
     # Always make a call over to the archives api
     r = _archivesAPI('/message-id.json/%s' % thread.messageid)
     return sorted(r, key=lambda x: x['date'], reverse=True)
+
 
 def refresh_single_thread(thread):
     r = sorted(_archivesAPI('/message-id.json/%s' % thread.messageid), key=lambda x: x['date'])
@@ -82,6 +88,7 @@ def refresh_single_thread(thread):
         for p in thread.patches.filter(lastmail__lt=thread.latestmessage):
             p.lastmail = thread.latestmessage
             p.save()
+
 
 @transaction.atomic
 def annotateMessage(request):
@@ -112,6 +119,7 @@ def annotateMessage(request):
             return 'OK'
     return 'Message not found in thread!'
 
+
 @transaction.atomic
 def deleteAnnotation(request):
     annotation = get_object_or_404(MailThreadAnnotation, pk=request.POST['id'])
@@ -124,6 +132,7 @@ def deleteAnnotation(request):
     annotation.delete()
 
     return 'OK'
+
 
 def parse_and_add_attachments(threadinfo, mailthread):
     for t in threadinfo:
@@ -142,6 +151,7 @@ def parse_and_add_attachments(threadinfo, mailthread):
         # In theory we should remove objects if they don't have an
         # attachment, but how could that ever happen? Ignore for now.
 
+
 @transaction.atomic
 def attachThread(request):
     cf = get_object_or_404(CommitFest, pk=int(request.POST['cf']))
@@ -149,6 +159,7 @@ def attachThread(request):
     msgid = request.POST['msg']
 
     return doAttachThread(cf, patch, msgid, request.user)
+
 
 def doAttachThread(cf, patch, msgid, user):
     # Note! Must be called in an open transaction!
@@ -166,10 +177,10 @@ def doAttachThread(cf, patch, msgid, user):
         # While at it, we update the thread entry with the latest data from the
         # archives.
         thread.patches.add(patch)
-        thread.latestmessage=r[-1]['date']
-        thread.latestauthor=r[-1]['from']
-        thread.latestsubject=r[-1]['subj']
-        thread.latestmsgid=r[-1]['msgid']
+        thread.latestmessage = r[-1]['date']
+        thread.latestauthor = r[-1]['from']
+        thread.latestsubject = r[-1]['subj']
+        thread.latestmsgid = r[-1]['msgid']
         thread.save()
     else:
         # No existing thread existed, so create it
@@ -195,6 +206,7 @@ def doAttachThread(cf, patch, msgid, user):
 
     return 'OK'
 
+
 @transaction.atomic
 def detachThread(request):
     cf = get_object_or_404(CommitFest, pk=int(request.POST['cf']))
@@ -209,16 +221,18 @@ def detachThread(request):
 
     return 'OK'
 
+
 def searchUsers(request):
-    if request.GET.has_key('s') and request.GET['s']:
+    if request.GET.get('s', ''):
         return user_search(request.GET['s'])
     else:
         return []
 
+
 def importUser(request):
-    if request.GET.has_key('u') and request.GET['u']:
+    if request.GET.get('u', ''):
         u = user_search(userid=request.GET['u'])
-        if len (u) != 1:
+        if len(u) != 1:
             return "Internal error, duplicate user found"
 
         u = u[0]
@@ -235,7 +249,8 @@ def importUser(request):
     else:
         raise Http404()
 
-_ajax_map={
+
+_ajax_map = {
     'getThreads': getThreads,
     'getMessages': getMessages,
     'attachThread': attachThread,
@@ -246,11 +261,12 @@ _ajax_map={
     'importUser': importUser,
 }
 
+
 # Main entrypoint for /ajax/<command>/
 @csrf_exempt
 @login_required
 def main(request, command):
-    if not _ajax_map.has_key(command):
+    if command not in _ajax_map:
         raise Http404
     try:
         resp = HttpResponse(content_type='application/json')

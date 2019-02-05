@@ -35,6 +35,7 @@ from Crypto.Hash import SHA
 from Crypto import Random
 import time
 
+
 class AuthBackend(ModelBackend):
     # We declare a fake backend that always fails direct authentication -
     # since we should never be using direct authentication in the first place!
@@ -48,7 +49,7 @@ class AuthBackend(ModelBackend):
 
 # Handle login requests by sending them off to the main site
 def login(request):
-    if request.GET.has_key('next'):
+    if 'next' in request.GET:
         # Put together an url-encoded dict of parameters we're getting back,
         # including a small nonce at the beginning to make sure it doesn't
         # encrypt the same way every time.
@@ -57,15 +58,16 @@ def login(request):
         r = Random.new()
         iv = r.read(16)
         encryptor = AES.new(SHA.new(settings.SECRET_KEY).digest()[:16], AES.MODE_CBC, iv)
-        cipher = encryptor.encrypt(s + ' ' * (16-(len(s) % 16))) # pad to 16 bytes
+        cipher = encryptor.encrypt(s + ' ' * (16 - (len(s) % 16)))  # pad to 16 bytes
 
         return HttpResponseRedirect("%s?d=%s$%s" % (
-                settings.PGAUTH_REDIRECT,
-                base64.b64encode(iv, "-_"),
-                base64.b64encode(cipher, "-_"),
-                ))
+            settings.PGAUTH_REDIRECT,
+            base64.b64encode(iv, "-_"),
+            base64.b64encode(cipher, "-_"),
+        ))
     else:
         return HttpResponseRedirect(settings.PGAUTH_REDIRECT)
+
 
 # Handle logout requests by logging out of this site and then
 # redirecting to log out from the main site as well.
@@ -74,16 +76,17 @@ def logout(request):
         django_logout(request)
     return HttpResponseRedirect("%slogout/" % settings.PGAUTH_REDIRECT)
 
+
 # Receive an authentication response from the main website and try
 # to log the user in.
 def auth_receive(request):
-    if request.GET.has_key('s') and request.GET['s'] == "logout":
+    if request.GET.get('s', '') == 'logout':
         # This was a logout request
         return HttpResponseRedirect('/')
 
-    if not request.GET.has_key('i'):
+    if 'i' not in request.GET:
         return HttpResponse("Missing IV in url!", status=400)
-    if not request.GET.has_key('d'):
+    if 'd' not in request.GET:
         return HttpResponse("Missing data in url!", status=400)
 
     # Set up an AES object and decrypt the data we received
@@ -115,7 +118,7 @@ def auth_receive(request):
             changed = True
         if user.email != data['e'][0]:
             user.email = data['e'][0]
-            changed= True
+            changed = True
         if changed:
             user.save()
     except User.DoesNotExist:
@@ -153,7 +156,7 @@ We apologize for the inconvenience.
 
     # Finally, check of we have a data package that tells us where to
     # redirect the user.
-    if data.has_key('d'):
+    if 'd' in data:
         (ivs, datas) = data['d'][0].split('$')
         decryptor = AES.new(SHA.new(settings.SECRET_KEY).digest()[:16],
                             AES.MODE_CBC,
@@ -163,7 +166,7 @@ We apologize for the inconvenience.
             rdata = urlparse.parse_qs(s, strict_parsing=True)
         except ValueError:
             return HttpResponse("Invalid encrypted data received.", status=400)
-        if rdata.has_key('r'):
+        if 'r' in rdata:
             # Redirect address
             return HttpResponseRedirect(rdata['r'][0])
     # No redirect specified, see if we have it in our settings
@@ -191,7 +194,7 @@ def user_search(searchterm=None, userid=None):
     u = urllib.urlopen('%ssearch/?%s' % (
         settings.PGAUTH_REDIRECT,
         urllib.urlencode(q),
-        ))
+    ))
     (ivs, datas) = u.read().split('&')
     u.close()
 

@@ -14,6 +14,7 @@ from models import UserProfile, UserExtraEmail
 from forms import UserProfileForm, MailForm
 from util import generate_random_token
 
+
 @login_required
 @transaction.atomic
 def userprofile(request):
@@ -59,7 +60,8 @@ def userprofile(request):
         'form': form,
         'extramails': extramails,
         'mailform': mailform,
-        })
+    })
+
 
 @login_required
 @transaction.atomic
@@ -79,6 +81,7 @@ def deletemail(request):
     messages.info(request, "Email address %s deleted." % e.email)
     e.delete()
     return HttpResponseRedirect('../')
+
 
 @login_required
 @transaction.atomic

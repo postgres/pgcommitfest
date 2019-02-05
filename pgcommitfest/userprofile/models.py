@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class UserExtraEmail(models.Model):
     user = models.ForeignKey(User, null=False, blank=False, db_index=True)
     email = models.EmailField(max_length=100, null=False, blank=False, unique=True)

@@ -23,23 +23,23 @@ from django.db import connection, transaction
 from pgcommitfest.mailqueue.models import QueuedMail
 
 if __name__ == "__main__":
-	# Grab advisory lock, if available. Lock id is just a random number
-	# since we only need to interlock against ourselves. The lock is
-	# automatically released when we're done.
-	curs = connection.cursor()
-	curs.execute("SELECT pg_try_advisory_lock(72181379)")
-	if not curs.fetchall()[0][0]:
-		print "Failed to get advisory lock, existing send_queued_mail process stuck?"
-		connection.close()
-		sys.exit(1)
+    # Grab advisory lock, if available. Lock id is just a random number
+    # since we only need to interlock against ourselves. The lock is
+    # automatically released when we're done.
+    curs = connection.cursor()
+    curs.execute("SELECT pg_try_advisory_lock(72181379)")
+    if not curs.fetchall()[0][0]:
+        print "Failed to get advisory lock, existing send_queued_mail process stuck?"
+        connection.close()
+        sys.exit(1)
 
-	for m in QueuedMail.objects.all():
-		# Yes, we do a new connection for each run. Just because we can.
-		# If it fails we'll throw an exception and just come back on the
-		# next cron job. And local delivery should never fail...
-		smtp = smtplib.SMTP("localhost")
-		smtp.sendmail(m.sender, m.receiver, m.fullmsg.encode('utf-8'))
-		smtp.close()
-		m.delete()
-		transaction.commit()
-	connection.close()
+    for m in QueuedMail.objects.all():
+        # Yes, we do a new connection for each run. Just because we can.
+        # If it fails we'll throw an exception and just come back on the
+        # next cron job. And local delivery should never fail...
+        smtp = smtplib.SMTP("localhost")
+        smtp.sendmail(m.sender, m.receiver, m.fullmsg.encode('utf-8'))
+        smtp.close()
+        m.delete()
+        transaction.commit()
+    connection.close()

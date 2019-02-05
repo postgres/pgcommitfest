@@ -1,15 +1,16 @@
 from django.conf.urls import include, url
 from django.contrib import admin
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-admin.autodiscover()
-
 import pgcommitfest.commitfest.views as views
 import pgcommitfest.commitfest.reports as reports
 import pgcommitfest.commitfest.ajax as ajax
 import pgcommitfest.auth
 import pgcommitfest.userprofile.views
+
+# Uncomment the next two lines to enable the admin:
+# from django.contrib import admin
+admin.autodiscover()
+
 
 urlpatterns = [
     url(r'^$', views.home),

@@ -7,6 +7,7 @@ from util import DiffableModel
 
 from pgcommitfest.userprofile.models import UserProfile
 
+
 # We have few enough of these, and it's really the only thing we
 # need to extend from the user model, so just create a separate
 # class.
@@ -24,17 +25,18 @@ class Committer(models.Model):
     class Meta:
         ordering = ('user__last_name', 'user__first_name')
 
+
 class CommitFest(models.Model):
-    STATUS_FUTURE=1
-    STATUS_OPEN=2
-    STATUS_INPROGRESS=3
-    STATUS_CLOSED=4
+    STATUS_FUTURE = 1
+    STATUS_OPEN = 2
+    STATUS_INPROGRESS = 3
+    STATUS_CLOSED = 4
     _STATUS_CHOICES = (
         (STATUS_FUTURE, 'Future'),
         (STATUS_OPEN, 'Open'),
         (STATUS_INPROGRESS, 'In Progress'),
         (STATUS_CLOSED, 'Closed'),
-        )
+    )
     name = models.CharField(max_length=100, blank=False, null=False, unique=True)
     status = models.IntegerField(null=False, blank=False, default=1, choices=_STATUS_CHOICES)
     startdate = models.DateField(blank=True, null=True)
@@ -42,7 +44,7 @@ class CommitFest(models.Model):
 
     @property
     def statusstring(self):
-        return [v for k,v in self._STATUS_CHOICES if k==self.status][0]
+        return [v for k, v in self._STATUS_CHOICES if k == self.status][0]
 
     @property
     def periodstring(self):
@@ -62,8 +64,9 @@ class CommitFest(models.Model):
         return self.name
 
     class Meta:
-        verbose_name_plural='Commitfests'
+        verbose_name_plural = 'Commitfests'
         ordering = ('-startdate',)
+
 
 class Topic(models.Model):
     topic = models.CharField(max_length=100, blank=False, null=False)
@@ -85,9 +88,6 @@ class Patch(models.Model, DiffableModel):
     # If there is a git repo about this patch
     gitlink = models.URLField(blank=True, null=False, default='')
 
-    # Mailthreads are ManyToMany in the other direction
-    #mailthreads_set = ...
-
     authors = models.ManyToManyField(User, related_name='patch_author', blank=True)
     reviewers = models.ManyToManyField(User, related_name='patch_reviewer', blank=True)
 
@@ -107,7 +107,8 @@ class Patch(models.Model, DiffableModel):
     map_manytomany_for_diff = {
         'authors': 'authors_string',
         'reviewers': 'reviewers_string',
-        }
+    }
+
     # Some accessors
     @property
     def authors_string(self):
@@ -139,7 +140,7 @@ class Patch(models.Model, DiffableModel):
         if len(threads) == 0:
             self.lastmail = None
         else:
-            self.lastmail = max(threads, key=lambda t:t.latestmessage).latestmessage
+            self.lastmail = max(threads, key=lambda t: t.latestmessage).latestmessage
 
     def __unicode__(self):
         return self.name
@@ -147,20 +148,21 @@ class Patch(models.Model, DiffableModel):
     class Meta:
         verbose_name_plural = 'patches'
 
+
 class PatchOnCommitFest(models.Model):
     # NOTE! This is also matched by the commitfest_patchstatus table,
     # but we hardcoded it in here simply for performance reasons since
     # the data should be entirely static. (Yes, that's something we
     # might re-evaluate in the future)
-    STATUS_REVIEW=1
-    STATUS_AUTHOR=2
-    STATUS_COMMITTER=3
-    STATUS_COMMITTED=4
-    STATUS_NEXT=5
-    STATUS_REJECTED=6
-    STATUS_RETURNED=7
-    STATUS_WITHDRAWN=8
-    _STATUS_CHOICES=(
+    STATUS_REVIEW = 1
+    STATUS_AUTHOR = 2
+    STATUS_COMMITTER = 3
+    STATUS_COMMITTED = 4
+    STATUS_NEXT = 5
+    STATUS_REJECTED = 6
+    STATUS_RETURNED = 7
+    STATUS_WITHDRAWN = 8
+    _STATUS_CHOICES = (
         (STATUS_REVIEW, 'Needs review'),
         (STATUS_AUTHOR, 'Waiting on Author'),
         (STATUS_COMMITTER, 'Ready for Committer'),
@@ -170,7 +172,7 @@ class PatchOnCommitFest(models.Model):
         (STATUS_RETURNED, 'Returned with feedback'),
         (STATUS_WITHDRAWN, 'Withdrawn'),
     )
-    _STATUS_LABELS=(
+    _STATUS_LABELS = (
         (STATUS_REVIEW, 'default'),
         (STATUS_AUTHOR, 'primary'),
         (STATUS_COMMITTER, 'info'),
@@ -180,8 +182,8 @@ class PatchOnCommitFest(models.Model):
         (STATUS_RETURNED, 'danger'),
         (STATUS_WITHDRAWN, 'danger'),
     )
-    OPEN_STATUSES=[STATUS_REVIEW, STATUS_AUTHOR, STATUS_COMMITTER]
-    OPEN_STATUS_CHOICES=[x for x in _STATUS_CHOICES if x[0] in OPEN_STATUSES]
+    OPEN_STATUSES = [STATUS_REVIEW, STATUS_AUTHOR, STATUS_COMMITTER]
+    OPEN_STATUS_CHOICES = [x for x in _STATUS_CHOICES if x[0] in OPEN_STATUSES]
 
     patch = models.ForeignKey(Patch, blank=False, null=False)
     commitfest = models.ForeignKey(CommitFest, blank=False, null=False)
@@ -196,11 +198,12 @@ class PatchOnCommitFest(models.Model):
 
     @property
     def statusstring(self):
-        return [v for k,v in self._STATUS_CHOICES if k==self.status][0]
+        return [v for k, v in self._STATUS_CHOICES if k == self.status][0]
 
     class Meta:
         unique_together = (('patch', 'commitfest',),)
         ordering = ('-commitfest__startdate', )
+
 
 class PatchHistory(models.Model):
     patch = models.ForeignKey(Patch, blank=False, null=False)
@@ -250,8 +253,9 @@ class PatchHistory(models.Model):
         recipients.extend(self.patch.authors.filter(userprofile__notify_all_author=True))
 
         for u in set(recipients):
-            if u != self.by: # Don't notify for changes we make ourselves
+            if u != self.by:  # Don't notify for changes we make ourselves
                 PendingNotification(history=self, user=u).save()
+
 
 class MailThread(models.Model):
     # This class tracks mail threads from the main postgresql.org
@@ -279,6 +283,7 @@ class MailThread(models.Model):
     class Meta:
         ordering = ('firstmessage', )
 
+
 class MailThreadAttachment(models.Model):
     mailthread = models.ForeignKey(MailThread, null=False, blank=False)
     messageid = models.CharField(max_length=1000, null=False, blank=False)
@@ -291,6 +296,7 @@ class MailThreadAttachment(models.Model):
     class Meta:
         ordering = ('-date',)
         unique_together = (('mailthread', 'messageid',), )
+
 
 class MailThreadAnnotation(models.Model):
     mailthread = models.ForeignKey(MailThread, null=False, blank=False)
@@ -308,6 +314,7 @@ class MailThreadAnnotation(models.Model):
 
     class Meta:
         ordering = ('date', )
+
 
 class PatchStatus(models.Model):
     status = models.IntegerField(null=False, blank=False, primary_key=True)

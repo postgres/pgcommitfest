@@ -22,17 +22,17 @@ from pgcommitfest.commitfest.models import MailThread
 from pgcommitfest.commitfest.ajax import refresh_single_thread
 
 if __name__ == "__main__":
-	debug = "--debug" in sys.argv
+    debug = "--debug" in sys.argv
 
-	# Logging always done to stdout, but we can turn on/off how much
-	logging.basicConfig(format='%(asctime)s %(levelname)s: %(msg)s',
-						level=debug and logging.DEBUG or logging.INFO,
-						stream=sys.stdout)
+    # Logging always done to stdout, but we can turn on/off how much
+    logging.basicConfig(format='%(asctime)s %(levelname)s: %(msg)s',
+                        level=debug and logging.DEBUG or logging.INFO,
+                        stream=sys.stdout)
 
-	logging.debug("Checking for updated mail threads in the archives")
-	for thread in MailThread.objects.filter(patches__commitfests__status__in=(1,2,3)).distinct():
-		logging.debug("Checking %s in the archives" % thread.messageid)
-		refresh_single_thread(thread)
+    logging.debug("Checking for updated mail threads in the archives")
+    for thread in MailThread.objects.filter(patches__commitfests__status__in=(1, 2, 3)).distinct():
+        logging.debug("Checking %s in the archives" % thread.messageid)
+        refresh_single_thread(thread)
 
-	connection.close()
-	logging.debug("Done.")
+    connection.close()
+    logging.debug("Done.")

@@ -6,6 +6,7 @@ from django.db import connection
 
 from models import CommitFest
 
+
 @login_required
 def authorstats(request, cfid):
     cf = get_object_or_404(CommitFest, pk=cfid)
@@ -13,7 +14,8 @@ def authorstats(request, cfid):
         raise Http404("Only CF Managers can do that.")
 
     cursor = connection.cursor()
-    cursor.execute("""WITH patches(id,name) AS (
+    cursor.execute("""
+WITH patches(id,name) AS (
   SELECT p.id, name
    FROM commitfest_patch p
    INNER JOIN commitfest_patchoncommitfest poc ON poc.patch_id=p.id AND poc.commitfest_id=%(cid)s
@@ -34,13 +36,14 @@ SELECT first_name || ' ' || last_name || ' (' || username ||')', authorpatches, 
 FROM (authors FULL OUTER JOIN reviewers ON authors.userid=reviewers.userid)
 INNER JOIN auth_user u ON u.id=COALESCE(authors.userid, reviewers.userid)
 ORDER BY last_name, first_name
-""", {
-    'cid': cf.id,
-})
+""",
+                   {
+                       'cid': cf.id,
+                   })
 
     return render(request, 'report_authors.html', {
         'cf': cf,
         'report': cursor.fetchall(),
         'title': 'Author stats',
-        'breadcrumbs': [{'title': cf.title, 'href': '/%s/' % cf.pk},],
+        'breadcrumbs': [{'title': cf.title, 'href': '/%s/' % cf.pk}, ],
     })

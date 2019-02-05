@@ -8,6 +8,7 @@ from pgcommitfest.commitfest.models import PendingNotification
 from pgcommitfest.userprofile.models import UserProfile
 from pgcommitfest.mailqueue.util import send_template_mail
 
+
 class Command(BaseCommand):
     help = "Send queued notifications"
 
@@ -17,9 +18,9 @@ class Command(BaseCommand):
             # build our own.
             matches = {}
             for n in PendingNotification.objects.all().order_by('user', 'history__patch__id', 'history__id'):
-                if not matches.has_key(n.user.id):
+                if n.user.id not in matches:
                     matches[n.user.id] = {'user': n.user, 'patches': {}}
-                if not matches[n.user.id]['patches'].has_key(n.history.patch.id):
+                if n.history.patch.id not in matches[n.user.id]['patches']:
                     matches[n.user.id]['patches'][n.history.patch.id] = {'patch': n.history.patch, 'entries': []}
                 matches[n.user.id]['patches'][n.history.patch.id]['entries'].append(n.history)
                 n.delete()

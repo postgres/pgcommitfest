@@ -5,6 +5,7 @@ from email.header import Header
 
 from models import UserProfile
 
+
 def generate_random_token():
     """
     Generate a random token of 64 characters. This token will be
