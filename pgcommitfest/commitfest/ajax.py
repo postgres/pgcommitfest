@@ -6,9 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
 
-import httplib
-import socket
-import urllib
+import requests
 import json
 
 from pgcommitfest.auth import user_search
@@ -24,36 +22,26 @@ from models import MailThreadAnnotation, PatchHistory
 
 def _archivesAPI(suburl, params=None):
 	try:
-		socket.setdefaulttimeout(settings.ARCHIVES_TIMEOUT)
-		if settings.ARCHIVES_PORT != 443:
-			h = httplib.HTTPConnection(host=settings.ARCHIVES_SERVER,
-									   port=settings.ARCHIVES_PORT,
-									   strict=True,
-									   timeout=settings.ARCHIVES_TIMEOUT)
-		else:
-			h = httplib.HTTPSConnection(host=settings.ARCHIVES_SERVER,
-									   port=settings.ARCHIVES_PORT,
-									   strict=True,
-									   timeout=settings.ARCHIVES_TIMEOUT)
-		if params:
-			url = "%s?%s" % (suburl, urllib.urlencode(params))
-		else:
-			url = suburl
-		h.request('GET', url, headers={
-			'Host': settings.ARCHIVES_HOST,
-			})
-		resp = h.getresponse()
-		if resp.status != 200:
-			if resp.status == 404:
+		resp = requests.get("http{0}://{1}:{2}{3}".format(settings.ARCHIVES_PORT == 443 and 's' or '',
+														  settings.ARCHIVES_SERVER,
+														  settings.ARCHIVES_PORT,
+														  suburl),
+							params=params,
+							headers={
+								'Host': settings.ARCHIVES_HOST,
+							},
+							timeout=settings.ARCHIVES_TIMEOUT,
+		)
+		if resp.status_code != 200:
+			if resp.status_code == 404:
 				raise Http404()
-			raise Exception("JSON call failed: %s" % resp.status)
+			raise Exception("JSON call failed: %s" % resp.status_code)
 
-		r = json.load(resp)
-		resp.close()
-		h.close()
-	except socket.error, e:
+		return resp.json()
+	except Http404:
+		raise
+	except Exception as e:
 		raise Http503("Failed to communicate with archives backend: %s" % e)
-	return r
 
 def getThreads(request):
 	search = request.GET.has_key('s') and request.GET['s'] or None
