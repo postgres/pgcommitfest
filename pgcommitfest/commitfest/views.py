@@ -56,14 +56,12 @@ def activity(request, cfid=None, rss=None):
         # we're evil.  And also because the number has been verified
         # when looking up the cf itself, so nothing can be injected
         # there.
-        extrafields = ''
-        where = 'WHERE poc.commitfest_id={0}'.format(cf.id)
+        where = 'WHERE EXISTS (SELECT 1 FROM commitfest_patchoncommitfest poc2 WHERE poc2.patch_id=p.id AND poc2.commitfest_id={0})'.format(cf.id)
     else:
         cf = None
-        extrafields = ',poc.commitfest_id AS cfid,cf.name AS cfname'
-        where = ' INNER JOIN commitfest_commitfest cf ON cf.id=poc.commitfest_id'
+        where = ''
 
-    sql = "SELECT ph.date, auth_user.username AS by, ph.what, p.id AS patchid, p.name{0} FROM commitfest_patchhistory ph INNER JOIN commitfest_patch p ON ph.patch_id=p.id INNER JOIN auth_user on auth_user.id=ph.by_id INNER JOIN commitfest_patchoncommitfest poc ON poc.patch_id=p.id {1} ORDER BY ph.date DESC LIMIT {2}".format(extrafields, where, num)
+    sql = "SELECT ph.date, auth_user.username AS by, ph.what, p.id AS patchid, p.name, (SELECT max(commitfest_id) FROM commitfest_patchoncommitfest poc WHERE poc.patch_id=p.id) AS cfid FROM commitfest_patchhistory ph INNER JOIN commitfest_patch p ON ph.patch_id=p.id INNER JOIN auth_user on auth_user.id=ph.by_id {0} ORDER BY ph.date DESC LIMIT {1}".format(where, num)
 
     curs = connection.cursor()
     curs.execute(sql)

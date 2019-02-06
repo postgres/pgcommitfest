@@ -7,7 +7,6 @@
   <tr>
    <th>Time</th>
    <th>User</th>
-{%if not commitfest%}<th>CommitFest</th>{%endif%}
    <th>Patch</th>
    <th>Activity</th>
   </tr>
@@ -17,7 +16,6 @@
   <tr>
     <td style="white-space: nowrap;">{{a.date}}</td>
     <td>{{a.by}}</td>
-{%if not commitfest%}<td>{{a.cfname}}</td>{%endif%}
     <td><a href="/{%if commitfest%}{{commitfest.id}}{%else%}{{a.cfid}}{%endif%}/{{a.patchid}}/">{{a.name}}</a></td>
     <td>{{a.what}}</td>
   </tr>

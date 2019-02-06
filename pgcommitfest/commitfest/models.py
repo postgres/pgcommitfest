@@ -223,7 +223,7 @@ class PatchOnCommitFest(models.Model):
 
 class PatchHistory(models.Model):
     patch = models.ForeignKey(Patch, blank=False, null=False)
-    date = models.DateTimeField(blank=False, null=False, auto_now_add=True)
+    date = models.DateTimeField(blank=False, null=False, auto_now_add=True, db_index=True)
     by = models.ForeignKey(User, blank=False, null=False)
     what = models.CharField(max_length=500, null=False, blank=False)
 
