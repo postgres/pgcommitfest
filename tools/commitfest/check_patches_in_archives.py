@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # check_patches_in_archives.py
 #
@@ -9,8 +9,7 @@
 
 import os
 import sys
-import socket
-import httplib
+import requests
 import magic
 import logging
 
@@ -33,7 +32,6 @@ if __name__ == "__main__":
                         level=debug and logging.DEBUG or logging.INFO,
                         stream=sys.stdout)
 
-    socket.setdefaulttimeout(settings.ARCHIVES_TIMEOUT)
     mag = magic.open(magic.MIME)
     mag.load()
 
@@ -48,30 +46,23 @@ if __name__ == "__main__":
         url = "/message-id/attachment/%s/attach" % a.attachmentid
         logging.debug("Checking attachment %s" % a.attachmentid)
 
-        if settings.ARCHIVES_PORT != 443:
-            h = httplib.HTTPConnection(host=settings.ARCHIVES_SERVER,
-                                       port=settings.ARCHIVES_PORT,
-                                       strict=True,
-                                       timeout=settings.ARCHIVES_TIMEOUT)
-        else:
-            h = httplib.HTTPSConnection(host=settings.ARCHIVES_SERVER,
-                                        port=settings.ARCHIVES_PORT,
-                                        strict=True,
-                                        timeout=settings.ARCHIVES_TIMEOUT)
-        h.request('GET', url, headers={
-            'Host': settings.ARCHIVES_HOST,
-        })
-        resp = h.getresponse()
-        if resp.status != 200:
-            logging.error("Failed to get %s: %s" % (url, resp.status))
+        resp = requests.get(
+            "http{0}://{1}:{2}{3}".format(settings.ARCHIVES_PORT == 443 and 's' or '',
+                                          settings.ARCHIVES_SERVER,
+                                          settings.ARCHIVES_PORT,
+                                          url),
+            headers={
+                'Host': settings.ARCHIVES_HOST,
+            },
+            timeout=settings.ARCHIVES_TIMEOUT,
+        )
+
+        if resp.status_code != 200:
+            logging.error("Failed to get %s: %s" % (url, resp.status_code))
             continue
 
-        contents = resp.read()
-        resp.close()
-        h.close()
-
         # Attempt to identify the file using magic information
-        mtype = mag.buffer(contents)
+        mtype = mag.buffer(resp.content)
         logging.debug("Detected MIME type is %s" % mtype)
 
         # We don't support gzipped or tar:ed patches or anything like
