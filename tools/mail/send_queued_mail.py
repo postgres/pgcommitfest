@@ -29,7 +29,7 @@ if __name__ == "__main__":
     curs = connection.cursor()
     curs.execute("SELECT pg_try_advisory_lock(72181379)")
     if not curs.fetchall()[0][0]:
-        print "Failed to get advisory lock, existing send_queued_mail process stuck?"
+        print("Failed to get advisory lock, existing send_queued_mail process stuck?")
         connection.close()
         sys.exit(1)
 
