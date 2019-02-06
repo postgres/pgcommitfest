@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 from datetime import datetime
 
-from util import DiffableModel
+from .util import DiffableModel
 
 from pgcommitfest.userprofile.models import UserProfile
 

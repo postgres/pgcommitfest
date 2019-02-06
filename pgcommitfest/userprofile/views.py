@@ -10,9 +10,9 @@ from datetime import datetime
 
 from pgcommitfest.mailqueue.util import send_template_mail
 
-from models import UserProfile, UserExtraEmail
-from forms import UserProfileForm, MailForm
-from util import generate_random_token
+from .models import UserProfile, UserExtraEmail
+from .forms import UserProfileForm, MailForm
+from .util import generate_random_token
 
 
 @login_required

@@ -10,8 +10,8 @@ import requests
 import json
 
 from pgcommitfest.auth import user_search
-from models import CommitFest, Patch, MailThread, MailThreadAttachment
-from models import MailThreadAnnotation, PatchHistory
+from .models import CommitFest, Patch, MailThread, MailThreadAttachment
+from .models import MailThreadAnnotation, PatchHistory
 
 
 class HttpResponseServiceUnavailable(HttpResponse):
@@ -272,5 +272,5 @@ def main(request, command):
         resp = HttpResponse(content_type='application/json')
         json.dump(_ajax_map[command](request), resp)
         return resp
-    except Http503, e:
+    except Http503 as e:
         return HttpResponseServiceUnavailable(e, content_type='text/plain')

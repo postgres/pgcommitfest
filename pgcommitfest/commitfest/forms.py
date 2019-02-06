@@ -7,10 +7,10 @@ from django.http import Http404
 
 from selectable.forms.widgets import AutoCompleteSelectMultipleWidget
 
-from models import Patch, MailThread, PatchOnCommitFest
-from lookups import UserLookup
-from widgets import ThreadPickWidget
-from ajax import _archivesAPI
+from .models import Patch, MailThread, PatchOnCommitFest
+from .lookups import UserLookup
+from .widgets import ThreadPickWidget
+from .ajax import _archivesAPI
 
 
 class CommitFestFilterForm(forms.Form):

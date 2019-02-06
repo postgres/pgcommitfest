@@ -19,12 +19,12 @@ import json
 from pgcommitfest.mailqueue.util import send_mail, send_simple_mail
 from pgcommitfest.userprofile.util import UserWrapper
 
-from models import CommitFest, Patch, PatchOnCommitFest, PatchHistory, Committer
-from models import MailThread
-from forms import PatchForm, NewPatchForm, CommentForm, CommitFestFilterForm
-from forms import BulkEmailForm
-from ajax import doAttachThread, refresh_single_thread
-from feeds import ActivityFeed
+from .models import CommitFest, Patch, PatchOnCommitFest, PatchHistory, Committer
+from .models import MailThread
+from .forms import PatchForm, NewPatchForm, CommentForm, CommitFestFilterForm
+from .forms import BulkEmailForm
+from .ajax import doAttachThread, refresh_single_thread
+from .feeds import ActivityFeed
 
 
 def home(request):
@@ -397,7 +397,7 @@ def comment(request, cfid, patchid, what):
     if request.method == 'POST':
         try:
             form = CommentForm(patch, poc, is_review, data=request.POST)
-        except Exception, e:
+        except Exception as e:
             messages.add_message(request, messages.ERROR, "Failed to build list of response options from the archives: %s" % e)
             return HttpResponseRedirect('/%s/%s/' % (cf.id, patch.id))
 
@@ -457,7 +457,7 @@ def comment(request, cfid, patchid, what):
     else:
         try:
             form = CommentForm(patch, poc, is_review)
-        except Exception, e:
+        except Exception as e:
             messages.add_message(request, messages.ERROR, "Failed to build list of response options from the archives: %s" % e)
             return HttpResponseRedirect('/%s/%s/' % (cf.id, patch.id))
 
@@ -742,7 +742,7 @@ def thread_notify(request):
         try:
             t = MailThread.objects.get(messageid=m)
             refresh_single_thread(t)
-        except Exception, e:
+        except Exception as e:
             # Just ignore it, we'll check again later
             pass
 

@@ -175,6 +175,6 @@ NOTIFICATION_FROM = "webmaster@postgresql.org"
 
 # Load local settings overrides
 try:
-    from local_settings import *
+    from .local_settings import *
 except ImportError:
     pass

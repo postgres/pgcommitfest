@@ -3,7 +3,7 @@ from Crypto import Random
 from email.utils import formataddr
 from email.header import Header
 
-from models import UserProfile
+from .models import UserProfile
 
 
 def generate_random_token():

@@ -4,7 +4,7 @@ from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 
-from models import CommitFest
+from .models import CommitFest
 
 
 @login_required
