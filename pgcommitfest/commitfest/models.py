@@ -15,8 +15,8 @@ class Committer(models.Model):
     user = models.OneToOneField(User, null=False, blank=False, primary_key=True)
     active = models.BooleanField(null=False, blank=False, default=True)
 
-    def __unicode__(self):
-        return unicode(self.user)
+    def __str__(self):
+        return str(self.user)
 
     @property
     def fullname(self):
@@ -60,7 +60,7 @@ class CommitFest(models.Model):
     def isopen(self):
         return self.status == self.STATUS_OPEN
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -71,7 +71,7 @@ class CommitFest(models.Model):
 class Topic(models.Model):
     topic = models.CharField(max_length=100, blank=False, null=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.topic
 
 
@@ -142,7 +142,7 @@ class Patch(models.Model, DiffableModel):
         else:
             self.lastmail = max(threads, key=lambda t: t.latestmessage).latestmessage
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -215,7 +215,7 @@ class PatchHistory(models.Model):
     def by_string(self):
         return "%s %s (%s)" % (self.by.first_name, self.by.last_name, self.by.username)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.patch.name, self.date)
 
     class Meta:
@@ -277,7 +277,7 @@ class MailThread(models.Model):
     latestsubject = models.CharField(max_length=500, null=False, blank=False)
     latestmsgid = models.CharField(max_length=1000, null=False, blank=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.subject
 
     class Meta:

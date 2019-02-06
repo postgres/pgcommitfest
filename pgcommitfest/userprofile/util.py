@@ -36,5 +36,5 @@ class UserWrapper(object):
     @property
     def encoded_email_header(self):
         return formataddr((
-            str(Header(u"%s %s" % (self.user.first_name, self.user.last_name), 'utf-8')),
+            str(Header("%s %s" % (self.user.first_name, self.user.last_name), 'utf-8')),
             self.email))

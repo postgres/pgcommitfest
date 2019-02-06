@@ -9,7 +9,7 @@ class UserExtraEmail(models.Model):
     token = models.CharField(max_length=100, null=False, blank=True)
     tokensent = models.DateTimeField(null=False, blank=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.email
 
     class Meta:
@@ -28,5 +28,5 @@ class UserProfile(models.Model):
     notify_all_reviewer = models.BooleanField(null=False, blank=False, default=False, verbose_name="Notify on all where reviewer")
     notify_all_committer = models.BooleanField(null=False, blank=False, default=False, verbose_name="Notify on all where committer")
 
-    def __unicode__(self):
-        return unicode(self.user)
+    def __str__(self):
+        return str(self.user)
