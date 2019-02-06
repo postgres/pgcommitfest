@@ -26,6 +26,7 @@ admin.site.register(CommitFest)
 admin.site.register(Topic)
 admin.site.register(Patch, PatchAdmin)
 admin.site.register(PatchHistory)
+admin.site.register(TargetVersion)
 
 admin.site.register(MailThread)
 admin.site.register(MailThreadAttachment, MailThreadAttachmentAdmin)

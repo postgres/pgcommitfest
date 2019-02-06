@@ -75,6 +75,16 @@ class Topic(models.Model):
         return self.topic
 
 
+class TargetVersion(models.Model):
+    version = models.CharField(max_length=8, blank=False, null=False, unique=True)
+
+    class Meta:
+        ordering = ['-version', ]
+
+    def __str__(self):
+        return self.version
+
+
 class Patch(models.Model, DiffableModel):
     name = models.CharField(max_length=500, blank=False, null=False, verbose_name='Description')
     topic = models.ForeignKey(Topic, blank=False, null=False)
@@ -87,6 +97,9 @@ class Patch(models.Model, DiffableModel):
 
     # If there is a git repo about this patch
     gitlink = models.URLField(blank=True, null=False, default='')
+
+    # Version targeted by this patch
+    targetversion = models.ForeignKey(TargetVersion, blank=True, null=True, verbose_name="Target version")
 
     authors = models.ManyToManyField(User, related_name='patch_author', blank=True)
     reviewers = models.ManyToManyField(User, related_name='patch_reviewer', blank=True)

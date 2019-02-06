@@ -117,6 +117,13 @@ def commitfest(request, cfid):
             # int() failed -- so just ignore this filter
             pass
 
+    if request.GET.get('targetversion', '-1') != '-1':
+        if request.GET['targetversion'] == '-2':
+            whereclauses.append("targetversion_id IS NULL")
+        else:
+            whereparams['verid'] = int(request.GET['targetversion'])
+            whereclauses.append("targetversion_id=%(verid)s")
+
     if request.GET.get('author', '-1') != '-1':
         if request.GET['author'] == '-2':
             whereclauses.append("NOT EXISTS (SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id)")
@@ -193,7 +200,7 @@ def commitfest(request, cfid):
 
     # Let's not overload the poor django ORM
     curs = connection.cursor()
-    curs.execute("""SELECT p.id, p.name, poc.status, p.created, p.modified, p.lastmail, committer.username AS committer, t.topic,
+    curs.execute("""SELECT p.id, p.name, poc.status, v.version AS targetversion, p.created, p.modified, p.lastmail, committer.username AS committer, t.topic,
 (poc.status=ANY(%(openstatuses)s)) AS is_open,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_authors cpa ON cpa.user_id=auth_user.id WHERE cpa.patch_id=p.id) AS author_names,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_reviewers cpr ON cpr.user_id=auth_user.id WHERE cpr.patch_id=p.id) AS reviewer_names,
@@ -202,8 +209,9 @@ FROM commitfest_patch p
 INNER JOIN commitfest_patchoncommitfest poc ON poc.patch_id=p.id
 INNER JOIN commitfest_topic t ON t.id=p.topic_id
 LEFT JOIN auth_user committer ON committer.id=p.committer_id
+LEFT JOIN commitfest_targetversion v ON p.targetversion_id=v.id
 WHERE poc.commitfest_id=%(cid)s {0}
-GROUP BY p.id, poc.id, committer.id, t.id
+GROUP BY p.id, poc.id, committer.id, t.id, v.version
 ORDER BY is_open DESC, {1}""".format(where_str, orderby_str), params)
     patches = [dict(zip([col[0] for col in curs.description], row)) for row in curs.fetchall()]
 

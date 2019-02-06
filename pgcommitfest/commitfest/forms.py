@@ -7,7 +7,7 @@ from django.http import Http404
 
 from selectable.forms.widgets import AutoCompleteSelectMultipleWidget
 
-from .models import Patch, MailThread, PatchOnCommitFest
+from .models import Patch, MailThread, PatchOnCommitFest, TargetVersion
 from .lookups import UserLookup
 from .widgets import ThreadPickWidget
 from .ajax import _archivesAPI
@@ -16,6 +16,7 @@ from .ajax import _archivesAPI
 class CommitFestFilterForm(forms.Form):
     text = forms.CharField(max_length=50, required=False)
     status = forms.ChoiceField(required=False)
+    targetversion = forms.ChoiceField(required=False)
     author = forms.ChoiceField(required=False)
     reviewer = forms.ChoiceField(required=False)
     sortkey = forms.IntegerField(required=False)
@@ -30,6 +31,7 @@ class CommitFestFilterForm(forms.Form):
 
         q = Q(patch_author__commitfests=cf) | Q(patch_reviewer__commitfests=cf)
         userchoices = [(-1, '* All'), (-2, '* None'), (-3, '* Yourself')] + [(u.id, '%s %s (%s)' % (u.first_name, u.last_name, u.username)) for u in User.objects.filter(q).distinct().order_by('first_name', 'last_name')]
+        self.fields['targetversion'] = forms.ChoiceField(choices=[('-1', '* All'), ('-2', '* None')] + [(v.id, v.version) for v in TargetVersion.objects.all()], required=False, label="Target version")
         self.fields['author'] = forms.ChoiceField(choices=userchoices, required=False)
         self.fields['reviewer'] = forms.ChoiceField(choices=userchoices, required=False)
 
