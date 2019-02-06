@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
             name='UserProfile',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('selectedemail', models.ForeignKey(verbose_name=b'Sender email', blank=True, to='userprofile.UserExtraEmail', null=True)),
+                ('selectedemail', models.ForeignKey(verbose_name='Sender email', blank=True, to='userprofile.UserExtraEmail', null=True)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
         ),

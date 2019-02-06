@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='patchoncommitfest',
             name='status',
-            field=models.IntegerField(default=1, choices=[(1, b'Needs review'), (2, b'Waiting on Author'), (3, b'Ready for Committer'), (4, b'Committed'), (5, b'Moved to next CF'), (6, b'Rejected'), (7, b'Returned with feedback'), (8, b'Withdrawn')]),
+            field=models.IntegerField(default=1, choices=[(1, 'Needs review'), (2, 'Waiting on Author'), (3, 'Ready for Committer'), (4, 'Committed'), (5, 'Moved to next CF'), (6, 'Rejected'), (7, 'Returned with feedback'), (8, 'Withdrawn')]),
         ),
         migrations.RunSQL("""
 INSERT INTO commitfest_patchstatus (status, statusstring, sortkey) VALUES

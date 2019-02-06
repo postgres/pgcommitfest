@@ -15,22 +15,22 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userprofile',
             name='notify_all_author',
-            field=models.BooleanField(default=False, verbose_name=b'Notify on all where author'),
+            field=models.BooleanField(default=False, verbose_name='Notify on all where author'),
         ),
         migrations.AddField(
             model_name='userprofile',
             name='notify_all_committer',
-            field=models.BooleanField(default=False, verbose_name=b'Notify on all where committer'),
+            field=models.BooleanField(default=False, verbose_name='Notify on all where committer'),
         ),
         migrations.AddField(
             model_name='userprofile',
             name='notify_all_reviewer',
-            field=models.BooleanField(default=False, verbose_name=b'Notify on all where reviewer'),
+            field=models.BooleanField(default=False, verbose_name='Notify on all where reviewer'),
         ),
         migrations.AddField(
             model_name='userprofile',
             name='notifyemail',
-            field=models.ForeignKey(related_name='notifier', verbose_name=b'Notifications sent to', blank=True, to='userprofile.UserExtraEmail', null=True),
+            field=models.ForeignKey(related_name='notifier', verbose_name='Notifications sent to', blank=True, to='userprofile.UserExtraEmail', null=True),
         ),
         migrations.AlterField(
             model_name='userprofile',
