@@ -28,8 +28,8 @@ from django.conf import settings
 import base64
 import json
 import socket
-import urlparse
-import urllib
+from urllib.parse import urlparse, urlencode, parse_qs
+import requests
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA
 from Crypto import Random
@@ -53,17 +53,17 @@ def login(request):
         # Put together an url-encoded dict of parameters we're getting back,
         # including a small nonce at the beginning to make sure it doesn't
         # encrypt the same way every time.
-        s = "t=%s&%s" % (int(time.time()), urllib.urlencode({'r': request.GET['next']}))
+        s = "t=%s&%s" % (int(time.time()), urlencode({'r': request.GET['next']}))
         # Now encrypt it
         r = Random.new()
         iv = r.read(16)
-        encryptor = AES.new(SHA.new(settings.SECRET_KEY).digest()[:16], AES.MODE_CBC, iv)
+        encryptor = AES.new(SHA.new(settings.SECRET_KEY.encode('ascii')).digest()[:16], AES.MODE_CBC, iv)
         cipher = encryptor.encrypt(s + ' ' * (16 - (len(s) % 16)))  # pad to 16 bytes
 
         return HttpResponseRedirect("%s?d=%s$%s" % (
             settings.PGAUTH_REDIRECT,
-            base64.b64encode(iv, "-_"),
-            base64.b64encode(cipher, "-_"),
+            base64.b64encode(iv, b"-_").decode('utf8'),
+            base64.b64encode(cipher, b"-_").decode('utf8'),
         ))
     else:
         return HttpResponseRedirect(settings.PGAUTH_REDIRECT)
@@ -80,7 +80,7 @@ def logout(request):
 # Receive an authentication response from the main website and try
 # to log the user in.
 def auth_receive(request):
-    if request.GET.get('s', '') == 'logout':
+    if 's' in request.GET and request.GET['s'] == "logout":
         # This was a logout request
         return HttpResponseRedirect('/')
 
@@ -93,11 +93,11 @@ def auth_receive(request):
     decryptor = AES.new(base64.b64decode(settings.PGAUTH_KEY),
                         AES.MODE_CBC,
                         base64.b64decode(str(request.GET['i']), "-_"))
-    s = decryptor.decrypt(base64.b64decode(str(request.GET['d']), "-_")).rstrip(' ')
+    s = decryptor.decrypt(base64.b64decode(str(request.GET['d']), "-_")).rstrip(b' ').decode('utf8')
 
     # Now un-urlencode it
     try:
-        data = urlparse.parse_qs(s, strict_parsing=True)
+        data = parse_qs(s, strict_parsing=True)
     except ValueError:
         return HttpResponse("Invalid encrypted data received.", status=400)
 
@@ -134,7 +134,7 @@ a different username than %s.
 
 This is almost certainly caused by some legacy data in our database.
 Please send an email to webmaster@postgresql.org, indicating the username
-and email address from above, and we'll manually marge the two accounts
+and email address from above, and we'll manually merge the two accounts
 for you.
 
 We apologize for the inconvenience.
@@ -158,12 +158,12 @@ We apologize for the inconvenience.
     # redirect the user.
     if 'd' in data:
         (ivs, datas) = data['d'][0].split('$')
-        decryptor = AES.new(SHA.new(settings.SECRET_KEY).digest()[:16],
+        decryptor = AES.new(SHA.new(settings.SECRET_KEY.encode('ascii')).digest()[:16],
                             AES.MODE_CBC,
-                            base64.b64decode(ivs, "-_"))
-        s = decryptor.decrypt(base64.b64decode(datas, "-_")).rstrip(' ')
+                            base64.b64decode(ivs, b"-_"))
+        s = decryptor.decrypt(base64.b64decode(datas, "-_")).rstrip(b' ').decode('utf8')
         try:
-            rdata = urlparse.parse_qs(s, strict_parsing=True)
+            rdata = parse_qs(s, strict_parsing=True)
         except ValueError:
             return HttpResponse("Invalid encrypted data received.", status=400)
         if 'r' in rdata:
@@ -191,18 +191,45 @@ def user_search(searchterm=None, userid=None):
     else:
         q = {'s': searchterm}
 
-    u = urllib.urlopen('%ssearch/?%s' % (
-        settings.PGAUTH_REDIRECT,
-        urllib.urlencode(q),
-    ))
-    (ivs, datas) = u.read().split('&')
-    u.close()
+    r = requests.get('{0}search/'.format(settings.PGAUTH_REDIRECT),
+                     params=q,
+    )
+    if r.status_code != 200:
+        return []
+
+    (ivs, datas) = r.text.encode('utf8').split(b'&')
 
     # Decryption time
     decryptor = AES.new(base64.b64decode(settings.PGAUTH_KEY),
                         AES.MODE_CBC,
                         base64.b64decode(ivs, "-_"))
-    s = decryptor.decrypt(base64.b64decode(datas, "-_")).rstrip(' ')
+    s = decryptor.decrypt(base64.b64decode(datas, "-_")).rstrip(b' ').decode('utf8')
     j = json.loads(s)
 
     return j
+
+
+# Import a user into the local authentication system. Will initially
+# make a search for it, and if anything other than one entry is returned
+# the import will fail.
+# Import is only supported based on userid - so a search should normally
+# be done first. This will result in multiple calls to the upstream
+# server, but they are cheap...
+# The call to this function should normally be wrapped in a transaction,
+# and this function itself will make no attempt to do anything about that.
+def user_import(uid):
+    u = user_search(userid=uid)
+    if len(u) != 1:
+        raise Exception("Internal error, duplicate or no user found")
+
+    u = u[0]
+
+    if User.objects.filter(username=u['u']).exists():
+        raise Exception("User already exists")
+
+    User(username=u['u'],
+         first_name=u['f'],
+         last_name=u['l'],
+         email=u['e'],
+         password='setbypluginnotsha1',
+         ).save()
