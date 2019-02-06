@@ -183,7 +183,10 @@ class PatchOnCommitFest(models.Model):
         (STATUS_WITHDRAWN, 'danger'),
     )
     OPEN_STATUSES = [STATUS_REVIEW, STATUS_AUTHOR, STATUS_COMMITTER]
-    OPEN_STATUS_CHOICES = [x for x in _STATUS_CHOICES if x[0] in OPEN_STATUSES]
+
+    @classmethod
+    def OPEN_STATUS_CHOICES(cls):
+        return [x for x in cls._STATUS_CHOICES if x[0] in cls.OPEN_STATUSES]
 
     patch = models.ForeignKey(Patch, blank=False, null=False)
     commitfest = models.ForeignKey(CommitFest, blank=False, null=False)

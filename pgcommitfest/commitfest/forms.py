@@ -98,7 +98,7 @@ class CommentForm(forms.Form):
     review_doc = reviewfield('Documentation')
 
     message = forms.CharField(required=True, widget=forms.Textarea)
-    newstatus = forms.ChoiceField(choices=PatchOnCommitFest.OPEN_STATUS_CHOICES, label='New status')
+    newstatus = forms.ChoiceField(choices=PatchOnCommitFest.OPEN_STATUS_CHOICES(), label='New status')
 
     def __init__(self, patch, poc, is_review, *args, **kwargs):
         super(CommentForm, self).__init__(*args, **kwargs)
