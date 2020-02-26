@@ -30,9 +30,9 @@ import json
 import socket
 from urllib.parse import urlparse, urlencode, parse_qs
 import requests
-from Crypto.Cipher import AES
-from Crypto.Hash import SHA
-from Crypto import Random
+from Cryptodome.Cipher import AES
+from Cryptodome.Hash import SHA
+from Cryptodome import Random
 import time
 
 
@@ -58,7 +58,7 @@ def login(request):
         r = Random.new()
         iv = r.read(16)
         encryptor = AES.new(SHA.new(settings.SECRET_KEY.encode('ascii')).digest()[:16], AES.MODE_CBC, iv)
-        cipher = encryptor.encrypt(s + ' ' * (16 - (len(s) % 16)))  # pad to 16 bytes
+        cipher = encryptor.encrypt(s.encode('ascii') + b' ' * (16 - (len(s) % 16)))  # pad to 16 bytes
 
         return HttpResponseRedirect("%s?d=%s$%s" % (
             settings.PGAUTH_REDIRECT,
@@ -140,6 +140,18 @@ for you.
 We apologize for the inconvenience.
 """ % (data['e'][0], data['u'][0]), content_type='text/plain')
 
+        if getattr(settings, 'PGAUTH_CREATEUSER_CALLBACK', None):
+            res = getattr(settings, 'PGAUTH_CREATEUSER_CALLBACK')(
+                data['u'][0],
+                data['e'][0],
+                ['f'][0],
+                data['l'][0],
+            )
+            # If anything is returned, we'll return that as our result.
+            # If None is returned, it means go ahead and create the user.
+            if res:
+                return res
+
         user = User(username=data['u'][0],
                     first_name=data['f'][0],
                     last_name=data['l'][0],
@@ -191,8 +203,9 @@ def user_search(searchterm=None, userid=None):
     else:
         q = {'s': searchterm}
 
-    r = requests.get('{0}search/'.format(settings.PGAUTH_REDIRECT),
-                     params=q,
+    r = requests.get(
+        '{0}search/'.format(settings.PGAUTH_REDIRECT),
+        params=q,
     )
     if r.status_code != 200:
         return []
