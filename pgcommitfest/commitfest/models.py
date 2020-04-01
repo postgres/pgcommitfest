@@ -12,7 +12,7 @@ from pgcommitfest.userprofile.models import UserProfile
 # need to extend from the user model, so just create a separate
 # class.
 class Committer(models.Model):
-    user = models.OneToOneField(User, null=False, blank=False, primary_key=True)
+    user = models.OneToOneField(User, null=False, blank=False, primary_key=True, on_delete=models.CASCADE)
     active = models.BooleanField(null=False, blank=False, default=True)
 
     def __str__(self):
@@ -87,7 +87,7 @@ class TargetVersion(models.Model):
 
 class Patch(models.Model, DiffableModel):
     name = models.CharField(max_length=500, blank=False, null=False, verbose_name='Description')
-    topic = models.ForeignKey(Topic, blank=False, null=False)
+    topic = models.ForeignKey(Topic, blank=False, null=False, on_delete=models.CASCADE)
 
     # One patch can be in multiple commitfests, if it has history
     commitfests = models.ManyToManyField(CommitFest, through='PatchOnCommitFest')
@@ -99,12 +99,12 @@ class Patch(models.Model, DiffableModel):
     gitlink = models.URLField(blank=True, null=False, default='')
 
     # Version targeted by this patch
-    targetversion = models.ForeignKey(TargetVersion, blank=True, null=True, verbose_name="Target version")
+    targetversion = models.ForeignKey(TargetVersion, blank=True, null=True, verbose_name="Target version", on_delete=models.CASCADE)
 
     authors = models.ManyToManyField(User, related_name='patch_author', blank=True)
     reviewers = models.ManyToManyField(User, related_name='patch_reviewer', blank=True)
 
-    committer = models.ForeignKey(Committer, blank=True, null=True)
+    committer = models.ForeignKey(Committer, blank=True, null=True, on_delete=models.CASCADE)
 
     # Users to be notified when something happens
     subscribers = models.ManyToManyField(User, related_name='patch_subscriber', blank=True)
@@ -201,8 +201,8 @@ class PatchOnCommitFest(models.Model):
     def OPEN_STATUS_CHOICES(cls):
         return [x for x in cls._STATUS_CHOICES if x[0] in cls.OPEN_STATUSES]
 
-    patch = models.ForeignKey(Patch, blank=False, null=False)
-    commitfest = models.ForeignKey(CommitFest, blank=False, null=False)
+    patch = models.ForeignKey(Patch, blank=False, null=False, on_delete=models.CASCADE)
+    commitfest = models.ForeignKey(CommitFest, blank=False, null=False, on_delete=models.CASCADE)
     enterdate = models.DateTimeField(blank=False, null=False)
     leavedate = models.DateTimeField(blank=True, null=True)
 
@@ -222,9 +222,9 @@ class PatchOnCommitFest(models.Model):
 
 
 class PatchHistory(models.Model):
-    patch = models.ForeignKey(Patch, blank=False, null=False)
+    patch = models.ForeignKey(Patch, blank=False, null=False, on_delete=models.CASCADE)
     date = models.DateTimeField(blank=False, null=False, auto_now_add=True, db_index=True)
-    by = models.ForeignKey(User, blank=False, null=False)
+    by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
     what = models.CharField(max_length=500, null=False, blank=False)
 
     @property
@@ -301,7 +301,7 @@ class MailThread(models.Model):
 
 
 class MailThreadAttachment(models.Model):
-    mailthread = models.ForeignKey(MailThread, null=False, blank=False)
+    mailthread = models.ForeignKey(MailThread, null=False, blank=False, on_delete=models.CASCADE)
     messageid = models.CharField(max_length=1000, null=False, blank=False)
     attachmentid = models.IntegerField(null=False, blank=False)
     filename = models.CharField(max_length=1000, null=False, blank=True)
@@ -315,9 +315,9 @@ class MailThreadAttachment(models.Model):
 
 
 class MailThreadAnnotation(models.Model):
-    mailthread = models.ForeignKey(MailThread, null=False, blank=False)
+    mailthread = models.ForeignKey(MailThread, null=False, blank=False, on_delete=models.CASCADE)
     date = models.DateTimeField(null=False, blank=False, auto_now_add=True)
-    user = models.ForeignKey(User, null=False, blank=False)
+    user = models.ForeignKey(User, null=False, blank=False, on_delete=models.CASCADE)
     msgid = models.CharField(max_length=1000, null=False, blank=False)
     annotationtext = models.TextField(null=False, blank=False, max_length=2000)
     mailsubject = models.CharField(max_length=500, null=False, blank=False)
@@ -339,5 +339,5 @@ class PatchStatus(models.Model):
 
 
 class PendingNotification(models.Model):
-    history = models.ForeignKey(PatchHistory, blank=False, null=False)
-    user = models.ForeignKey(User, blank=False, null=False)
+    history = models.ForeignKey(PatchHistory, blank=False, null=False, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)

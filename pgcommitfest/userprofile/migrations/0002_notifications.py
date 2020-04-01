@@ -30,11 +30,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userprofile',
             name='notifyemail',
-            field=models.ForeignKey(related_name='notifier', verbose_name='Notifications sent to', blank=True, to='userprofile.UserExtraEmail', null=True),
+            field=models.ForeignKey(related_name='notifier', verbose_name='Notifications sent to', blank=True, to='userprofile.UserExtraEmail', null=True, on_delete=models.CASCADE),
         ),
         migrations.AlterField(
             model_name='userprofile',
             name='user',
-            field=models.OneToOneField(to=settings.AUTH_USER_MODEL),
+            field=models.OneToOneField(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
         ),
     ]

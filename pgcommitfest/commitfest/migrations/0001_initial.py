@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Committer',
             fields=[
-                ('user', models.OneToOneField(primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
                 ('active', models.BooleanField(default=True)),
             ],
             options={
@@ -65,8 +65,8 @@ class Migration(migrations.Migration):
                 ('mailsubject', models.CharField(max_length=500)),
                 ('maildate', models.DateTimeField()),
                 ('mailauthor', models.CharField(max_length=500)),
-                ('mailthread', models.ForeignKey(to='commitfest.MailThread')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('mailthread', models.ForeignKey(to='commitfest.MailThread', on_delete=models.CASCADE)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('date',),
@@ -82,7 +82,7 @@ class Migration(migrations.Migration):
                 ('date', models.DateTimeField()),
                 ('author', models.CharField(max_length=500)),
                 ('ispatch', models.NullBooleanField()),
-                ('mailthread', models.ForeignKey(to='commitfest.MailThread')),
+                ('mailthread', models.ForeignKey(to='commitfest.MailThread', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('-date',),
@@ -111,8 +111,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('date', models.DateTimeField(auto_now_add=True)),
                 ('what', models.CharField(max_length=500)),
-                ('by', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-                ('patch', models.ForeignKey(to='commitfest.Patch')),
+                ('by', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
+                ('patch', models.ForeignKey(to='commitfest.Patch', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('-date',),
@@ -125,8 +125,8 @@ class Migration(migrations.Migration):
                 ('enterdate', models.DateTimeField()),
                 ('leavedate', models.DateTimeField(null=True, blank=True)),
                 ('status', models.IntegerField(default=1, choices=[(1, 'Needs review'), (2, 'Waiting on Author'), (3, 'Ready for Committer'), (4, 'Committed'), (5, 'Moved to next CF'), (6, 'Rejected'), (7, 'Returned with feedback')])),
-                ('commitfest', models.ForeignKey(to='commitfest.CommitFest')),
-                ('patch', models.ForeignKey(to='commitfest.Patch')),
+                ('commitfest', models.ForeignKey(to='commitfest.CommitFest', on_delete=models.CASCADE)),
+                ('patch', models.ForeignKey(to='commitfest.Patch', on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('-commitfest__startdate',),
@@ -155,7 +155,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='patch',
             name='committer',
-            field=models.ForeignKey(blank=True, to='commitfest.Committer', null=True),
+            field=models.ForeignKey(blank=True, to='commitfest.Committer', null=True, on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='patch',
@@ -165,7 +165,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='patch',
             name='topic',
-            field=models.ForeignKey(to='commitfest.Topic'),
+            field=models.ForeignKey(to='commitfest.Topic', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='mailthread',

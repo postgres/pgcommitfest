@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('confirmed', models.BooleanField(default=False)),
                 ('token', models.CharField(max_length=100, blank=True)),
                 ('tokensent', models.DateTimeField()),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ('user', 'email'),
@@ -30,8 +30,8 @@ class Migration(migrations.Migration):
             name='UserProfile',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('selectedemail', models.ForeignKey(verbose_name='Sender email', blank=True, to='userprofile.UserExtraEmail', null=True)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('selectedemail', models.ForeignKey(verbose_name='Sender email', blank=True, to='userprofile.UserExtraEmail', null=True, on_delete=models.CASCADE)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
         ),
         migrations.AlterUniqueTogether(

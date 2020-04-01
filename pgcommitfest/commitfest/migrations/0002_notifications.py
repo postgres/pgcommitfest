@@ -17,8 +17,8 @@ class Migration(migrations.Migration):
             name='PendingNotification',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('history', models.ForeignKey(to='commitfest.PatchHistory')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('history', models.ForeignKey(to='commitfest.PatchHistory', on_delete=models.CASCADE)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
         ),
         migrations.AddField(
