@@ -127,7 +127,7 @@ def commitfest(request, cfid):
             whereclauses.append("NOT EXISTS (SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id)")
         elif request.GET['author'] == '-3':
             # Checking for "yourself" requires the user to be logged in!
-            if not request.user.is_authenticated():
+            if not request.user.is_authenticated:
                 return HttpResponseRedirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
             whereclauses.append("EXISTS (SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s)")
             whereparams['self'] = request.user.id
@@ -144,7 +144,7 @@ def commitfest(request, cfid):
             whereclauses.append("NOT EXISTS (SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id)")
         elif request.GET['reviewer'] == '-3':
             # Checking for "yourself" requires the user to be logged in!
-            if not request.user.is_authenticated():
+            if not request.user.is_authenticated:
                 return HttpResponseRedirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
             whereclauses.append("EXISTS (SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(self)s)")
             whereparams['self'] = request.user.id
@@ -261,7 +261,7 @@ def patch(request, cfid, patchid):
 
     # XXX: this creates a session, so find a smarter way. Probably handle
     # it in the callback and just ask the user then?
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         committer = [c for c in committers if c.user == request.user]
         if len(committer) > 0:
             is_committer = True
