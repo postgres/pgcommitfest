@@ -7,15 +7,14 @@ from functools import reduce
 
 from django.conf import settings
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
-from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.db.models import Q, Model
+from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.html import conditional_escape
 from django.utils.translation import ugettext as _
 
-from selectable.forms import BaseLookupForm
-
+from .forms import BaseLookupForm
 
 __all__ = (
     'LookupBase',
@@ -35,6 +34,13 @@ class LookupBase(object):
         name = '%s-%s' % (app_name, class_name)
         return name
     name = classmethod(_name)
+
+    def split_term(self, term):
+        """
+        Split searching term into array of subterms
+        that will be searched separately.
+        """
+        return term.split()
 
     def _url(cls):
         return reverse('selectable-lookup', args=[cls.name()])
@@ -123,11 +129,12 @@ class ModelLookup(LookupBase):
     def get_query(self, request, term):
         qs = self.get_queryset()
         if term:
-            search_filters = []
             if self.search_fields:
-                for field in self.search_fields:
-                    search_filters.append(Q(**{field: term}))
-            qs = qs.filter(reduce(operator.or_, search_filters))
+                for t in self.split_term(term):
+                    search_filters = []
+                    for field in self.search_fields:
+                        search_filters.append(Q(**{field: t}))
+                    qs = qs.filter(reduce(operator.or_, search_filters))
         return qs
 
     def get_queryset(self):

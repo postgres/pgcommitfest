@@ -2,6 +2,28 @@ Release Notes
 ==================
 
 
+v1.2.1 (Released 2019-02-02)
+--------------------------------------
+
+Fixed compatibility issue with jQuery UI 1.12. Thanks to Christian Klus (kluchrj) for the fix.
+
+
+v1.2.0 (Released 2018-10-13)
+--------------------------------------
+
+Primarily a Django support related release. This version adds support for Django 2.0 and 2.1 while
+dropping support for Django versions below 1.11. A number of deprecation warnings for future Django
+versions have also been addressed.
+
+Added the ability to search on multiple terms split by whitespace.
+
+
+Backwards Incompatible Changes
+________________________________
+
+- Dropped support for Django versions below 1.11
+
+
 v1.1.0 (Released 2018-01-12)
 --------------------------------------
 
