@@ -44,8 +44,6 @@ urlpatterns = [
 
     # Account management
     url(r'^account/profile/$', pgcommitfest.userprofile.views.userprofile),
-    url(r'^account/profile/delmail/$', pgcommitfest.userprofile.views.deletemail),
-    url(r'^account/profile/confirm/([0-9a-f]+)/$', pgcommitfest.userprofile.views.confirmemail),
 
     # Examples:
     # url(r'^$', 'pgpgcommitfest.commitfest.views.home', name='home),

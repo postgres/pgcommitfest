@@ -1,7 +1,0 @@
-Somebody, probably you, has registered this email address as a secondary
-address for the account {{user.username}} on commitfest.postgresql.org.
-
-To confirm this addition, please click on the following link:
-
-https://commitfest.postgresql.org/account/profile/confirm/{{token}}/
-

@@ -123,7 +123,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'pgcommitfest.selectable',
-    'pgcommitfest.commitfest',
+    'pgcommitfest.commitfest.apps.CFAppConfig',
     'pgcommitfest.mailqueue',
     'pgcommitfest.userprofile',
 )

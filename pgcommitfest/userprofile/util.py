@@ -1,21 +1,7 @@
-from Crypto.Hash import SHA256
-from Crypto import Random
 from email.utils import formataddr
 from email.header import Header
 
-from .models import UserProfile
-
-
-def generate_random_token():
-    """
-    Generate a random token of 64 characters. This token will be
-    generated using a strong random number, and then hex encoded to make
-    sure all characters are safe to put in emails and URLs.
-    """
-    s = SHA256.new()
-    r = Random.new()
-    s.update(r.read(250))
-    return s.hexdigest()
+from .models import UserProfile, UserExtraEmail
 
 
 class UserWrapper(object):
@@ -26,7 +12,7 @@ class UserWrapper(object):
     def email(self):
         try:
             up = UserProfile.objects.get(user=self.user)
-            if up.selectedemail and up.selectedemail.confirmed:
+            if up.selectedemail:
                 return up.selectedemail.email
             else:
                 return self.user.email
@@ -38,3 +24,19 @@ class UserWrapper(object):
         return formataddr((
             str(Header("%s %s" % (self.user.first_name, self.user.last_name), 'utf-8')),
             self.email))
+
+
+def handle_user_data(sender, **kwargs):
+    user = kwargs.pop('user')
+    userdata = kwargs.pop('userdata')
+
+    secondary = userdata.get('secondaryemails', [])
+
+    # Remove any email attached to this user that are not upstream. Since the foreign keys
+    # are set to SET_NULL, they will all revert to being the users default in this case.
+    UserExtraEmail.objects.filter(user=user).exclude(email__in=secondary).delete()
+
+    # Then add back any of the ones that aren't there
+    current = set([e.email for e in UserExtraEmail.objects.filter(user=user)])
+    for e in set(secondary).difference(current):
+        UserExtraEmail(user=user, email=e).save()
