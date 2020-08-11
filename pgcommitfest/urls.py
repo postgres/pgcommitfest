@@ -40,6 +40,7 @@ urlpatterns = [
     url(r'^(?:account/)?login/?$', pgcommitfest.auth.login),
     url(r'^(?:account/)?logout/?$', pgcommitfest.auth.logout),
     url(r'^auth_receive/$', pgcommitfest.auth.auth_receive),
+    url(r'^auth_api/$', pgcommitfest.auth.auth_api),
 
     # Account management
     url(r'^account/profile/$', pgcommitfest.userprofile.views.userprofile),
