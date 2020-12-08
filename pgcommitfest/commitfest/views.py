@@ -2,7 +2,6 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http import Http404, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
-from django.template import RequestContext
 from django.db import transaction, connection
 from django.db.models import Q
 from django.contrib import messages
