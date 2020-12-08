@@ -20,7 +20,7 @@ function findLatestThreads() {
          sel = $('#attachThreadList');
          sel.find('option').remove();
          $.each(data, function(m,i) {
-            sel.append('<option value="' + i.msgid + '">' + i.from + ': ' + i.subj + ' (' + i.date + ')</option>');
+             sel.append($('<option/>').text(i.from + ': ' + i.subj + ' (' + i.date + ')').val(i.msgid));
          });
    }).always(function() {
       $('#attachThreadListWrap').removeClass('loading');
