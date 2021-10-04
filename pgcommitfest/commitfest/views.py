@@ -549,6 +549,7 @@ def close(request, cfid, patchid, status):
             messages.error(request, "A patch in status {0} cannot be moved to next commitfest.".format(poc.statusstring))
             return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
         elif poc.status in (PatchOnCommitFest.STATUS_REVIEW,
+                            PatchOnCommitFest.STATUS_AUTHOR,
                             PatchOnCommitFest.STATUS_COMMITTER):
             # This one can be moved
             pass
