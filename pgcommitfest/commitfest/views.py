@@ -541,8 +541,7 @@ def close(request, cfid, patchid, status):
         poc.status = PatchOnCommitFest.STATUS_RETURNED
     elif status == 'next':
         # Only some patch statuses can actually be moved.
-        if poc.status in (PatchOnCommitFest.STATUS_AUTHOR,
-                          PatchOnCommitFest.STATUS_COMMITTED,
+        if poc.status in (PatchOnCommitFest.STATUS_COMMITTED,
                           PatchOnCommitFest.STATUS_NEXT,
                           PatchOnCommitFest.STATUS_RETURNED,
                           PatchOnCommitFest.STATUS_REJECTED):
