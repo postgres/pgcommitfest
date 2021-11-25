@@ -84,7 +84,7 @@ class NewPatchForm(forms.ModelForm):
             _archivesAPI('/message-id.json/%s' % self.cleaned_data['threadmsgid'])
         except Http404:
             raise ValidationError("Message not found in archives")
-        except:
+        except Exception:
             raise ValidationError("Error in API call to validate thread")
         return self.cleaned_data['threadmsgid']
 
@@ -137,7 +137,7 @@ class CommentForm(forms.Form):
             self.respid = respid
         except MailThread.DoesNotExist:
             raise ValidationError('Selected thread appears to no longer exist')
-        except:
+        except Exception:
             raise ValidationError('Invalid message selected')
         return self.cleaned_data['responseto']
 
