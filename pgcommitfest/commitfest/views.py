@@ -325,6 +325,7 @@ def patchform(request, cfid, patchid):
         'form': form,
         'patch': patch,
         'title': 'Edit patch',
+        'selectize_multiple_fields': form.selectize_multiple_fields.items(),
         'breadcrumbs': [{'title': cf.title, 'href': '/%s/' % cf.pk},
                         {'title': 'View patch', 'href': '/%s/%s/' % (cf.pk, patch.pk)}],
     })

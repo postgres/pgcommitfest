@@ -1,5 +1,4 @@
 {%extends "base.html"%}
-{%load selectable_tags%}
 {%load commitfest%}
 
 {%block contents%}
@@ -23,7 +22,7 @@
  <div class="alert alert-danger">{{e}}</div>
    {%endfor%}
   {%endif%}
-{{field|field_class:"form-control"}}
+{%if not field.name in form.selectize_multiple_fields%}{{field|field_class:"form-control"}}{%else%}{{field}}{%endif%}
 {%if field.help_text%}<br/>{{field.help_text|safe}}{%endif%}</div>
  </div>
  {%else%}
@@ -69,34 +68,40 @@
 </div>
 {%endblock%}
 
+{%block extrahead%}
+<link rel="stylesheet" href="/static/commitfest/css/selectize.css" />
+<link rel="stylesheet" href="/static/commitfest/css/selectize.default.css" />
+{%endblock%}
 {%block morescript%}
+<script src="/static/commitfest/js/selectize.min.js"></script>
 <script>
-/* Set up djselectable to use bootstrap buttons */
-$.ui.djselectable.prototype._comboButtonTemplate = function (input) {
-    var icon = $("<i>").addClass("glyphicon glyphicon-chevron-down");
-    // Remove current classes on the text input
-    $(input).attr("class", "");
-    // Wrap with input-append
-    $(input).wrap('<div class="input-append" />');
-    // Return button link with the chosen icon
-    return $("<a>").append(icon).addClass("btn btn-default btn-xs");
-};
-$.ui.djselectable.prototype._removeButtonTemplate = function (item) {
-    var icon = $("<i>").addClass("glyphicon glyphicon-remove-sign");
-    // Return button link with the chosen icon
-    return $("<a>").append(icon).addClass("btn btn-default btn-xs selectable-deck-remove");
-};
-
-/* Set up userid selectables to be searchable */
-$('input[data-selectable-url="/selectable/commitfest-userlookup/"]').each(function() {
-   $(this).after(
-	  $('<a href="#" class="btn btn-default btn-sm">Import user not listed</a>').click(function () {
-	  search_and_store_user();
-
- 	  return false;
-	})
+/* Set up selectize fields */
+{% for f, url in selectize_multiple_fields %}
+   $('#id_{{f}}').selectize({
+      plugins: ['remove_button'],
+      valueField: 'id',
+      labelField: 'value',
+      searchField: 'value',
+      load: function(query, callback) {
+         if (!query.length) return callback();
+         $.ajax({
+            'url': '{{url}}',
+            'type': 'GET',
+            'dataType': 'json',
+            'data': {
+               'query': query,
+            },
+            'error': function() { callback();},
+            'success': function(res) { callback(res.values);},
+         });
+      }
+   });
+{%endfor%}
+   $('.selectize-control').after(
+      $('<a href="#" class="btn btn-default btn-sm">Import user not listed</a>').click(function () {
+          search_and_store_user();
+      })
    );
-});
 
 $('#searchUserModal').on('shown.bs.modal', function() {
 	  $('#searchUserSearchField').focus();

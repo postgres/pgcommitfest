@@ -32,19 +32,11 @@ div.form-group div.controls input[type='checkbox'] {
    width: 10px;
 }
 
-div.controls ul.selectable-deck li.selectable-deck-item {
-   display: block;
-}
-
-div.controls ul.selectable-deck li.selectable-deck-item a.selectable-deck-remove {
-   float: none;
-   margin-left: 10px;
-}
-
 div.form-group div.controls input.threadpick-input {
    width: 80%;
    display: inline;
 }
+
 
 
 /*

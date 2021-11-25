@@ -5,10 +5,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 from django.http import Http404
 
-from selectable.forms.widgets import AutoCompleteSelectMultipleWidget
-
 from .models import Patch, MailThread, PatchOnCommitFest, TargetVersion
-from .lookups import UserLookup
 from .widgets import ThreadPickWidget
 from .ajax import _archivesAPI
 
@@ -40,19 +37,38 @@ class CommitFestFilterForm(forms.Form):
 
 
 class PatchForm(forms.ModelForm):
+    selectize_multiple_fields = {
+        'authors': '/lookups/user',
+        'reviewers': '/lookups/user',
+    }
+
     class Meta:
         model = Patch
         exclude = ('commitfests', 'mailthreads', 'modified', 'lastmail', 'subscribers', )
-        widgets = {
-            'authors': AutoCompleteSelectMultipleWidget(lookup_class=UserLookup, position='top'),
-            'reviewers': AutoCompleteSelectMultipleWidget(lookup_class=UserLookup, position='top'),
-        }
 
     def __init__(self, *args, **kwargs):
         super(PatchForm, self).__init__(*args, **kwargs)
         self.fields['authors'].help_text = 'Enter part of name to see list'
         self.fields['reviewers'].help_text = 'Enter part of name to see list'
         self.fields['committer'].label_from_instance = lambda x: '%s %s (%s)' % (x.user.first_name, x.user.last_name, x.user.username)
+
+        # Selectize multiple fields -- don't pre-populate everything
+        for field, url in list(self.selectize_multiple_fields.items()):
+            # If this is a postback of a selectize field, it may contain ids that are not currently
+            # stored in the field. They must still be among the *allowed* values of course, which
+            # are handled by the existing queryset on the field.
+            if self.instance.pk:
+                # If this object isn't created yet, then it by definition has no related
+                # objects, so just bypass the collection of values since it will cause
+                # errors.
+                vals = [o.pk for o in getattr(self.instance, field).all()]
+            else:
+                vals = []
+            if 'data' in kwargs and str(field) in kwargs['data']:
+                vals.extend([x for x in kwargs['data'].getlist(field)])
+            self.fields[field].widget.attrs['data-selecturl'] = url
+            self.fields[field].queryset = self.fields[field].queryset.filter(pk__in=set(vals))
+            self.fields[field].label_from_instance = lambda u: '{} ({})'.format(u.username, u.get_full_name())
 
 
 class NewPatchForm(forms.ModelForm):

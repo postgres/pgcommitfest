@@ -1,26 +1,22 @@
+from django.http import HttpResponse, Http404
+from django.db.models import Q
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from selectable.base import ModelLookup
-from selectable.registry import registry
-from selectable.decorators import login_required
+
+import json
 
 
 @login_required
-class UserLookup(ModelLookup):
-    model = User
-    search_fields = (
-        'username__icontains',
-        'first_name__icontains',
-        'last_name__icontains',
+def userlookup(request):
+    query = request.GET.get('query', None)
+    if not query:
+        return Http404()
+
+    users = User.objects.filter(
+        Q(is_active=True),
+        Q(username__icontains=query) | Q(first_name__icontains=query) | Q(last_name__icontains=query),
     )
-    filters = {'is_active': True, }
 
-    def get_item_value(self, item):
-        # Display for currently selected item
-        return "%s (%s)" % (item.username, item.get_full_name())
-
-    def get_item_label(self, item):
-        # Display for choice listings
-        return "%s (%s)" % (item.username, item.get_full_name())
-
-
-registry.register(UserLookup)
+    return HttpResponse(json.dumps({
+        'values': [{'id': u.id, 'value': '{} ({})'.format(u.username, u.get_full_name())} for u in users],
+    }), content_type='application/json')

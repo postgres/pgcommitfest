@@ -4,11 +4,11 @@
 <head>
   <title>{{title}}</title>
   <link rel="stylesheet" href="/static/commitfest/css/jquery-ui.css" type="text/css">
-  <link rel="stylesheet" href="/static/selectable/css/dj.selectable.css" type="text/css" media="all">
   <link rel="stylesheet" href="/static/commitfest/css/bootstrap.css" />
   <link rel="stylesheet" href="/static/commitfest/css/bootstrap-theme.min.css" />
   <link rel="stylesheet" href="/static/commitfest/css/commitfest.css" />
   <link rel="shortcut icon" href="/static/commitfest/favicon.ico" />
+{%block extrahead%}{%endblock%}
 {%if rss_alternate%}  <link rel="alternate" type="application/rss+xml" title="{{rss_alternate_title}}" href="{{rss_alternate}}" />{%endif%}
 </head>
 <body>
@@ -43,7 +43,6 @@
 <script src="/static/commitfest/js/jquery.js"></script>
 <script src="/static/commitfest/js/jquery-ui.js"></script>
 <script src="/static/commitfest/js/bootstrap.js"></script>
-<script src="/static/selectable/js/jquery.dj.selectable.js"></script>
 <script src="/static/commitfest/js/commitfest.js"></script>
 {%block morescript%}{%endblock%}
 </html>

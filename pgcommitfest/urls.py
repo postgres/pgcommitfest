@@ -4,6 +4,7 @@ from django.contrib import admin
 import pgcommitfest.commitfest.views as views
 import pgcommitfest.commitfest.reports as reports
 import pgcommitfest.commitfest.ajax as ajax
+import pgcommitfest.commitfest.lookups as lookups
 import pgcommitfest.auth
 import pgcommitfest.userprofile.views
 
@@ -32,9 +33,8 @@ urlpatterns = [
     url(r'^(\d+)/reports/authorstats/$', reports.authorstats),
     url(r'^search/$', views.global_search),
     url(r'^ajax/(\w+)/$', ajax.main),
+    url(r'^lookups/user/$', lookups.userlookup),
     url(r'^thread_notify/$', views.thread_notify),
-
-    url(r'^selectable/', include('selectable.urls')),
 
     # Auth system integration
     url(r'^(?:account/)?login/?$', pgcommitfest.auth.login),
