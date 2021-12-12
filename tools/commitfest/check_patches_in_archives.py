@@ -42,7 +42,7 @@ if __name__ == "__main__":
     # We will hit the archives without delay when doing this, but that
     # should generally not be a problem because it's not going to be
     # downloading a lot...
-    for a in MailThreadAttachment.objects.filter(ispatch=None):
+    for a in MailThreadAttachment.objects.filter(ispatch__isnull=True):
         url = "/message-id/attachment/%s/attach" % a.attachmentid
         logging.debug("Checking attachment %s" % a.attachmentid)
 

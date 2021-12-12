@@ -81,7 +81,7 @@ class Migration(migrations.Migration):
                 ('filename', models.CharField(max_length=1000, blank=True)),
                 ('date', models.DateTimeField()),
                 ('author', models.CharField(max_length=500)),
-                ('ispatch', models.NullBooleanField()),
+                ('ispatch', models.BooleanField(null=True)),
                 ('mailthread', models.ForeignKey(to='commitfest.MailThread', on_delete=models.CASCADE)),
             ],
             options={

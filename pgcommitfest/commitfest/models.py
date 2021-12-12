@@ -307,7 +307,7 @@ class MailThreadAttachment(models.Model):
     filename = models.CharField(max_length=1000, null=False, blank=True)
     date = models.DateTimeField(null=False, blank=False)
     author = models.CharField(max_length=500, null=False, blank=False)
-    ispatch = models.NullBooleanField()
+    ispatch = models.BooleanField(null=True)
 
     class Meta:
         ordering = ('-date',)
