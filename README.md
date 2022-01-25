@@ -6,7 +6,7 @@ A commitfest is a collection of patches and reviews for a project and is part of
 
 ## The Application
 
-This is a Django 1.8 application backed by PostgreSQL and running on Python 2.7.
+This is a Django 3.2 application backed by PostgreSQL and running on Python 3.x.
 
 ## Getting Started
 
@@ -15,7 +15,7 @@ This is a Django 1.8 application backed by PostgreSQL and running on Python 2.7.
 First, prepare your development environment by installing pip, virtualenv, and postgresql-server-dev-X.Y.
 
 ```
-$ sudo apt install python-pip postgresql-server-dev-9.6
+$ sudo apt install python-pip postgresql-server-dev-14
 
 $ pip install virtualenv
 ```
@@ -57,7 +57,7 @@ AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 ```
 
 Provided that you created a database matching the above settings, you can
-now create the required tables.
+now create the required tables. Note that a password must be provided.
 
 ```
 $ python manage.py migrate
@@ -79,7 +79,8 @@ To authenticate you'll first have to remove the customized login template.
 Remember not to commit this modification.
 
 ```
-$ rm -rf global_templates/admin/login.html
+$ find . -type f -name login.html
+$ rm -f global_templates/admin/login.html
 ```
 
 Then open http://localhost:8000/admin to log in. Once redirected to the Django
