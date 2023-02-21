@@ -10,7 +10,7 @@ import json
 def userlookup(request):
     query = request.GET.get('query', None)
     if not query:
-        return Http404()
+        raise Http404()
 
     users = User.objects.filter(
         Q(is_active=True),
