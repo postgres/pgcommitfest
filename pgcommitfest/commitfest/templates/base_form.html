@@ -40,6 +40,7 @@
 {%include "thread_attach.inc" %}
 {%endif%}
 
+{%if user.is_staff%}
 <div class="modal fade" id="searchUserModal" role="dialog">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -66,6 +67,7 @@
     </div>
   </div>
 </div>
+{%endif%}
 {%endblock%}
 
 {%block extrahead%}
@@ -97,6 +99,7 @@
       }
    });
 {%endfor%}
+{%if user.is_staff%}
    $('.selectize-control').after(
       $('<a href="#" class="btn btn-default btn-sm">Import user not listed</a>').click(function () {
           search_and_store_user();
@@ -106,6 +109,7 @@
 $('#searchUserModal').on('shown.bs.modal', function() {
 	  $('#searchUserSearchField').focus();
 });
+{%endif%}
 
 /* Build our button callbacks */
 $(document).ready(function() {

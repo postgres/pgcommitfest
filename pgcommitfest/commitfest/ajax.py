@@ -223,6 +223,9 @@ def detachThread(request):
 
 
 def searchUsers(request):
+    if not request.user.is_staff:
+        return []
+
     if request.GET.get('s', ''):
         return user_search(request.GET['s'])
     else:
@@ -230,6 +233,9 @@ def searchUsers(request):
 
 
 def importUser(request):
+    if not request.user.is_staff:
+        raise Http404()
+
     if request.GET.get('u', ''):
         u = user_search(userid=request.GET['u'])
         if len(u) != 1:
