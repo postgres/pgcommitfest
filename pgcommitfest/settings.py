@@ -64,12 +64,12 @@ STATIC_ROOT = ''
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+STATIC_URL = '/media/'
 
 # URL prefix for admin static files -- CSS, JavaScript and images.
 # Make sure to use a trailing slash.
 # Examples: "http://foo.com/static/admin/", "/static/admin/".
-ADMIN_MEDIA_PREFIX = '/static/admin/'
+ADMIN_MEDIA_PREFIX = '/media/admin/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -81,8 +81,6 @@ STATICFILES_DIRS = (
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -119,7 +117,6 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
