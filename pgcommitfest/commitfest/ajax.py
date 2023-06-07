@@ -64,6 +64,8 @@ def getThreads(request):
 
 
 def getMessages(request):
+    if 't' not in request.GET:
+        raise Http404("Missing parameter")
     threadid = request.GET['t']
 
     thread = MailThread.objects.get(pk=threadid)
