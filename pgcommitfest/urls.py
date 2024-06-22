@@ -17,7 +17,7 @@ urlpatterns = [
     re_path(r'^$', views.home),
     re_path(r'^activity(?P<rss>\.rss)?/', views.activity),
     re_path(r'^(\d+)/$', views.commitfest),
-    re_path(r'^(open|inprogress)/(.*)$', views.redir),
+    re_path(r'^(open|inprogress|current)/(.*)$', views.redir),
     re_path(r'^(?P<cfid>\d+)/activity(?P<rss>\.rss)?/$', views.activity),
     re_path(r'^(\d+)/(\d+)/$', views.patch),
     re_path(r'^(\d+)/(\d+)/edit/$', views.patchform),

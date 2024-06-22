@@ -86,6 +86,10 @@ def redir(request, what, end):
         cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
     elif what == 'inprogress':
         cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
+    elif what == 'current':
+        cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
+        if len(cfs) == 0:
+            cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
     else:
         raise Http404()
 
