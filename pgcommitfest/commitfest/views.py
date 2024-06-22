@@ -81,7 +81,7 @@ def activity(request, cfid=None, rss=None):
         })
 
 
-def redir(request, what):
+def redir(request, what, end):
     if what == 'open':
         cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
     elif what == 'inprogress':
@@ -96,7 +96,10 @@ def redir(request, what):
         messages.warning(request, "More than one {0} commitfest exists, redirecting to startpage instead.".format(what))
         return HttpResponseRedirect("/")
 
-    return HttpResponseRedirect("/%s/" % cfs[0].id)
+    query_string = request.GET.urlencode()
+    if query_string:
+        query_string = '?' + query_string
+    return HttpResponseRedirect(f"/{cfs[0].id}/{end}{query_string}")
 
 
 def commitfest(request, cfid):
