@@ -258,6 +258,12 @@ def global_search(request):
         'title': 'Patch search results',
     })
 
+def patch_redirect(request, patchid):
+    last_commitfest = PatchOnCommitFest.objects.select_related('commitfest').filter(patch_id=patchid).order_by('-commitfest__startdate').first()
+    if not last_commitfest:
+        raise Http404("Patch not found")
+    return HttpResponseRedirect(f'/{last_commitfest.commitfest_id}/{patchid}/')
+
 
 def patch(request, cfid, patchid):
     cf = get_object_or_404(CommitFest, pk=cfid)
