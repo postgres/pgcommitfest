@@ -258,6 +258,7 @@ def global_search(request):
         'title': 'Patch search results',
     })
 
+
 def patch_redirect(request, patchid):
     last_commitfest = PatchOnCommitFest.objects.select_related('commitfest').filter(patch_id=patchid).order_by('-commitfest__startdate').first()
     if not last_commitfest:
