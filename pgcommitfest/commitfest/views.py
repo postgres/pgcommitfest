@@ -125,8 +125,12 @@ def commitfest(request, cfid):
         if request.GET['targetversion'] == '-2':
             whereclauses.append("targetversion_id IS NULL")
         else:
-            whereparams['verid'] = int(request.GET['targetversion'])
-            whereclauses.append("targetversion_id=%(verid)s")
+            try:
+                whereparams['verid'] = int(request.GET['targetversion'])
+                whereclauses.append("targetversion_id=%(verid)s")
+            except ValueError:
+                # int() failed, ignore
+                pass
 
     if request.GET.get('author', '-1') != '-1':
         if request.GET['author'] == '-2':
