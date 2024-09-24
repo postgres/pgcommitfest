@@ -5,6 +5,10 @@
 <table class="table table-bordered">
   <tbody>
     <tr>
+      <th>ID</th>
+      <td><a href="/patch/{{patch.id}}">{{patch.id}}</a></td>
+    </tr>
+    <tr>
       <th>Title</th>
       <td>{{patch.name}}</td>
     </tr>
@@ -51,10 +55,11 @@
     </tr>
     <tr>
       <th>Links</th>
-      <td>
-	{%if patch.wikilink%}<a href="{{patch.wikilink}}">Wiki</a>{%endif%}
-	{%if patch.gitlink%}<a href="{{patch.gitlink}}">Git</a>{%endif%}
-      </td>
+      <td style="white-space:pre-line"><a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">CFbot results (CirrusCI)</a>
+      <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}">CFbot GitHub</a>{%if patch.wikilink%}
+      <a href="{{patch.wikilink}}">Wiki</a>{%endif%}{%if patch.gitlink%}
+      <a href="{{patch.gitlink}}">Git</a>
+      {%endif%}</td>
     </tr>
     <tr>
       <th>Emails</th>
