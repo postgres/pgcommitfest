@@ -14,6 +14,7 @@ from datetime import datetime
 from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
 import json
+import urllib
 
 from pgcommitfest.mailqueue.util import send_mail, send_simple_mail
 from pgcommitfest.userprofile.util import UserWrapper
@@ -22,7 +23,7 @@ from .models import CommitFest, Patch, PatchOnCommitFest, PatchHistory, Committe
 from .models import MailThread
 from .forms import PatchForm, NewPatchForm, CommentForm, CommitFestFilterForm
 from .forms import BulkEmailForm
-from .ajax import doAttachThread, refresh_single_thread
+from .ajax import doAttachThread, refresh_single_thread, _archivesAPI
 from .feeds import ActivityFeed
 
 
@@ -249,13 +250,42 @@ ORDER BY is_open DESC, {1}""".format(where_str, orderby_str), params)
         'header_activity_link': 'activity/',
     })
 
+def patches_by_messageid(messageid):
+    # First try to find the messageid in our database
+    patches = Patch.objects.select_related().filter(mailthread__messageid=messageid).order_by('created',).all()
+    if patches:
+        return patches
+
+    urlsafe_messageid = urllib.parse.quote(messageid)
+
+    # If it's not there, try to find it in the archives
+    try:
+        thread = _archivesAPI(f'/message-id.json/{urlsafe_messageid}')
+    except Http404:
+        return []
+
+    if len(thread) == 0:
+        return []
+
+    first_email = min(thread, key=lambda x: x['date'])
+
+    return Patch.objects.select_related().filter(mailthread__messageid=first_email['msgid']).order_by('created',).all()
+
 
 def global_search(request):
     if 'searchterm' not in request.GET:
         return HttpResponseRedirect('/')
-    searchterm = request.GET['searchterm']
+    searchterm = request.GET['searchterm'].strip()
+    patches = []
 
-    patches = Patch.objects.select_related().filter(name__icontains=searchterm).order_by('created',).all()
+    if '@' in searchterm:
+        # This is probably a messageid, so let's try to look up patches related
+        # to it. Let's first remove any < and > around it though.
+        cleaned_id = searchterm.removeprefix('<').removesuffix('>')
+        patches = patches_by_messageid(cleaned_id)
+
+    if not patches:
+        patches = Patch.objects.select_related().filter(name__icontains=searchterm).order_by('created',).all()
 
     if len(patches) == 1:
         patch = patches[0]
