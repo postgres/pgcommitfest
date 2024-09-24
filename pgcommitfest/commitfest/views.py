@@ -255,7 +255,11 @@ def global_search(request):
         return HttpResponseRedirect('/')
     searchterm = request.GET['searchterm']
 
-    patches = Patch.objects.select_related().filter(name__icontains=searchterm).order_by('created',)
+    patches = Patch.objects.select_related().filter(name__icontains=searchterm).order_by('created',).all()
+
+    if len(patches) == 1:
+        patch = patches[0]
+        return HttpResponseRedirect(f'/patch/{patch.id}/')
 
     return render(request, 'patchsearch.html', {
         'patches': patches,
