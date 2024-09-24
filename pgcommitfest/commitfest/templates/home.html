@@ -1,16 +1,19 @@
 {%extends "base.html"%}
 {%block contents%}
 <p>
-The following commitfests exist in the system.
-{%if inprogresscf%}Current review work is done in commitfest <a href="/{{inprogresscf.id}}/">{{inprogresscf}}</a>.{%endif%}
-{%if opencf%}New patches should be submitted to commitfest <a href="/{{opencf.id}}/">{{opencf}}</a>.{%endif%}
+{%if inprogresscf%}A commitfest is currently in progress: <a href="/{{inprogresscf.id}}/">{{inprogresscf}}</a>.{%endif%}
+</p>
+<p>
+Useful links that you can use and bookmark:
 </p>
 <ul>
-{%for c in commitfests%}
- <li><a href="/{{c.id}}/">{{c}}</a> ({{c.statusstring}}{%if c.startdate%} - {{c.periodstring}}{%endif%})</li>
-{%endfor%}
+  <li><a href="/current/">All patches in the current commitfest</a></li>
+  <li><a href="/open/">All patches in the open commitfest</a></li>
+  <li><a href="/open/new/">Create a new commitfest entry</a></li>
+  <li><a href="/current/?author=-3">Your entries in the current commitfest</a></li>
+  <li><a href="/open/?author=-3">Your entries in the open commitfest</a></li>
+  <li><a href="/current/?reviewer=-3">Entries that you are reviewing in current commitfest</a></li>
 </ul>
-<br/>
 <h3>Commands</h3>
 <form method="GET" action="/search/" class="form-inline">
   <div class="form-group">
@@ -18,4 +21,11 @@ The following commitfests exist in the system.
   </div>
   <button type="submit" class="btn btn-default">Search</button>
 </form>
+<h3>List of commitfests</h3>
+<ul>
+{%for c in commitfests%}
+ <li><a href="/{{c.id}}/">{{c}}</a> ({{c.statusstring}}{%if c.startdate%} - {{c.periodstring}}{%endif%})</li>
+{%endfor%}
+</ul>
+<br/>
 {%endblock%}
