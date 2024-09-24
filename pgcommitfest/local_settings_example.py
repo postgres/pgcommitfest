@@ -17,3 +17,8 @@ DATABASES = {
 # Disables the PostgreSQL.ORG authentication.
 # Use the default built-in Django authentication module.
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+
+# The only login page we have in development is the Django admin login page.
+# It's not great, because it won't redirect to the page you were trying to
+# access, but it's better than a HTTP 500 error.
+PGAUTH_REDIRECT = '/admin/login/'
