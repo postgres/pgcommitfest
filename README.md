@@ -14,74 +14,48 @@ This is a Django 3.2 application backed by PostgreSQL and running on Python 3.x.
 
 First, prepare your development environment by installing pip, virtualenv, and postgresql-server-dev-X.Y.
 
-```
-$ sudo apt install python-pip postgresql-server-dev-14
-
-$ pip install virtualenv
+```bash
+sudo apt install python-pip postgresql-server-dev-14
 ```
 
 Next, configure your local environment with virtualenv and install local dependencies.
 
-```
-$ virtualenv env
-$ source env/bin/activate
-$ pip install -r requirements.txt
-```
-
-Now prepare the application to run locally.
-
-Configure the app to match your local installation by creating a
-`local_settings.py` with the following content in the `pgcommitfest` directory.
-Change the values for the database connection adequately.
-
-```
-# Enable more debugging information
-DEBUG = True
-# Prevent logging to try to send emails to postgresql.org admins.
-# Use the default Django logging settings instead.
-LOGGING = None
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'pgcommitfest',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': '0.0.0.0',
-    }
-}
-
-# Disables the PostgreSQL.ORG authentication.
-# Use the default built-in Django authentication module.
-AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
+```bash
+python3 -m venv env
+source env/bin/activate
+pip install -r dev_requirements.txt
 ```
 
-Provided that you created a database matching the above settings, you can
-now create the required tables. Note that a password must be provided.
+Create a database for the application:
 
+```bash
+createdb pgcommitfest
 ```
-$ python manage.py migrate
+
+Create a local settings file (feel free to edit it):
+
+```bash
+cp pgcommitfest/local_settings_example.py pgcommitfest/local_settings.py
+```
+
+Now you can now create the required tables. Note that a password might need to
+be provided.
+
+```bash
+./manage.py migrate
 ```
 
 You'll need either a database dump of the actual server's data or else to create a superuser:
 
-```
-$ python manage.py createsuperuser
+```bash
+./manage.py createsuperuser
 ```
 
 Finally, you're ready to start the application:
 
-```
-$ python manage.py runserver
-```
-
-To authenticate you'll first have to remove the customized login template.
-Remember not to commit this modification.
-
-```
-$ find . -type f -name login.html
-$ rm -f global_templates/admin/login.html
+```bash
+./run_dev.py
 ```
 
-Then open http://localhost:8000/admin to log in. Once redirected to the Django
+Then open http://localhost:8007/admin to log in. Once redirected to the Django
 admin interface, go back to the main interface. You're now logged in.
