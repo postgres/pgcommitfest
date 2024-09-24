@@ -62,6 +62,15 @@
       {%endif%}</td>
     </tr>
     <tr>
+      <th>Checkout latest CFbot patchset</th>
+      <td>
+        Go to your local checkout of the PostgreSQL repository and run:
+        <pre><code>git remote add commitfest https://github.com/postgresql-cfbot/postgresql.git
+git fetch commitfest cf/{{patch.id}}
+git checkout commitfest/cf/{{patch.id}}</code></pre>
+      </td>
+    </tr>
+    <tr>
       <th>Emails</th>
       <td>
 {%if user.is_authenticated%}
