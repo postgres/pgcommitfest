@@ -13,13 +13,13 @@ import logging
 # Set up for accessing django
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), '../../'))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pgcommitfest.settings")
-import django
+import django # noqa: E402
 django.setup()
 
-from django.db import connection
+from django.db import connection # noqa: E402
 
-from pgcommitfest.commitfest.models import MailThread
-from pgcommitfest.commitfest.ajax import refresh_single_thread
+from pgcommitfest.commitfest.models import MailThread # noqa: E402
+from pgcommitfest.commitfest.ajax import refresh_single_thread # noqa: E402
 
 if __name__ == "__main__":
     debug = "--debug" in sys.argv

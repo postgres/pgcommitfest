@@ -20,7 +20,7 @@ import urllib
 from pgcommitfest.mailqueue.util import send_mail, send_simple_mail
 from pgcommitfest.userprofile.util import UserWrapper
 
-from .models import CommitFest, Patch, PatchOnCommitFest, PatchHistory, Committer, CfbotBranch, CfbotTask
+from .models import CommitFest, Patch, PatchOnCommitFest, PatchHistory, Committer, CfbotBranch
 from .models import MailThread
 from .forms import PatchForm, NewPatchForm, CommentForm, CommitFestFilterForm
 from .forms import BulkEmailForm
@@ -979,7 +979,7 @@ def thread_notify(request):
         try:
             t = MailThread.objects.get(messageid=m)
             refresh_single_thread(t)
-        except Exception as e:
+        except Exception:
             # Just ignore it, we'll check again later
             pass
 
