@@ -15,12 +15,12 @@ import smtplib
 # Set up to run in django environment
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), '../../'))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pgcommitfest.settings")
-import django
+import django # noqa: E402
 django.setup()
 
-from django.db import connection, transaction
+from django.db import connection, transaction # noqa: E402
 
-from pgcommitfest.mailqueue.models import QueuedMail
+from pgcommitfest.mailqueue.models import QueuedMail # noqa: E402
 
 if __name__ == "__main__":
     # Grab advisory lock, if available. Lock id is just a random number

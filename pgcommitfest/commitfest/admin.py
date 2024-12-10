@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import *
+from .models import CfbotBranch, CfbotTask, Committer, CommitFest, Patch, PatchHistory, PatchOnCommitFest, TargetVersion, Topic, MailThread, MailThreadAttachment
 
 
 class CommitterAdmin(admin.ModelAdmin):
