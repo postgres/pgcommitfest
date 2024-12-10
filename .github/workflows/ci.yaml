@@ -1,0 +1,21 @@
+name: CI
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    name: "Linting and formatting"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run ruff check
+        uses: astral-sh/ruff-action@v2
+
+      - name: Run ruff format --check
+        uses: astral-sh/ruff-action@v2
+        with:
+          args: "format --check"
