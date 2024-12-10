@@ -8,6 +8,7 @@ from django.db import transaction
 
 import requests
 import json
+import textwrap
 
 from pgcommitfest.auth import user_search
 from .models import CommitFest, Patch, MailThread, MailThreadAttachment
@@ -114,7 +115,7 @@ def annotateMessage(request):
             annotation.save()
 
             for p in thread.patches.all():
-                PatchHistory(patch=p, by=request.user, what='Added annotation "%s" to %s' % (msg, msgid)).save_and_notify()
+                PatchHistory(patch=p, by=request.user, what='Added annotation "%s" to %s' % (textwrap.shorten(msg, 100), msgid)).save_and_notify()
                 p.set_modified()
                 p.save()
 
