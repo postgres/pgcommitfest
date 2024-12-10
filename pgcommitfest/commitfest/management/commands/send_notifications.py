@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.conf import settings
 
-from io import StringIO
 
 from pgcommitfest.commitfest.models import PendingNotification
 from pgcommitfest.userprofile.models import UserProfile

@@ -1,5 +1,4 @@
 # Django settings for pgcommitfest project.
-from django.conf import global_settings
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
@@ -173,6 +172,6 @@ NOTIFICATION_FROM = "webmaster@postgresql.org"
 
 # Load local settings overrides
 try:
-    from .local_settings import *
+    from .local_settings import * # noqa: F403
 except ImportError:
     pass
