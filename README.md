@@ -59,3 +59,13 @@ Finally, you're ready to start the application:
 
 Then open http://localhost:8007/admin to log in. Once redirected to the Django
 admin interface, go back to the main interface. You're now logged in.
+
+## Contributing
+
+Before committing make sure to install the git pre-commit hook to adhere to the
+codestyle.
+
+```bash
+ln -s ../../tools/githook/pre-commit .git/hooks/
+
+```
