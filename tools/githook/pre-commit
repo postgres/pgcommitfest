@@ -14,19 +14,14 @@ if [ "$FILES" != "" ]; then
     # each file.
     E=0
     for F in ${FILES}; do
-	P=$(git show ":$F" | python3 -c "import sys; compile(sys.stdin.read(), '/dev/null', 'exec')")
-	if [ "$?" != "0" ]; then
-	    echo "Errors in $F"
-	    echo $P
+
+	if ! git show ":$F" | ruff check - --quiet --stdin-filename "$F"; then
 	    E=1
-	    continue
 	fi
 
-	R=$(git show ":$F" | pycodestyle -)
-	if [ "$?" != "0" ]; then
-	    echo "Errors in $F"
-	    echo "$R"
+	if ! git show ":$F" | ruff format - --quiet --check; then
 	    E=1
+	    echo "Formatting errors in $F, run 'make format'"
 	fi
     done
     if [ "$E" != "0" ]; then
