@@ -1,0 +1,22 @@
+[tool.ruff]
+# line-length = 120
+
+[tool.ruff.format]
+# quote-style = "preserve"
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+section-order = [
+    "future",
+    "django",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+
+[tool.ruff.lint.isort.sections]
+# Group all Django imports into a separate section.
+"django" = ["django"]
