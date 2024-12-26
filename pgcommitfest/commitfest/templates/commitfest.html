@@ -2,17 +2,17 @@
 {%load commitfest %}
 {%block contents%}
 
-<button type="button" class="btn btn-default{%if has_filter%} active{%endif%}" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
+<button type="button" class="btn btn-light{%if has_filter%} active{%endif%}" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
 <div class="btn-group">
-  <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">Shortcuts <span class="caret"></span></a>
+  <button class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" href="#">Shortcuts <span class="caret"></span></button>
   <ul class="dropdown-menu">
-    <li><a href="?reviewer=-2">Patches with no reviewers</a></li>
-    <li><a href="?author=-3">Patches where you are author</a></li>
-    <li><a href="?reviewer=-3">Patches where you are reviewer</a></li>
+    <li><a class="dropdown-item" href="?reviewer=-2">Patches with no reviewers</a></li>
+    <li><a class="dropdown-item" href="?author=-3">Patches where you are author</a></li>
+    <li><a class="dropdown-item" href="?reviewer=-3">Patches where you are reviewer</a></li>
   </ul>
 </div>
 {%if cf.isopen or user.is_staff %}
-<a class="btn btn-default" href="new/">New patch</a>
+<a class="btn btn-light" href="new/">New patch</a>
 {%endif%}
 <div id="collapseFilters" class="collapse {%if has_filter%}in{%endif%}">
     <form id="filterform" method="GET" action="." style="margin-bottom: 0px">
@@ -36,8 +36,8 @@
             <td>{{f|field_class:"form-control"}}</td>
 {%endfor%}
 	    <td>
-	      <input type="submit" class="btn btn-default" value="Filter">
-	      <a class="btn btn-default" href=".">Clear</a>
+	      <input type="submit" class="btn btn-light" value="Filter">
+	      <a class="btn btn-light" href=".">Clear</a>
 	    </td>
 	  </tr>
 	</tbody>
@@ -87,14 +87,14 @@
   <tr>
    <td><a href="/patch/{{p.id}}/">{{p.name}}</a></td>
    <td>{{p.id}}</td>
-   <td><span class="label label-{{p.status|patchstatuslabel}}">{{p.status|patchstatusstring}}</span></td>
-   <td>{%if p.targetversion%}<span class="label label-default">{{p.targetversion}}</span>{%endif%}</td>
+   <td><span class="badge text-bg-{{p.status|patchstatuslabel}}">{{p.status|patchstatusstring}}</span></td>
+   <td>{%if p.targetversion%}<span class="badge text-bg-secondary">{{p.targetversion}}</span>{%endif%}</td>
    <td class="cfbot-summary">
     {%if not p.cfbot_results %}
-      <span class="label label-default">Not processed</span>
+      <span class="badge text-bg-secondary">Not processed</span>
     {%elif p.cfbot_results.needs_rebase %}
     <a href="{{p.cfbot_results.apply_url}}" target="_blank" title="View git apply logs">
-     <span class="label label-warning">Needs rebase!</span>
+     <span class="badge text-bg-warning">Needs rebase!</span>
     </a>
     {%else%}
     <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{p.id}}~1...cf/{{p.id}}" target="_blank" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
@@ -132,23 +132,23 @@
 
 <div>
 {%if cf.isopen or user.is_staff %}
-<a class="btn btn-default" href="new/">New patch</a>
+<a class="btn btn-light" href="new/">New patch</a>
 {%endif%}
 {%if user.is_staff%}
  <div class="btn-group dropup">
-  <button type="button" class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#">Send private mail <span class="caret"></span></button>
+  <button type="button" class="btn btn-light dropdown-toggle " data-bs-toggle="dropdown" aria-expanded="false">Send private mail <span class="caret"></span></button>
   <ul class="dropdown-menu">
-    <li><a href="javascript:send_selected()">Selected</a></li>
-    <li><a href="send_email/?reviewers={{openpatchids|join:","}}">All reviewers (open patches)</a></li>
-    <li><a href="send_email/?authors={{openpatchids|join:","}}">All authors (open patches)</a></li>
-    <li><a href="send_email/?authors={{openpatchids|join:","}}&reviewers={{openpatchids|join:","}}">All authors and reviewers (open patches)</a></li>
+    <li><a class="dropdown-item" href="javascript:send_selected()">Selected</a></li>
+    <li><a class="dropdown-item" href="send_email/?reviewers={{openpatchids|join:","}}">All reviewers (open patches)</a></li>
+    <li><a class="dropdown-item" href="send_email/?authors={{openpatchids|join:","}}">All authors (open patches)</a></li>
+    <li><a class="dropdown-item" href="send_email/?authors={{openpatchids|join:","}}&reviewers={{openpatchids|join:","}}">All authors and reviewers (open patches)</a></li>
   </ul>
  </div>
 
  <div class="btn-group dropup">
-   <button type="button" class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#">Reports <span class="caret"></span></button>
+   <button type="button" class="btn btn-light dropdown-toggle " data-bs-toggle="dropdown" aria-expanded="false" href="#">Reports <span class="caret"></span></button>
    <ul class="dropdown-menu">
-     <li><a href="reports/authorstats/">Author stats</a></li>
+     <li><a class="dropdown-item" href="reports/authorstats/">Author stats</a></li>
    </ul>
  </div>
 {%endif%}

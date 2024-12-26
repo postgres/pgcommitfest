@@ -38,6 +38,10 @@ div.form-group div.controls input.threadpick-input {
 }
 
 
+.breadcrumb {
+    margin-bottom: 0;
+}
+
 
 /*
  * Attach thread dialog

@@ -189,7 +189,7 @@ class PatchOnCommitFest(models.Model):
         (STATUS_WITHDRAWN, 'Withdrawn'),
     )
     _STATUS_LABELS = (
-        (STATUS_REVIEW, 'default'),
+        (STATUS_REVIEW, 'secondary'),
         (STATUS_AUTHOR, 'primary'),
         (STATUS_COMMITTER, 'info'),
         (STATUS_COMMITTED, 'success'),

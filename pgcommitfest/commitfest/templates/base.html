@@ -5,7 +5,6 @@
   <title>{{title}}</title>
   <link rel="stylesheet" href="/media/commitfest/css/jquery-ui.css" type="text/css">
   <link rel="stylesheet" href="/media/commitfest/css/bootstrap.css" />
-  <link rel="stylesheet" href="/media/commitfest/css/bootstrap-theme.min.css" />
   <link rel="stylesheet" href="/media/commitfest/css/commitfest.css" />
   <link rel="shortcut icon" href="/media/commitfest/favicon.ico" />
 {%block extrahead%}{%endblock%}
@@ -13,21 +12,25 @@
 </head>
 <body>
 <div class="container-fluid">
-<ul class="breadcrumb">
- <li><a href="/">Home</a></li>
+<nav class="navbar navbar-expand-lg bg-body-tertiary d-flex justify-content-between">
+<nav aria-label="breadcrumb">
+<ol class="breadcrumb">
+ <li class="breadcrumb-item"><a href="/">Home</a></li>
 {%for c in breadcrumbs%}
- <li><a href="{{c.href}}">{{c.title}}</a></li>
+ <li class="breadcrumb-item"><a href="{{c.href}}">{{c.title}}</a></li>
 {%endfor%}
- <li class="active">{{title}}</li>
- <li class="pull-right active">
+ <li class="breadcrumb-item active" aria-current="page">{{title}}</li>
+</ol>
+</nav>
+<div>
+{%if header_activity%}<a class="me-4" href="{{header_activity_link}}">{{header_activity}}</a>{%endif%}
 {%if user.is_authenticated%}
  Logged in as {{user}} (<a href="/account/profile/">edit profile</a> | <a href="/account/logout/">log out</a>{%if user.is_staff%} | <a href="/admin/">administration</a>{%endif%})
 {%else%}
  <a href="/account/login/?next={{request.path}}">Log in</a>
 {%endif%}
- </li>
-{%if header_activity%} <li class="pull-right active"><a href="{{header_activity_link}}">{{header_activity}}</a></li>{%endif%}
-</ul>
+</div>
+</nav>
 
 <h1>{{title}}</h1>
 

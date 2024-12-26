@@ -41,7 +41,7 @@
         {%endfor%}
         {%endif%}
         {%if cfbot_branch %}
-        <button class="btn btn-default" title="This adds the following to your clipboard (needs to be run in an existing git repo):
+        <button class="btn btn-light" title="This adds the following to your clipboard (needs to be run in an existing git repo):
 git remote add commitfest https://github.com/postgresql-cfbot/postgresql.git
 git fetch commitfest cf/{{patch.id}}
 git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{patch.id}})">Copy git checkout commands</button>
@@ -82,12 +82,12 @@ git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{pa
     </tr>
     <tr>
       <th>Reviewers</th>
-      <td>{{patch.reviewers_string}}<a href="reviewer/{{is_reviewer|yesno:"remove,become"}}/" class="btn btn-default pull-right">{{is_reviewer|yesno:"Remove from reviewers,Become reviewer"}}</a></td>
+      <td>{{patch.reviewers_string}}<a href="reviewer/{{is_reviewer|yesno:"remove,become"}}/" class="btn btn-light pull-right">{{is_reviewer|yesno:"Remove from reviewers,Become reviewer"}}</a></td>
     </tr>
     <tr>
       <th>Committer</th>
       <td>{%if patch.committer%}{{patch.committer.fullname}}{%endif%}
-{%if is_committer%}<a href="committer/{{is_this_committer|yesno:"remove,become"}}/" class="btn btn-default pull-right">{{is_this_committer|yesno:"Unclaim as committer,Claim as committer"}}</a>{%endif%}
+{%if is_committer%}<a href="committer/{{is_this_committer|yesno:"remove,become"}}/" class="btn btn-light pull-right">{{is_this_committer|yesno:"Unclaim as committer,Claim as committer"}}</a>{%endif%}
       </td>
     </tr>
     <tr>
@@ -101,9 +101,9 @@ git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{pa
       <th>Emails</th>
       <td>
 {%if user.is_authenticated%}
-	<div style="float:right"><button class="btn btn-default" onclick="attachThread({{cf.id}},{{patch.id}})">Attach thread</button></div>
+	<div style="float:right"><button class="btn btn-light" onclick="attachThread({{cf.id}},{{patch.id}})">Attach thread</button></div>
 {%else%}
-	<div style="float:right"><button class="btn btn-default" onclick="location.href='/account/login/?next=/{{cf.id}}/{{patch.id}}/%3Fattachthreadnow'">Attach thread</button></div>
+	<div style="float:right"><button class="btn btn-light" onclick="location.href='/account/login/?next=/{{cf.id}}/{{patch.id}}/%3Fattachthreadnow'">Attach thread</button></div>
 {%endif%}
 	<dl>
 	{%for t in patch.mailthread_set.all%}
@@ -113,7 +113,7 @@ git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{pa
 	  Latest at <a href="https://www.postgresql.org/message-id/{{t.latestmsgid}}">{{t.latestmessage}}</a> by {{t.latestauthor|hidemail}}<br/>
 	  {%for ta in t.mailthreadattachment_set.all%}
 	  {%if forloop.first%}
-	  Latest attachment (<a href="https://www.postgresql.org/message-id/attachment/{{ta.attachmentid}}/{{ta.filename}}">{{ta.filename}}</a>) at <a href="https://www.postgresql.org/message-id/{{ta.messageid}}">{{ta.date}}</a> from {{ta.author|hidemail}} <button type="button" class="btn btn-default btn-xs" data-toggle="collapse" data-target="#att{{t.pk}}" title="Show all attachments"><i class="glyphicon glyphicon-plus"></i></button>
+	  Latest attachment (<a href="https://www.postgresql.org/message-id/attachment/{{ta.attachmentid}}/{{ta.filename}}">{{ta.filename}}</a>) at <a href="https://www.postgresql.org/message-id/{{ta.messageid}}">{{ta.date}}</a> from {{ta.author|hidemail}} <button type="button" class="btn btn-light btn-xs" data-toggle="collapse" data-target="#att{{t.pk}}" title="Show all attachments"><i class="glyphicon glyphicon-plus"></i></button>
            <div id="att{{t.pk}}" class="collapse">
           {%endif%}
            &nbsp;&nbsp;&nbsp;&nbsp;Attachment (<a href="https://www.postgresql.org/message-id/attachment/{{ta.attachmentid}}/{{ta.filename}}">{{ta.filename}}</a>) at <a href="https://www.postgresql.org/message-id/{{ta.messageid}}">{{ta.date}}</a> from {{ta.author|hidemail}} (Patch: {{ta.ispatch|yesno:"Yes,No,Pending check"}})<br/>
@@ -145,7 +145,7 @@ git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{pa
              </table>
              {%endif%}
 	     {%endfor%}
-	     {%if user.is_authenticated%}<button class="btn btn-xs btn-default" onclick="addAnnotation({{t.id}})">Add annotation</button>{%endif%}
+	     {%if user.is_authenticated%}<button class="btn btn-xs btn-light" onclick="addAnnotation({{t.id}})">Add annotation</button>{%endif%}
 	   </div>
 	 </dd>
 	{%endfor%}
@@ -176,7 +176,7 @@ git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{pa
 	</table>
 	</div>
 	{%if user.is_authenticated%}
-	<a href="{{is_subscribed|yesno:"unsubscribe,subscribe"}}/" class="btn btn-default">{{is_subscribed|yesno:"Unsubscribe from patch update emails,Subscribe to patch update emails"}}</a>
+	<a href="{{is_subscribed|yesno:"unsubscribe,subscribe"}}/" class="btn btn-light">{{is_subscribed|yesno:"Unsubscribe from patch update emails,Subscribe to patch update emails"}}</a>
 	{%endif%}
       </td>
     </tr>
@@ -207,8 +207,8 @@ git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{pa
        </form>
      </div>
      <div class="modal-footer">
-       <a href="#" class="btn btn-default" data-dismiss="modal">Close</a>
-       <a href="#" class="btn btn-default btn-primary" id="doCommitButton">Flag as committed</a>
+       <a href="#" class="btn btn-light" data-dismiss="modal">Close</a>
+       <a href="#" class="btn btn-light btn-primary" id="doCommitButton">Flag as committed</a>
      </div>
    </div>
  </div>
@@ -239,8 +239,8 @@ git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{pa
    </div>
   </div>
   <div class="modal-footer">
-   <a href="#" class="btn btn-default" data-dismiss="modal">Close</a>
-   <a href="#" id="doAnnotateMessageButton" class="btn btn-default btn-primary disabled">Add annotation</a>
+   <a href="#" class="btn btn-light" data-dismiss="modal">Close</a>
+   <a href="#" id="doAnnotateMessageButton" class="btn btn-light btn-primary disabled">Add annotation</a>
   </div>
  </div></div>
 </div>
