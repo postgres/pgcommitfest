@@ -122,6 +122,9 @@ class Patch(models.Model, DiffableModel):
         'reviewers': 'reviewers_string',
     }
 
+    def current_commitfest(self):
+        return self.commitfests.order_by('-startdate').first()
+
     # Some accessors
     @property
     def authors_string(self):

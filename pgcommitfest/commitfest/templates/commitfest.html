@@ -85,7 +85,7 @@
 {%endifchanged%}
 {%endif%}
   <tr>
-   <td><a href="{{p.id}}/">{{p.name}}</a></td>
+   <td><a href="/patch/{{p.id}}/">{{p.name}}</a></td>
    <td>{{p.id}}</td>
    <td><span class="label label-{{p.status|patchstatuslabel}}">{{p.status|patchstatusstring}}</span></td>
    <td>{%if p.targetversion%}<span class="label label-default">{{p.targetversion}}</span>{%endif%}</td>
