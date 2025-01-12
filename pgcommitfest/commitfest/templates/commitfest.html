@@ -61,6 +61,7 @@
  <thead>
   <tr>
    <th>{%if p.is_open%}<a href="#" style="color:#333333;" onclick="return sortpatches(0);">Patch</a>{%if sortkey == 0%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%endif%}{%endif%}</th>
+   <th>{%if p.is_open%}<a href="#" style="color:#333333;" onclick="return sortpatches(4);">ID</a>{%if sortkey == 4%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%endif%}{%else%}ID{%endif%}</th>
    <th>Status</th>
    <th>Ver</th>
    <th>CI status</th>
@@ -85,6 +86,7 @@
 {%endif%}
   <tr>
    <td><a href="{{p.id}}/">{{p.name}}</a></td>
+   <td>{{p.id}}</td>
    <td><span class="label label-{{p.status|patchstatuslabel}}">{{p.status|patchstatusstring}}</span></td>
    <td>{%if p.targetversion%}<span class="label label-default">{{p.targetversion}}</span>{%endif%}</td>
    <td class="cfbot-summary">
