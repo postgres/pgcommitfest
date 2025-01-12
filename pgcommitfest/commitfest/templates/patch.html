@@ -18,9 +18,14 @@
         {%if not cfbot_branch %}
         <span class="label label-default">Not processed</span></a>
         {%elif not cfbot_branch.commit_id %}
-        <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
-          <span class="label label-warning">Needs rebase!</span></a>
+          <a href="{{cfbot_branch.apply_url}}">
+          <span class="label label-warning" title="View git apply logs">Needs rebase!</span></a>
+          Additional links previous successfully applied patch (outdated):
+          <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" title="View previous successfully applied patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
+          <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
+          <span class="label label-default">Summary</span></a>
         {%else%}
+        <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
         <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
         <span class="label label-default">Summary</span></a>
         {%for c in cfbot_tasks %}
@@ -34,6 +39,12 @@
             <a href="https://cirrusci.com/task/{{c.id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_failure.svg"/></a>
             {%endif%}
         {%endfor%}
+        {%endif%}
+        {%if cfbot_branch %}
+        <button class="btn btn-default" title="This adds the following to your clipboard (needs to be run in an existing git repo):
+git remote add commitfest https://github.com/postgresql-cfbot/postgresql.git
+git fetch commitfest cf/{{patch.id}}
+git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{patch.id}})">Copy git checkout commands</button>
         {%endif%}
         </a>
       </td>
@@ -81,20 +92,10 @@
     </tr>
     <tr>
       <th>Links</th>
-      <td style="white-space:pre-line"><a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">CFbot results (CirrusCI)</a>
-      <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}">CFbot GitHub</a>{%if patch.wikilink%}
+      {%if patch.wikilink%}
       <a href="{{patch.wikilink}}">Wiki</a>{%endif%}{%if patch.gitlink%}
       <a href="{{patch.gitlink}}">Git</a>
       {%endif%}</td>
-    </tr>
-    <tr>
-      <th>Checkout latest CFbot patchset</th>
-      <td>
-        Go to your local checkout of the PostgreSQL repository and run:
-        <pre><code>git remote add commitfest https://github.com/postgresql-cfbot/postgresql.git
-git fetch commitfest cf/{{patch.id}}
-git checkout commitfest/cf/{{patch.id}}</code></pre>
-      </td>
     </tr>
     <tr>
       <th>Emails</th>

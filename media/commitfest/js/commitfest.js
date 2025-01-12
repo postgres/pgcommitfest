@@ -306,3 +306,10 @@ function searchUserListChanged() {
        $('#doSelectUserButton').addClass('disabled');
    }
 }
+
+function addGitCheckoutToClipboard(patchId) {
+    navigator.clipboard.writeText(`git remote add commitfest https://github.com/postgresql-cfbot/postgresql.git
+git fetch commitfest cf/${patchId}
+git checkout commitfest/cf/${patchId}
+`);
+}
