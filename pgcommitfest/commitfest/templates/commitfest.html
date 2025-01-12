@@ -91,12 +91,13 @@
     {%if not p.cfbot_results %}
       <span class="label label-default">Not processed</span>
     {%elif p.cfbot_results.needs_rebase %}
-    <a href="{{p.cfbot_results.apply_url}}" title="View git apply logs">
+    <a href="{{p.cfbot_results.apply_url}}" target="_blank" title="View git apply logs">
      <span class="label label-warning">Needs rebase!</span>
     </a>
     {%else%}
-    <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{p.id}}~1...cf/{{p.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
+    <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{p.id}}~1...cf/{{p.id}}" target="_blank" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
     <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{p.id}}"
+       target="_blank"
        title="View CI history{%if p.cfbot_results.failed_task_names %}. Failed jobs: {{p.cfbot_results.failed_task_names}}{%endif%}">
       {%if p.cfbot_results.failed > 0 %}
       <img src="/media/commitfest/new_failure.svg"/>

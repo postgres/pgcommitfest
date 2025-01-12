@@ -18,25 +18,25 @@
         {%if not cfbot_branch %}
         <span class="label label-default">Not processed</span></a>
         {%elif not cfbot_branch.commit_id %}
-          <a href="{{cfbot_branch.apply_url}}">
+          <a href="{{cfbot_branch.apply_url}}" target="_blank" title="View git apply logs">
           <span class="label label-warning" title="View git apply logs">Needs rebase!</span></a>
           Additional links previous successfully applied patch (outdated):
-          <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" title="View previous successfully applied patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
-          <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
+          <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" target="_blank" title="View previous successfully applied patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
+          <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}" target="_blank">
           <span class="label label-default">Summary</span></a>
         {%else%}
-        <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
-        <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
+        <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" target="_blank" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
+        <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}" target="_blank">
         <span class="label label-default">Summary</span></a>
         {%for c in cfbot_tasks %}
             {%if c.status == 'COMPLETED'%}
-            <a href="https://cirrusci.com/task/{{c.id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_success.svg"/></a>
+            <a href="https://cirrusci.com/task/{{c.id}}" target="_blank" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_success.svg"/></a>
             {%elif c.status == 'CREATED' %}
-            <a href="https://cirrusci.com/task/{{c.id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/waiting_to_start.svg"/></a>
+            <a href="https://cirrusci.com/task/{{c.id}}" target="_blank" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/waiting_to_start.svg"/></a>
             {%elif c.status == 'EXECUTING' %}
-            <a href="https://cirrusci.com/task/{{c.id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/running.svg"/></a>
+            <a href="https://cirrusci.com/task/{{c.id}}" target="_blank" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/running.svg"/></a>
             {%else %}
-            <a href="https://cirrusci.com/task/{{c.id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_failure.svg"/></a>
+            <a href="https://cirrusci.com/task/{{c.id}}" target="_blank" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_failure.svg"/></a>
             {%endif%}
         {%endfor%}
         {%endif%}
