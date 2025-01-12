@@ -36,6 +36,7 @@ urlpatterns = [
     re_path(r'^ajax/(\w+)/$', ajax.main),
     re_path(r'^lookups/user/$', lookups.userlookup),
     re_path(r'^thread_notify/$', views.thread_notify),
+    re_path(r'^cfbot_notify/$', views.cfbot_notify),
 
     # Auth system integration
     re_path(r'^(?:account/)?login/?$', pgcommitfest.auth.login),

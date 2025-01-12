@@ -65,3 +65,7 @@ div.form-group div.controls input.threadpick-input {
 #annotateMessageBody.loading * {
     display: none;
 }
+
+.cfbot-summary img {
+    margin-top: -3px;
+}

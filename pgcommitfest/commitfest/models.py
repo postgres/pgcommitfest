@@ -341,3 +341,54 @@ class PatchStatus(models.Model):
 class PendingNotification(models.Model):
     history = models.ForeignKey(PatchHistory, blank=False, null=False, on_delete=models.CASCADE)
     user = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
+
+
+class CfbotBranch(models.Model):
+    STATUS_CHOICES = [
+        ('testing', 'Testing'),
+        ('finished', 'Finished'),
+        ('failed', 'Failed'),
+        ('timeout', 'Timeout'),
+    ]
+
+    patch = models.OneToOneField(Patch, on_delete=models.CASCADE, related_name="cfbot_branch", primary_key=True)
+    branch_id = models.IntegerField(null=False)
+    branch_name = models.TextField(null=False)
+    commit_id = models.TextField(null=True, blank=True)
+    apply_url = models.TextField(null=False)
+    # Actually a postgres enum column
+    status = models.TextField(choices=STATUS_CHOICES, null=False)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+
+class CfbotTask(models.Model):
+    STATUS_CHOICES = [
+        ('CREATED', 'Created'),
+        ('NEEDS_APPROVAL', 'Needs Approval'),
+        ('TRIGGERED', 'Triggered'),
+        ('EXECUTING', 'Executing'),
+        ('FAILED', 'Failed'),
+        ('COMPLETED', 'Completed'),
+        ('SCHEDULED', 'Scheduled'),
+        ('ABORTED', 'Aborted'),
+        ('ERRORED', 'Errored'),
+    ]
+
+    # This id is only used by Django. Using text type for primary keys, has
+    # historically caused problems.
+    id = models.BigAutoField(primary_key=True)
+    # This is the id used by the external CI system. Currently with CirrusCI
+    # this is an integer, and thus we could probably store it as such. But
+    # given that we might need to change CI providers at some point, and that
+    # CI provider might use e.g. UUIDs, we prefer to consider the format of the
+    # ID opaque and store it as text.
+    task_id = models.TextField(unique=True)
+    task_name = models.TextField(null=False)
+    patch = models.ForeignKey(Patch, on_delete=models.CASCADE, related_name="cfbot_tasks")
+    branch_id = models.IntegerField(null=False)
+    position = models.IntegerField(null=False)
+    # Actually a postgres enum column
+    status = models.TextField(choices=STATUS_CHOICES, null=False)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)

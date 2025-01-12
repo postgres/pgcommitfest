@@ -63,6 +63,7 @@
    <th>{%if p.is_open%}<a href="#" style="color:#333333;" onclick="return sortpatches(0);">Patch</a>{%if sortkey == 0%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%endif%}{%endif%}</th>
    <th>Status</th>
    <th>Ver</th>
+   <th>CI status</th>
    <th>Author</th>
    <th>Reviewers</th>
    <th>Committer</th>
@@ -79,13 +80,38 @@
 
 {%if grouping%}
 {%ifchanged p.topic%}
-  <tr><th colspan="{%if user.is_staff%}10{%else%}9{%endif%}">{{p.topic}}</th></tr>
-{%endifchanged%} 
+  <tr><th colspan="{%if user.is_staff%}11{%else%}10{%endif%}">{{p.topic}}</th></tr>
+{%endifchanged%}
 {%endif%}
   <tr>
    <td><a href="{{p.id}}/">{{p.name}}</a></td>
    <td><span class="label label-{{p.status|patchstatuslabel}}">{{p.status|patchstatusstring}}</span></td>
    <td>{%if p.targetversion%}<span class="label label-default">{{p.targetversion}}</span>{%endif%}</td>
+   <td>
+    {%if p.cfbot_results %}
+    <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{p.id}}"
+       class="cfbot-summary"
+       {%if p.cfbot_results.failed_task_names %}
+       title="Failed: {{p.cfbot_results.failed_task_names}}"
+        {%endif%}
+    >
+     {%if p.cfbot_results.needs_rebase %}
+     <span class="label label-warning">Needs rebase!</span>
+     {%else%}
+      {%if p.cfbot_results.failed > 0 %}
+      <img src="/media/commitfest/new_failure.svg"/>
+      {%elif p.cfbot_results.completed < p.cfbot_results.total  %}
+      <img src="/media/commitfest/running.svg"/>
+      {%else%}
+      <img src="/media/commitfest/new_success.svg"/>
+      {%endif%}
+      {{p.cfbot_results.completed}}/{{p.cfbot_results.total}}
+     {%endif%}
+    </a>
+    {% else %}
+      <span class="label label-default">Not processed</span>
+    {%endif%}
+   </td>
    <td>{{p.author_names|default:''}}</td>
    <td>{{p.reviewer_names|default:''}}</td>
    <td>{{p.committer|default:''}}</td>
