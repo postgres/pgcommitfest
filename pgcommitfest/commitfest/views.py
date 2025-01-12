@@ -320,17 +320,18 @@ def global_search(request):
     })
 
 
-def patch_redirect(request, patchid):
-    last_commitfest = PatchOnCommitFest.objects.select_related('commitfest').filter(patch_id=patchid).order_by('-commitfest__startdate').first()
-    if not last_commitfest:
-        raise Http404("Patch not found")
-    return HttpResponseRedirect(f'/{last_commitfest.commitfest_id}/{patchid}/')
+def patch_legacy_redirect(request, cfid, patchid):
+    # Previously we would include the commitfest id in the URL. This is no
+    # longer the case.
+    return HttpResponseRedirect(f'/patch/{patchid}/')
 
 
-def patch(request, cfid, patchid):
-    cf = get_object_or_404(CommitFest, pk=cfid)
-    patch = get_object_or_404(Patch.objects.select_related(), pk=patchid, commitfests=cf)
-    patch_commitfests = PatchOnCommitFest.objects.select_related('commitfest').filter(patch=patch).order_by('-commitfest__startdate')
+def patch(request, patchid):
+    patch = get_object_or_404(Patch.objects.select_related(), pk=patchid)
+
+    patch_commitfests = PatchOnCommitFest.objects.select_related('commitfest').filter(patch=patch).order_by('-commitfest__startdate').all()
+    cf = patch_commitfests[0].commitfest
+
     committers = Committer.objects.filter(active=True).order_by('user__last_name', 'user__first_name')
 
     cfbot_branch = getattr(patch, 'cfbot_branch', None)
@@ -373,9 +374,9 @@ def patch(request, cfid, patchid):
 
 @login_required
 @transaction.atomic
-def patchform(request, cfid, patchid):
-    cf = get_object_or_404(CommitFest, pk=cfid)
-    patch = get_object_or_404(Patch, pk=patchid, commitfests=cf)
+def patchform(request, patchid):
+    patch = get_object_or_404(Patch, pk=patchid)
+    cf = patch.current_commitfest()
 
     prevreviewers = list(patch.reviewers.all())
     prevauthors = list(patch.authors.all())
@@ -465,20 +466,11 @@ def _review_status_string(reviewstatus):
 
 @login_required
 @transaction.atomic
-def comment(request, cfid, patchid, what):
-    cf = get_object_or_404(CommitFest, pk=cfid)
+def comment(request, patchid, what):
     patch = get_object_or_404(Patch, pk=patchid)
+    cf = patch.current_commitfest()
     poc = get_object_or_404(PatchOnCommitFest, patch=patch, commitfest=cf)
     is_review = (what == 'review')
-
-    if poc.is_closed:
-        # We allow modification of patches in closed CFs *only* if it's the
-        # last CF that the patch is part of. If it's part of another CF, that
-        # is later than this one, tell the user to go there instead.
-        lastcf = PatchOnCommitFest.objects.filter(patch=patch).order_by('-commitfest__startdate')[0]
-        if poc != lastcf:
-            messages.add_message(request, messages.INFO, "The status of this patch cannot be changed in this commitfest. You must modify it in the one where it's open!")
-            return HttpResponseRedirect('..')
 
     if request.method == 'POST':
         try:
@@ -562,17 +554,10 @@ def comment(request, cfid, patchid, what):
 
 @login_required
 @transaction.atomic
-def status(request, cfid, patchid, status):
-    poc = get_object_or_404(PatchOnCommitFest.objects.select_related(), commitfest__id=cfid, patch__id=patchid)
-
-    if poc.is_closed:
-        # We allow modification of patches in closed CFs *only* if it's the
-        # last CF that the patch is part of. If it's part of another CF, that
-        # is later than this one, tell the user to go there instead.
-        lastcf = PatchOnCommitFest.objects.filter(patch__id=patchid).order_by('-commitfest__startdate')[0]
-        if poc != lastcf:
-            messages.add_message(request, messages.INFO, "The status of this patch cannot be changed in this commitfest. You must modify it in the one where it's open!")
-            return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
+def status(request, patchid, status):
+    patch = get_object_or_404(Patch.objects.select_related(), pk=patchid)
+    cf = patch.current_commitfest()
+    poc = get_object_or_404(PatchOnCommitFest.objects.select_related(), commitfest__id=cf.id, patch__id=patchid)
 
     if status == 'review':
         newstatus = PatchOnCommitFest.STATUS_REVIEW
@@ -592,22 +577,29 @@ def status(request, cfid, patchid, status):
 
         PatchHistory(patch=poc.patch, by=request.user, what='New status: %s' % poc.statusstring).save_and_notify()
 
-    return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
+    return HttpResponseRedirect('/patch/%s/' % (poc.patch.id))
 
 
 @login_required
 @transaction.atomic
-def close(request, cfid, patchid, status):
-    poc = get_object_or_404(PatchOnCommitFest.objects.select_related(), commitfest__id=cfid, patch__id=patchid)
+def close(request, patchid, status):
+    patch = get_object_or_404(Patch.objects.select_related(), pk=patchid)
+    cf = patch.current_commitfest()
 
-    if poc.is_closed:
-        # We allow modification of patches in closed CFs *only* if it's the
-        # last CF that the patch is part of. If it's part of another CF, that
-        # is later than this one, tell the user to go there instead.
-        lastcf = PatchOnCommitFest.objects.filter(patch__id=patchid).order_by('-commitfest__startdate')[0]
-        if poc != lastcf:
-            messages.add_message(request, messages.INFO, "The status of this patch cannot be changed in this commitfest. You must modify it in the one where it's open!")
-            return HttpResponseRedirect('/%s/%s/' % (poc.commitfest.id, poc.patch.id))
+    try:
+        request_cfid = int(request.GET.get('cfid', ''))
+    except ValueError:
+        # int() failed, ignore
+        request_cfid = None
+
+    if request_cfid is not None and request_cfid != cf.id:
+        # The cfid parameter is only added to the /next/ link. That's the only
+        # close operation where two people pressing the button at the same time
+        # can have unintended effects.
+        messages.error(request, "The patch was moved to a new commitfest by someone else. Please double check if you still want to retry this operation.")
+        return HttpResponseRedirect('/%s/%s/' % (cf.id, patch.id))
+
+    poc = get_object_or_404(PatchOnCommitFest.objects.select_related(), commitfest__id=cf.id, patch__id=patchid)
 
     poc.leavedate = datetime.now()
 
@@ -695,8 +687,7 @@ def close(request, cfid, patchid, status):
 
 @login_required
 @transaction.atomic
-def reviewer(request, cfid, patchid, status):
-    get_object_or_404(CommitFest, pk=cfid)
+def reviewer(request, patchid, status):
     patch = get_object_or_404(Patch, pk=patchid)
 
     is_reviewer = request.user in patch.reviewers.all()
@@ -715,7 +706,6 @@ def reviewer(request, cfid, patchid, status):
 @login_required
 @transaction.atomic
 def committer(request, cfid, patchid, status):
-    get_object_or_404(CommitFest, pk=cfid)
     patch = get_object_or_404(Patch, pk=patchid)
 
     committer = list(Committer.objects.filter(user=request.user, active=True))
@@ -740,8 +730,7 @@ def committer(request, cfid, patchid, status):
 
 @login_required
 @transaction.atomic
-def subscribe(request, cfid, patchid, sub):
-    get_object_or_404(CommitFest, pk=cfid)
+def subscribe(request, patchid, sub):
     patch = get_object_or_404(Patch, pk=patchid)
 
     if sub == 'un':
@@ -752,6 +741,12 @@ def subscribe(request, cfid, patchid, sub):
         messages.info(request, "You have been subscribed to updates on this patch")
     patch.save()
     return HttpResponseRedirect("../")
+
+
+def send_patch_email(request, patchid):
+    patch = get_object_or_404(Patch, pk=patchid)
+    cf = patch.current_commitfest()
+    return send_email(request, cf.id)
 
 
 @login_required

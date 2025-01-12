@@ -68,7 +68,7 @@ git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{pa
     <tr>
       <th>Status</th>
       <td>{%for c in patch_commitfests %}
-	<div style="margin-bottom: 3px;"><a href="/{{c.commitfest.id}}/{{patch.id}}/">{{c.commitfest}}</a>: <span class="label label-{{c.status|patchstatuslabel}}">{{c.statusstring}}</span></div>
+	<div style="margin-bottom: 3px;"><a href="/{{c.commitfest.id}}/">{{c.commitfest}}</a>: <span class="label label-{{c.status|patchstatuslabel}}">{{c.statusstring}}</span></div>
 	{%endfor%}
       </td>
     </tr>
