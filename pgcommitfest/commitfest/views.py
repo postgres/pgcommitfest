@@ -316,17 +316,18 @@ def global_search(request):
     })
 
 
-def patch_redirect(request, patchid):
-    last_commitfest = PatchOnCommitFest.objects.select_related('commitfest').filter(patch_id=patchid).order_by('-commitfest__startdate').first()
-    if not last_commitfest:
-        raise Http404("Patch not found")
-    return HttpResponseRedirect(f'/{last_commitfest.commitfest_id}/{patchid}/')
+def patch_legacy_redirect(request, cfid, patchid):
+    # Previously we would include the commitfest id in the URL. This is no
+    # longer the case.
+    return HttpResponseRedirect(f'/patch/{patchid}/')
 
 
-def patch(request, cfid, patchid):
-    cf = get_object_or_404(CommitFest, pk=cfid)
-    patch = get_object_or_404(Patch.objects.select_related(), pk=patchid, commitfests=cf)
-    patch_commitfests = PatchOnCommitFest.objects.select_related('commitfest').filter(patch=patch).order_by('-commitfest__startdate')
+def patch(request, patchid):
+    patch = get_object_or_404(Patch.objects.select_related(), pk=patchid)
+
+    patch_commitfests = PatchOnCommitFest.objects.select_related('commitfest').filter(patch=patch).order_by('-commitfest__startdate').all()
+    cf = patch_commitfests[0].commitfest
+
     committers = Committer.objects.filter(active=True).order_by('user__last_name', 'user__first_name')
 
     cfbot_branch = getattr(patch, 'cfbot_branch', None)
