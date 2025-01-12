@@ -224,11 +224,12 @@ def commitfest(request, cfid):
             count(*) FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) failed,
             count(*) total,
             string_agg(task.task_name, ', ') FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) as failed_task_names,
-            branch.commit_id IS NULL as needs_rebase
+            branch.commit_id IS NULL as needs_rebase,
+            branch.apply_url
         FROM commitfest_cfbotbranch branch
         LEFT JOIN commitfest_cfbottask task ON task.branch_id = branch.branch_id
         WHERE branch.patch_id=p.id
-        GROUP BY branch.commit_id
+        GROUP BY branch.patch_id
     ) t
 )
 FROM commitfest_patch p
