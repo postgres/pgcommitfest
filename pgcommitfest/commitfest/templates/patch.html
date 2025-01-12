@@ -13,6 +13,32 @@
       <td>{{patch.name}}</td>
     </tr>
     <tr>
+      <th>CI (CFBot)</th>
+      <td>
+        {%if not cfbot_branch %}
+        <span class="label label-default">Not processed</span></a>
+        {%elif not cfbot_branch.commit_id %}
+        <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
+          <span class="label label-warning">Needs rebase!</span></a>
+        {%else%}
+        <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
+        <span class="label label-default">Summary</span></a>
+        {%for c in cfbot_tasks %}
+            {%if c.status == 'COMPLETED'%}
+            <a href="https://cirrusci.com/task/{{c.id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_success.svg"/></a>
+            {%elif c.status == 'CREATED' %}
+            <a href="https://cirrusci.com/task/{{c.id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/waiting_to_start.svg"/></a>
+            {%elif c.status == 'EXECUTING' %}
+            <a href="https://cirrusci.com/task/{{c.id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/running.svg"/></a>
+            {%else %}
+            <a href="https://cirrusci.com/task/{{c.id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_failure.svg"/></a>
+            {%endif%}
+        {%endfor%}
+        {%endif%}
+        </a>
+      </td>
+    </tr>
+    <tr>
       <th>Topic</th>
       <td>{{patch.topic}}</td>
     </tr>
@@ -138,7 +164,7 @@ git checkout commitfest/cf/{{patch.id}}</code></pre>
 	    </tr>
 	  </thead>
 	  <tbody>
-	    {%for h in patch.history %}	  
+	    {%for h in patch.history %}
 	    <tr>
 	      <td style="white-space: nowrap;">{{h.date}}</td>
 	      <td style="white-space: nowrap;">{{h.by_string}}</td>
