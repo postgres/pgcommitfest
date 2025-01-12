@@ -187,6 +187,8 @@ def commitfest(request, cfid):
             orderby_str = 'lastmail, created'
         elif sortkey == 3:
             orderby_str = 'num_cfs DESC, modified, created'
+        elif sortkey == 4:
+            orderby_str = 'p.id'
         else:
             orderby_str = 'p.id'
             sortkey = 0
