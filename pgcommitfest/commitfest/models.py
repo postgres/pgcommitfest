@@ -224,11 +224,15 @@ class PatchOnCommitFest(models.Model):
 class PatchHistory(models.Model):
     patch = models.ForeignKey(Patch, blank=False, null=False, on_delete=models.CASCADE)
     date = models.DateTimeField(blank=False, null=False, auto_now_add=True, db_index=True)
-    by = models.ForeignKey(User, blank=False, null=False, on_delete=models.CASCADE)
+    by = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
+    by_cfbot = models.BooleanField(null=False, blank=False, default=False)
     what = models.CharField(max_length=500, null=False, blank=False)
 
     @property
     def by_string(self):
+        if (self.by_cfbot):
+            return "CFbot"
+
         return "%s %s (%s)" % (self.by.first_name, self.by.last_name, self.by.username)
 
     def __str__(self):
@@ -236,34 +240,45 @@ class PatchHistory(models.Model):
 
     class Meta:
         ordering = ('-date', )
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    models.Q(by_cfbot=True) & models.Q(by__isnull=True)
+                ) | (
+                    models.Q(by_cfbot=False) & models.Q(by__isnull=False)
+                ),
+                name='check_by',
+            ),
+        ]
 
     def save_and_notify(self, prevcommitter=None,
-                        prevreviewers=None, prevauthors=None):
+                        prevreviewers=None, prevauthors=None, authors_only=False):
         # Save this model, and then trigger notifications if there are any. There are
         # many different things that can trigger notifications, so try them all.
         self.save()
 
         recipients = []
-        recipients.extend(self.patch.subscribers.all())
+        if not authors_only:
+            recipients.extend(self.patch.subscribers.all())
 
-        # Current or previous committer wants all notifications
-        try:
-            if self.patch.committer and self.patch.committer.user.userprofile.notify_all_committer:
-                recipients.append(self.patch.committer.user)
-        except UserProfile.DoesNotExist:
-            pass
+            # Current or previous committer wants all notifications
+            try:
+                if self.patch.committer and self.patch.committer.user.userprofile.notify_all_committer:
+                    recipients.append(self.patch.committer.user)
+            except UserProfile.DoesNotExist:
+                pass
 
-        try:
-            if prevcommitter and prevcommitter.user.userprofile.notify_all_committer:
-                recipients.append(prevcommitter.user)
-        except UserProfile.DoesNotExist:
-            pass
+            try:
+                if prevcommitter and prevcommitter.user.userprofile.notify_all_committer:
+                    recipients.append(prevcommitter.user)
+            except UserProfile.DoesNotExist:
+                pass
 
-        # Current or previous reviewers wants all notifications
-        recipients.extend(self.patch.reviewers.filter(userprofile__notify_all_reviewer=True))
-        if prevreviewers:
-            # prevreviewers is a list
-            recipients.extend(User.objects.filter(id__in=[p.id for p in prevreviewers], userprofile__notify_all_reviewer=True))
+            # Current or previous reviewers wants all notifications
+            recipients.extend(self.patch.reviewers.filter(userprofile__notify_all_reviewer=True))
+            if prevreviewers:
+                # prevreviewers is a list
+                recipients.extend(User.objects.filter(id__in=[p.id for p in prevreviewers], userprofile__notify_all_reviewer=True))
 
         # Current or previous authors wants all notifications
         recipients.extend(self.patch.authors.filter(userprofile__notify_all_author=True))
@@ -358,6 +373,7 @@ class CfbotBranch(models.Model):
     apply_url = models.TextField(null=False)
     # Actually a postgres enum column
     status = models.TextField(choices=STATUS_CHOICES, null=False)
+    needs_rebase_since = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 

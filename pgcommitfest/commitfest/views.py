@@ -823,7 +823,7 @@ def cfbot_ingest(message):
     branch_id = branch_status["branch_id"]
 
     try:
-        Patch.objects.get(pk=patch_id)
+        patch = Patch.objects.get(pk=patch_id)
     except Patch.DoesNotExist:
         # If the patch doesn't exist, there's nothing to do. This should never
         # happen in production, but on the test system it's possible because
@@ -909,6 +909,24 @@ def cfbot_ingest(message):
     # because we have an index on patch_id and there's only a handful of tasks
     # per patch.
     cursor.execute("DELETE FROM commitfest_cfbottask WHERE patch_id=%s AND branch_id != %s", (patch_id, branch_id))
+
+    # We change the needs_rebase field using a separate UPDATE because this way
+    # we can find out what the previous state of the field was (sadly INSERT ON
+    # CONFLICT does not allow us to return that). We need to know the previous
+    # state so we can skip sending notifications if the needs_rebase status did
+    # not change.
+    needs_rebase = branch_status['commit_id'] is None
+    if bool(branch_in_db.needs_rebase_since) is not needs_rebase:
+        if needs_rebase:
+            branch_in_db.needs_rebase_since = datetime.now()
+        else:
+            branch_in_db.needs_rebase_since = None
+        branch_in_db.save()
+
+        if needs_rebase:
+            PatchHistory(patch=patch, by=None, by_cfbot=True, what='Patch needs rebase').save_and_notify(authors_only=True)
+        else:
+            PatchHistory(patch=patch, by=None, by_cfbot=True, what='Patch does not need rebase anymore').save_and_notify(authors_only=True)
 
 
 @csrf_exempt
