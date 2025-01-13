@@ -222,7 +222,11 @@ function flagCommitted(committer) {
 
 
 function sortpatches(sortby) {
-   $('#id_sortkey').val(sortby);
+   if ($('#id_sortkey').val() == sortby) {
+      $('#id_sortkey').val(0);
+   } else {
+      $('#id_sortkey').val(sortby);
+   }
    $('#filterform').submit();
 
    return false;
