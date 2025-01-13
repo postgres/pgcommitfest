@@ -6,7 +6,7 @@ A commitfest is a collection of patches and reviews for a project and is part of
 
 ## The Application
 
-This is a Django 3.2 application backed by PostgreSQL and running on Python 3.x.
+This is a Django 4.2 application backed by PostgreSQL and running on Python 3.x.
 
 ## Getting Started
 
