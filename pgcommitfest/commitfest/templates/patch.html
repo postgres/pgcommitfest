@@ -183,7 +183,9 @@ git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{pa
   </tbody>
 </table>
 
+{% with dropdown_mode="dropdown-menu--up" %}
 {%include "patch_commands.inc"%}
+{% endwith %}
 
 {%comment%}commit dialog{%endcomment%}
 <div class="modal fade" id="commitModal" role="dialog">

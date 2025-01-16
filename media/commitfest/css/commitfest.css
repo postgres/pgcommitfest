@@ -37,7 +37,10 @@ div.form-group div.controls input.threadpick-input {
    display: inline;
 }
 
-
+.dropdown-menu--up {
+   top: initial;
+   bottom: 100%;
+}
 
 /*
  * Attach thread dialog
