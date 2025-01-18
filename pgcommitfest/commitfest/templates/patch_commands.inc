@@ -1,17 +1,17 @@
 <div style="margin-bottom:5px;">
 <a class="btn btn-default" href="edit/">Edit</a>
 
-<div class="btn-group">
+<div class="btn-group {{ dropdown_mode }}">
  <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">Comment/Review <span class="caret"></span></a>
- <ul class="dropdown-menu {{ dropdown_mode }}">
+ <ul class="dropdown-menu">
   <li><a href="comment/">Comment</a>
   <li><a href="review/">Review</a>
  </ul>
 </div>
 
-<div class="btn-group">
+<div class="btn-group {{ dropdown_mode }}">
  <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">Change Status <span class="caret"></span></a>
- <ul class="dropdown-menu {{ dropdown_mode }}" role="menu">
+ <ul class="dropdown-menu" role="menu">
   <li role="presentation" class="dropdown-header">Open statuses</li>
   <li role="presentation"><a href="status/review/">Needs review</a></li>
   <li role="presentation"><a href="status/author/">Waiting on Author</a></li>
@@ -27,9 +27,9 @@
 </div>
 
 {%if request.user.is_staff%}
-<div class="btn-group">
+<div class="btn-group {{ dropdown_mode }}">
  <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">Send private mail <span class="caret"></span></a>
- <ul class="dropdown-menu {{ dropdown_mode }}" >
+ <ul class="dropdown-menu" >
   <li><a href="send_email/?authors={{patch.id}}">Send mail to authors</a></li>
   <li><a href="send_email/?reviewers={{patch.id}}">Send mail to reviewers</a></li>
   <li><a href="send_email/?authors={{patch.id}}&reviewers={{patch.id}}">Send mail to authors and reviewers</a></li>
