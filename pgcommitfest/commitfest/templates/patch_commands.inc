@@ -1,7 +1,7 @@
 <div style="margin-bottom:5px;">
 <a class="btn btn-default" href="edit/">Edit</a>
 
-<div class="btn-group {{ dropdown_mode }}">
+<div class="btn-group">
  <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">Comment/Review <span class="caret"></span></a>
  <ul class="dropdown-menu">
   <li><a href="comment/">Comment</a>
@@ -9,7 +9,7 @@
  </ul>
 </div>
 
-<div class="btn-group {{ dropdown_mode }}">
+<div class="btn-group">
  <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">Change Status <span class="caret"></span></a>
  <ul class="dropdown-menu" role="menu">
   <li role="presentation" class="dropdown-header">Open statuses</li>
@@ -27,7 +27,7 @@
 </div>
 
 {%if request.user.is_staff%}
-<div class="btn-group {{ dropdown_mode }}">
+<div class="btn-group">
  <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">Send private mail <span class="caret"></span></a>
  <ul class="dropdown-menu">
   <li><a href="send_email/?authors={{patch.id}}">Send mail to authors</a></li>
