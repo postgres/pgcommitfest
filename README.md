@@ -48,7 +48,7 @@ be provided.
 ```
 
 #### Load data
-You'll need either a database dump of the actual server's data or else to create a superuser. Here's how you
+You'll need either a database dump or else to create a superuser to start from scratch. Here's how you
 create a super user:
 
 ```bash
@@ -62,11 +62,7 @@ On the other hand, you can use some dummy data instead. Here's how you do that.
 ./manage.py loaddata commitfest_data.json
 ```
 
-In the future, if you'd like to regenerate those database dump files, you can run the following commands:
-```
-./manage.py dumpdata auth  --format=json --indent=3 > pgcommitfest/commitfest/fixtures/auth_data.json
-./manage.py dumpdata commitfest  --format=json --indent=3  --exclude=commitfest.MailThread > pgcommitfest/commitfest/fixtures/commitfest_data.json
-```
+If you do this, the admin username and password are `admin` and `admin`.
 
 
 #### Start application
@@ -88,3 +84,15 @@ codestyle.
 ln -s ../../tools/githook/pre-commit .git/hooks/
 
 ```
+
+If you'd like to regenerate the database dump files, you can run the following commands:
+```
+./manage.py dumpdata auth  --format=json --indent=3 > pgcommitfest/commitfest/fixtures/auth_data.json
+./manage.py dumpdata commitfest  --format=json --indent=3  --exclude=commitfest.MailThread --exclude=commitfest.MailThreadAttachment > pgcommitfest/commitfest/fixtures/commitfest_data.json
+```
+
+Note that at present, we exclude the MailThread model because it leads to a recursion error.
+In general, working with the mailing list is a bit delicate becauase we're also mocking the archives server,
+so if you need to dump or load mailing thread data, you may run into errors that require manually adjustments.
+
+If you want to reload data from dump file, you can run `drop owned by postgres;` in the `pgcommitfest` database first.
