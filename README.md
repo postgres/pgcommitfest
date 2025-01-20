@@ -93,6 +93,6 @@ If you'd like to regenerate the database dump files, you can run the following c
 
 Note that at present, we exclude the MailThread model because it leads to a recursion error.
 In general, working with the mailing list is a bit delicate becauase we're also mocking the archives server,
-so if you need to dump or load mailing thread data, you may run into errors that require manually adjustments.
+so if you need to dump or load mailing thread data, you may run into errors that require manual adjustments.
 
 If you want to reload data from dump file, you can run `drop owned by postgres;` in the `pgcommitfest` database first.
