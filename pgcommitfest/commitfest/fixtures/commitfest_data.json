@@ -1,16 +1,9 @@
 [
   {
-     "model": "commitfest.committer",
-     "pk": 1,
-     "fields": {
-        "active": true
-     }
-  },
-  {
      "model": "commitfest.commitfest",
      "pk": 1,
      "fields": {
-        "name": "Open commitfest",
+        "name": "Sample Commitfest",
         "status": 1,
         "startdate": "2025-01-20",
         "enddate": null
@@ -20,21 +13,21 @@
      "model": "commitfest.topic",
      "pk": 1,
      "fields": {
-        "topic": "Example Topic 1"
+        "topic": "Bugs"
      }
   },
   {
      "model": "commitfest.topic",
      "pk": 2,
      "fields": {
-        "topic": "Example Topic 2"
+        "topic": "Performance"
      }
   },
   {
      "model": "commitfest.topic",
      "pk": 3,
      "fields": {
-        "topic": "Example Topic 3"
+        "topic": "Miscellaneous"
      }
   },
   {
@@ -48,25 +41,17 @@
      "model": "commitfest.patch",
      "pk": 1,
      "fields": {
-        "name": "Example Patch 1",
+        "name": "Bug fix 1",
         "topic": 1,
         "wikilink": "",
         "gitlink": "",
         "targetversion": 1,
-        "committer": 1,
-        "created": "2025-01-20T14:26:32.813",
-        "modified": "2025-01-20T14:26:22",
-        "lastmail": "2025-01-20T14:26:26",
-        "authors": [
-           [
-              "admin"
-           ]
-        ],
-        "reviewers": [
-           [
-              "admin"
-           ]
-        ],
+        "committer": null,
+        "created": "2025-01-20T15:49:54.407",
+        "modified": "2025-01-20T15:49:51",
+        "lastmail": null,
+        "authors": [],
+        "reviewers": [],
         "subscribers": []
      }
   },
@@ -74,68 +59,32 @@
      "model": "commitfest.patch",
      "pk": 3,
      "fields": {
-        "name": "Example",
-        "topic": 1,
-        "wikilink": "",
-        "gitlink": "",
-        "targetversion": null,
-        "committer": null,
-        "created": "2025-01-20T15:17:00.125",
-        "modified": "2025-01-20T15:17:00.132",
-        "lastmail": "2025-01-20T14:20:10",
-        "authors": [],
-        "reviewers": [],
-        "subscribers": []
-     }
-  },
-  {
-     "model": "commitfest.patch",
-     "pk": 4,
-     "fields": {
-        "name": "Example",
-        "topic": 1,
-        "wikilink": "",
-        "gitlink": "",
-        "targetversion": null,
-        "committer": null,
-        "created": "2025-01-20T15:17:16.033",
-        "modified": "2025-01-20T15:17:16.045",
-        "lastmail": "2025-01-20T14:20:10",
-        "authors": [],
-        "reviewers": [],
-        "subscribers": []
-     }
-  },
-  {
-     "model": "commitfest.patch",
-     "pk": 5,
-     "fields": {
-        "name": "Example",
-        "topic": 1,
-        "wikilink": "",
-        "gitlink": "",
-        "targetversion": null,
-        "committer": null,
-        "created": "2025-01-20T15:17:23.634",
-        "modified": "2025-01-20T15:17:23.643",
-        "lastmail": "2025-01-20T14:20:10",
-        "authors": [],
-        "reviewers": [],
-        "subscribers": []
-     }
-  },
-  {
-     "model": "commitfest.patch",
-     "pk": 7,
-     "fields": {
-        "name": "Another patch",
+        "name": "Performance Improvement in Optimizer",
         "topic": 2,
         "wikilink": "",
         "gitlink": "",
         "targetversion": null,
         "committer": null,
-        "created": "2025-01-20T15:20:05.943",
-        "modified": "2025-01-20T15:20:17.313",
+        "created": "2025-01-20T15:51:43.963",
+        "modified": "2025-01-20T16:21:29.998",
+        "lastmail": "2025-01-20T14:20:10",
+        "authors": [],
+        "reviewers": [],
+        "subscribers": []
+     }
+  },
+  {
+     "model": "commitfest.patch",
+     "pk": 4,
+     "fields": {
+        "name": "Bug Fix in WAL Serialization",
+        "topic": 1,
+        "wikilink": "",
+        "gitlink": "",
+        "targetversion": null,
+        "committer": null,
+        "created": "2025-01-20T15:52:49.324",
+        "modified": "2025-01-20T15:53:00.378",
         "lastmail": "2025-01-20T14:20:10",
         "authors": [],
         "reviewers": [],
@@ -148,7 +97,7 @@
      "fields": {
         "patch": 3,
         "commitfest": 1,
-        "enterdate": "2025-01-20T15:17:00.126",
+        "enterdate": "2025-01-20T15:51:43.964",
         "leavedate": null,
         "status": 1
      }
@@ -159,29 +108,7 @@
      "fields": {
         "patch": 4,
         "commitfest": 1,
-        "enterdate": "2025-01-20T15:17:16.034",
-        "leavedate": null,
-        "status": 1
-     }
-  },
-  {
-     "model": "commitfest.patchoncommitfest",
-     "pk": 4,
-     "fields": {
-        "patch": 5,
-        "commitfest": 1,
-        "enterdate": "2025-01-20T15:17:23.634",
-        "leavedate": null,
-        "status": 1
-     }
-  },
-  {
-     "model": "commitfest.patchoncommitfest",
-     "pk": 6,
-     "fields": {
-        "patch": 7,
-        "commitfest": 1,
-        "enterdate": "2025-01-20T15:20:05.943",
+        "enterdate": "2025-01-20T15:52:49.324",
         "leavedate": null,
         "status": 1
      }
@@ -191,10 +118,8 @@
      "pk": 2,
      "fields": {
         "patch": 3,
-        "date": "2025-01-20T15:17:00.126",
-        "by": [
-           "admin"
-        ],
+        "date": "2025-01-20T15:51:43.964",
+        "by": 1,
         "by_cfbot": false,
         "what": "Created patch record"
      }
@@ -204,10 +129,8 @@
      "pk": 3,
      "fields": {
         "patch": 3,
-        "date": "2025-01-20T15:17:00.130",
-        "by": [
-           "admin"
-        ],
+        "date": "2025-01-20T15:51:43.968",
+        "by": 1,
         "by_cfbot": false,
         "what": "Attached mail thread example-message-99"
      }
@@ -217,10 +140,8 @@
      "pk": 4,
      "fields": {
         "patch": 4,
-        "date": "2025-01-20T15:17:16.034",
-        "by": [
-           "admin"
-        ],
+        "date": "2025-01-20T15:52:49.325",
+        "by": 1,
         "by_cfbot": false,
         "what": "Created patch record"
      }
@@ -230,10 +151,8 @@
      "pk": 5,
      "fields": {
         "patch": 4,
-        "date": "2025-01-20T15:17:16.039",
-        "by": [
-           "admin"
-        ],
+        "date": "2025-01-20T15:52:49.329",
+        "by": 1,
         "by_cfbot": false,
         "what": "Attached mail thread example-message-99"
      }
@@ -242,52 +161,22 @@
      "model": "commitfest.patchhistory",
      "pk": 6,
      "fields": {
-        "patch": 5,
-        "date": "2025-01-20T15:17:23.635",
-        "by": [
-           "admin"
-        ],
+        "patch": 3,
+        "date": "2025-01-20T16:16:34.533",
+        "by": 1,
         "by_cfbot": false,
-        "what": "Created patch record"
+        "what": "Attached mail thread example-message-4"
      }
   },
   {
      "model": "commitfest.patchhistory",
      "pk": 7,
      "fields": {
-        "patch": 5,
-        "date": "2025-01-20T15:17:23.639",
-        "by": [
-           "admin"
-        ],
+        "patch": 3,
+        "date": "2025-01-20T16:21:29.995",
+        "by": 1,
         "by_cfbot": false,
-        "what": "Attached mail thread example-message-99"
-     }
-  },
-  {
-     "model": "commitfest.patchhistory",
-     "pk": 10,
-     "fields": {
-        "patch": 7,
-        "date": "2025-01-20T15:20:05.944",
-        "by": [
-           "admin"
-        ],
-        "by_cfbot": false,
-        "what": "Created patch record"
-     }
-  },
-  {
-     "model": "commitfest.patchhistory",
-     "pk": 11,
-     "fields": {
-        "patch": 7,
-        "date": "2025-01-20T15:20:05.947",
-        "by": [
-           "admin"
-        ],
-        "by_cfbot": false,
-        "what": "Attached mail thread example-message-99"
+        "what": "Attached mail thread example-message-27"
      }
   },
   {
