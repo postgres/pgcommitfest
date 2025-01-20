@@ -48,7 +48,7 @@ be provided.
 ```
 
 #### Load data
-You'll need either a database dump or else to create a superuser to start from scratch. Here's how you
+You can either start from scratch, in which case you'll create a superuser like so:
 create a super user:
 
 ```bash
@@ -58,7 +58,7 @@ create a super user:
 On the other hand, you can use some dummy data instead. Here's how you do that.
 
 ```
-./manage.py loaddata auth_data.json
+./manage.py loaddata auth_data.json 
 ./manage.py loaddata commitfest_data.json
 ```
 
