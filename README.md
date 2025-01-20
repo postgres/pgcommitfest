@@ -12,6 +12,8 @@ This is a Django 4.2 application backed by PostgreSQL and running on Python 3.x.
 
 ### Ubuntu instructions
 
+#### Install Dependencies / Configure Environment
+
 First, prepare your development environment by installing pip, virtualenv, and postgresql-server-dev-X.Y.
 
 ```bash
@@ -45,12 +47,29 @@ be provided.
 ./manage.py migrate
 ```
 
-You'll need either a database dump of the actual server's data or else to create a superuser:
+#### Load data
+You'll need either a database dump of the actual server's data or else to create a superuser. Here's how you
+create a super user:
 
 ```bash
 ./manage.py createsuperuser
 ```
 
+On the other hand, you can use some dummy data instead. Here's how you do that.
+
+```
+./manage.py loaddata auth_data.json
+./manage.py loaddata commitfest_data.json
+```
+
+In the future, if you'd like to regenerate those database dump files, you can run the following commands:
+```
+./manage.py dumpdata auth  --format=json --indent=3 > pgcommitfest/commitfest/fixtures/auth_data.json
+./manage.py dumpdata commitfest  --format=json --indent=3  --exclude=commitfest.MailThread > pgcommitfest/commitfest/fixtures/commitfest_data.json
+```
+
+
+#### Start application
 Finally, you're ready to start the application:
 
 ```bash
