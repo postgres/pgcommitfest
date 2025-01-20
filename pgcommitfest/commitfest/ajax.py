@@ -24,6 +24,11 @@ class Http503(Exception):
 
 
 def _archivesAPI(suburl, params=None):
+    if getattr(settings, 'MOCK_ARCHIVES', False) and getattr(settings, 'MOCK_ARCHIVE_DATA'):
+        with open(settings.MOCK_ARCHIVE_DATA, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            return data
+
     try:
         resp = requests.get(
             "http{0}://{1}:{2}{3}".format(settings.ARCHIVES_PORT == 443 and 's' or '',

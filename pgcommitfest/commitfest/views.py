@@ -432,7 +432,7 @@ def newpatch(request, cfid):
             # Now add the thread
             try:
                 doAttachThread(cf, patch, form.cleaned_data['threadmsgid'], request.user)
-                return HttpResponseRedirect("/%s/%s/edit/" % (cf.id, patch.id))
+                return HttpResponseRedirect("/patch/%s/edit/" % (patch.id,))
             except Http404:
                 # Thread not found!
                 # This is a horrible breakage of API layers

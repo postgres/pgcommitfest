@@ -1,3 +1,5 @@
+import os
+
 # Enable more debugging information
 DEBUG = True
 # Prevent logging to try to send emails to postgresql.org admins.
@@ -22,3 +24,7 @@ AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 # It's not great, because it won't redirect to the page you were trying to
 # access, but it's better than a HTTP 500 error.
 PGAUTH_REDIRECT = '/admin/login/'
+
+MOCK_ARCHIVES = True
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MOCK_ARCHIVE_DATA = os.path.join(BASE_DIR, 'commitfest', 'fixtures', 'archive_data.json')
