@@ -9,6 +9,7 @@ from django.db import transaction
 import requests
 import json
 import textwrap
+import re
 
 from pgcommitfest.auth import user_search
 from .models import CommitFest, Patch, MailThread, MailThreadAttachment
@@ -23,11 +24,28 @@ class Http503(Exception):
     pass
 
 
+def mockArchivesAPI(path):
+    with open(settings.MOCK_ARCHIVE_DATA, 'r', encoding='utf-8') as file:
+        data = json.load(file)
+        for message in data:
+            message['atts'] = [{
+                "id": 1,
+                "name": "v1-" + message["subj"]
+            }]
+
+    message_pattern = re.compile(r"^/message-id\.json/(?P<message_id>[^/]+)$")
+
+    message_match = message_pattern.match(path)
+    if message_match:
+        message_id = message_match.group("message_id")
+        return [message for message in data if message['msgid'] == message_id]
+    else:
+        return data
+
+
 def _archivesAPI(suburl, params=None):
     if getattr(settings, 'MOCK_ARCHIVES', False) and getattr(settings, 'MOCK_ARCHIVE_DATA'):
-        with open(settings.MOCK_ARCHIVE_DATA, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            return data
+        return mockArchivesAPI(suburl)
 
     try:
         resp = requests.get(
