@@ -28,10 +28,7 @@ def mockArchivesAPI(path):
     with open(settings.MOCK_ARCHIVE_DATA, 'r', encoding='utf-8') as file:
         data = json.load(file)
         for message in data:
-            message['atts'] = [{
-                "id": 1,
-                "name": "v1-" + message["subj"]
-            }]
+            message['atts'] = []
 
     message_pattern = re.compile(r"^/message-id\.json/(?P<message_id>[^/]+)$")
 
