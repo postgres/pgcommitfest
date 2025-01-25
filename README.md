@@ -58,7 +58,7 @@ create a super user:
 On the other hand, you can use some dummy data instead. Here's how you do that.
 
 ```
-./manage.py loaddata auth_data.json 
+./manage.py loaddata auth_data.json
 ./manage.py loaddata commitfest_data.json
 ```
 
