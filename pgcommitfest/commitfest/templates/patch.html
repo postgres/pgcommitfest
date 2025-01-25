@@ -50,6 +50,20 @@ git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{pa
       </td>
     </tr>
     <tr>
+     <th>Stats (from CFBot)</th>
+     <td>
+      {%if cfbot_branch and cfbot_branch.commit_id %}
+      {%if cfbot_branch.version %}
+      Patch version: {{ cfbot_branch.version }},
+      {%endif%}
+      Patch count: {{ cfbot_branch.patch_count }},
+      First patch: <span class="additions">+{{ cfbot_branch.first_additions }}</span><span class="deletions">&#8722;{{ cfbot_branch.first_deletions }}</span>,
+      All patches: <span class="additions">+{{ cfbot_branch.all_additions }}</span><span class="deletions">&#8722;{{ cfbot_branch.all_deletions }}</span>
+      {%else%}
+      Unknown
+      {%endif%}
+    </tr>
+    <tr>
       <th>Topic</th>
       <td>{{patch.topic}}</td>
     </tr>
