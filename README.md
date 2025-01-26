@@ -12,6 +12,8 @@ This is a Django 4.2 application backed by PostgreSQL and running on Python 3.x.
 
 ### Ubuntu instructions
 
+#### Install Dependencies / Configure Environment
+
 First, prepare your development environment by installing pip, virtualenv, and postgresql-server-dev-X.Y.
 
 ```bash
@@ -45,12 +47,24 @@ be provided.
 ./manage.py migrate
 ```
 
-You'll need either a database dump of the actual server's data or else to create a superuser:
+#### Load data
+For a quick start, you can load some dummy data into the database. Here's how you do that:
+
+```
+./manage.py loaddata auth_data.json
+./manage.py loaddata commitfest_data.json
+```
+
+If you do this, the admin username and password are `admin` and `admin`.
+
+On the other hand, if you'd like to start from scratch instead, you can run the following command to create
+a super user:
 
 ```bash
 ./manage.py createsuperuser
 ```
 
+#### Start application
 Finally, you're ready to start the application:
 
 ```bash
@@ -69,3 +83,11 @@ codestyle.
 ln -s ../../tools/githook/pre-commit .git/hooks/
 
 ```
+
+If you'd like to regenerate the database dump files, you can run the following commands:
+```
+./manage.py dumpdata auth  --format=json --indent=4 --exclude=auth.permission > pgcommitfest/commitfest/fixtures/auth_data.json
+./manage.py dumpdata commitfest  --format=json --indent=4 > pgcommitfest/commitfest/fixtures/commitfest_data.json
+```
+
+If you want to reload data from dump file, you can run `drop owned by postgres;` in the `pgcommitfest` database first.
