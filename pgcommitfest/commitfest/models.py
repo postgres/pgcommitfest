@@ -109,6 +109,8 @@ class Patch(models.Model, DiffableModel):
     # Users to be notified when something happens
     subscribers = models.ManyToManyField(User, related_name='patch_subscriber', blank=True)
 
+    mailthread_set = models.ManyToManyField("MailThread", related_name="patches", blank=False, db_table="commitfest_mailthread_patches")
+
     # Datestamps for tracking activity
     created = models.DateTimeField(blank=False, null=False, auto_now_add=True)
     modified = models.DateTimeField(blank=False, null=False)
@@ -302,7 +304,6 @@ class MailThread(models.Model):
     # so we can keep track of when there was last a change on the
     # thread in question.
     messageid = models.CharField(max_length=1000, null=False, blank=False, unique=True)
-    patches = models.ManyToManyField(Patch, blank=False)
     subject = models.CharField(max_length=500, null=False, blank=False)
     firstmessage = models.DateTimeField(null=False, blank=False)
     firstauthor = models.CharField(max_length=500, null=False, blank=False)

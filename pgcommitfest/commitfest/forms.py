@@ -44,7 +44,7 @@ class PatchForm(forms.ModelForm):
 
     class Meta:
         model = Patch
-        exclude = ('commitfests', 'mailthreads', 'modified', 'lastmail', 'subscribers', )
+        exclude = ('commitfests', 'mailthread_set', 'modified', 'lastmail', 'subscribers', )
 
     def __init__(self, *args, **kwargs):
         super(PatchForm, self).__init__(*args, **kwargs)
