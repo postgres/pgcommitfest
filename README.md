@@ -87,8 +87,8 @@ ln -s ../../tools/githook/pre-commit .git/hooks/
 
 If you'd like to regenerate the database dump files, you can run the following commands:
 ```
-./manage.py dumpdata auth  --format=json --indent=3 > pgcommitfest/commitfest/fixtures/auth_data.json
-./manage.py dumpdata commitfest  --format=json --indent=3  --exclude=commitfest.MailThread --exclude=commitfest.MailThreadAttachment > pgcommitfest/commitfest/fixtures/commitfest_data.json
+./manage.py dumpdata auth  --format=json --indent=4 > pgcommitfest/commitfest/fixtures/auth_data.json
+./manage.py dumpdata commitfest  --format=json --indent=4  --exclude=commitfest.MailThread --exclude=commitfest.MailThreadAttachment > pgcommitfest/commitfest/fixtures/commitfest_data.json
 ```
 
 Note that at present, we exclude the MailThread model because it leads to a recursion error.

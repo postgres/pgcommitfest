@@ -1,373 +1,373 @@
 [
 {
-   "model": "commitfest.commitfest",
-   "pk": 1,
-   "fields": {
-      "name": "Sample Old Commitfest",
-      "status": 4,
-      "startdate": "2024-05-01",
-      "enddate": "2024-05-31"
-   }
+    "model": "commitfest.commitfest",
+    "pk": 1,
+    "fields": {
+        "name": "Sample Old Commitfest",
+        "status": 4,
+        "startdate": "2024-05-01",
+        "enddate": "2024-05-31"
+    }
 },
 {
-   "model": "commitfest.commitfest",
-   "pk": 2,
-   "fields": {
-      "name": "Sample In Progress Commitfest",
-      "status": 3,
-      "startdate": "2025-01-01",
-      "enddate": "2025-02-28"
-   }
+    "model": "commitfest.commitfest",
+    "pk": 2,
+    "fields": {
+        "name": "Sample In Progress Commitfest",
+        "status": 3,
+        "startdate": "2025-01-01",
+        "enddate": "2025-02-28"
+    }
 },
 {
-   "model": "commitfest.commitfest",
-   "pk": 3,
-   "fields": {
-      "name": "Sample Open Commitfest",
-      "status": 2,
-      "startdate": "2025-03-01",
-      "enddate": "2025-03-31"
-   }
+    "model": "commitfest.commitfest",
+    "pk": 3,
+    "fields": {
+        "name": "Sample Open Commitfest",
+        "status": 2,
+        "startdate": "2025-03-01",
+        "enddate": "2025-03-31"
+    }
 },
 {
-   "model": "commitfest.commitfest",
-   "pk": 4,
-   "fields": {
-      "name": "Sample Future Commitfest",
-      "status": 1,
-      "startdate": "2025-05-01",
-      "enddate": "2025-05-31"
-   }
+    "model": "commitfest.commitfest",
+    "pk": 4,
+    "fields": {
+        "name": "Sample Future Commitfest",
+        "status": 1,
+        "startdate": "2025-05-01",
+        "enddate": "2025-05-31"
+    }
 },
 {
-   "model": "commitfest.topic",
-   "pk": 1,
-   "fields": {
-      "topic": "Bugs"
-   }
+    "model": "commitfest.topic",
+    "pk": 1,
+    "fields": {
+        "topic": "Bugs"
+    }
 },
 {
-   "model": "commitfest.topic",
-   "pk": 2,
-   "fields": {
-      "topic": "Performance"
-   }
+    "model": "commitfest.topic",
+    "pk": 2,
+    "fields": {
+        "topic": "Performance"
+    }
 },
 {
-   "model": "commitfest.topic",
-   "pk": 3,
-   "fields": {
-      "topic": "Miscellaneous"
-   }
+    "model": "commitfest.topic",
+    "pk": 3,
+    "fields": {
+        "topic": "Miscellaneous"
+    }
 },
 {
-   "model": "commitfest.targetversion",
-   "pk": 1,
-   "fields": {
-      "version": "18"
-   }
+    "model": "commitfest.targetversion",
+    "pk": 1,
+    "fields": {
+        "version": "18"
+    }
 },
 {
-   "model": "commitfest.patch",
-   "pk": 1,
-   "fields": {
-      "name": "Conflict detection for update_deleted in logical replication",
-      "topic": 1,
-      "wikilink": "",
-      "gitlink": "",
-      "targetversion": null,
-      "committer": null,
-      "created": "2025-01-26T10:48:31.579",
-      "modified": "2025-01-26T10:53:20.498",
-      "lastmail": "2025-01-20T06:53:39",
-      "authors": [
-         1
-      ],
-      "reviewers": [],
-      "subscribers": [],
-      "mailthread_set": [
-         1
-      ]
-   }
+    "model": "commitfest.patch",
+    "pk": 1,
+    "fields": {
+        "name": "Conflict detection for update_deleted in logical replication",
+        "topic": 1,
+        "wikilink": "",
+        "gitlink": "",
+        "targetversion": null,
+        "committer": null,
+        "created": "2025-01-26T10:48:31.579",
+        "modified": "2025-01-26T10:53:20.498",
+        "lastmail": "2025-01-20T06:53:39",
+        "authors": [
+            1
+        ],
+        "reviewers": [],
+        "subscribers": [],
+        "mailthread_set": [
+            1
+        ]
+    }
 },
 {
-   "model": "commitfest.patch",
-   "pk": 2,
-   "fields": {
-      "name": "Sample rate added to pg_stat_statements",
-      "topic": 3,
-      "wikilink": "",
-      "gitlink": "",
-      "targetversion": null,
-      "committer": null,
-      "created": "2025-01-26T10:51:17.305",
-      "modified": "2025-01-26T10:51:19.631",
-      "lastmail": "2025-01-20T14:20:10",
-      "authors": [],
-      "reviewers": [],
-      "subscribers": [],
-      "mailthread_set": [
-         2
-      ]
-   }
+    "model": "commitfest.patch",
+    "pk": 2,
+    "fields": {
+        "name": "Sample rate added to pg_stat_statements",
+        "topic": 3,
+        "wikilink": "",
+        "gitlink": "",
+        "targetversion": null,
+        "committer": null,
+        "created": "2025-01-26T10:51:17.305",
+        "modified": "2025-01-26T10:51:19.631",
+        "lastmail": "2025-01-20T14:20:10",
+        "authors": [],
+        "reviewers": [],
+        "subscribers": [],
+        "mailthread_set": [
+            2
+        ]
+    }
 },
 {
-   "model": "commitfest.patch",
-   "pk": 3,
-   "fields": {
-      "name": "Per Backend I/O statistics",
-      "topic": 3,
-      "wikilink": "",
-      "gitlink": "",
-      "targetversion": null,
-      "committer": null,
-      "created": "2025-01-26T11:02:07.467",
-      "modified": "2025-01-26T11:02:10.911",
-      "lastmail": "2025-01-20T13:26:55",
-      "authors": [],
-      "reviewers": [],
-      "subscribers": [],
-      "mailthread_set": [
-         3
-      ]
-   }
+    "model": "commitfest.patch",
+    "pk": 3,
+    "fields": {
+        "name": "Per Backend I/O statistics",
+        "topic": 3,
+        "wikilink": "",
+        "gitlink": "",
+        "targetversion": null,
+        "committer": null,
+        "created": "2025-01-26T11:02:07.467",
+        "modified": "2025-01-26T11:02:10.911",
+        "lastmail": "2025-01-20T13:26:55",
+        "authors": [],
+        "reviewers": [],
+        "subscribers": [],
+        "mailthread_set": [
+            3
+        ]
+    }
 },
 {
-   "model": "commitfest.patchoncommitfest",
-   "pk": 1,
-   "fields": {
-      "patch": 1,
-      "commitfest": 2,
-      "enterdate": "2025-01-26T10:48:31.579",
-      "leavedate": null,
-      "status": 3
-   }
+    "model": "commitfest.patchoncommitfest",
+    "pk": 1,
+    "fields": {
+        "patch": 1,
+        "commitfest": 2,
+        "enterdate": "2025-01-26T10:48:31.579",
+        "leavedate": null,
+        "status": 3
+    }
 },
 {
-   "model": "commitfest.patchoncommitfest",
-   "pk": 2,
-   "fields": {
-      "patch": 2,
-      "commitfest": 2,
-      "enterdate": "2025-01-26T10:51:17.305",
-      "leavedate": null,
-      "status": 1
-   }
+    "model": "commitfest.patchoncommitfest",
+    "pk": 2,
+    "fields": {
+        "patch": 2,
+        "commitfest": 2,
+        "enterdate": "2025-01-26T10:51:17.305",
+        "leavedate": null,
+        "status": 1
+    }
 },
 {
-   "model": "commitfest.patchoncommitfest",
-   "pk": 3,
-   "fields": {
-      "patch": 1,
-      "commitfest": 1,
-      "enterdate": "2024-04-01T10:52:24",
-      "leavedate": "2024-06-05T10:52:34",
-      "status": 5
-   }
+    "model": "commitfest.patchoncommitfest",
+    "pk": 3,
+    "fields": {
+        "patch": 1,
+        "commitfest": 1,
+        "enterdate": "2024-04-01T10:52:24",
+        "leavedate": "2024-06-05T10:52:34",
+        "status": 5
+    }
 },
 {
-   "model": "commitfest.patchoncommitfest",
-   "pk": 4,
-   "fields": {
-      "patch": 3,
-      "commitfest": 3,
-      "enterdate": "2025-01-26T11:02:07.467",
-      "leavedate": null,
-      "status": 1
-   }
+    "model": "commitfest.patchoncommitfest",
+    "pk": 4,
+    "fields": {
+        "patch": 3,
+        "commitfest": 3,
+        "enterdate": "2025-01-26T11:02:07.467",
+        "leavedate": null,
+        "status": 1
+    }
 },
 {
-   "model": "commitfest.patchhistory",
-   "pk": 1,
-   "fields": {
-      "patch": 1,
-      "date": "2025-01-26T10:48:31.580",
-      "by": 1,
-      "by_cfbot": false,
-      "what": "Created patch record"
-   }
+    "model": "commitfest.patchhistory",
+    "pk": 1,
+    "fields": {
+        "patch": 1,
+        "date": "2025-01-26T10:48:31.580",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Created patch record"
+    }
 },
 {
-   "model": "commitfest.patchhistory",
-   "pk": 2,
-   "fields": {
-      "patch": 1,
-      "date": "2025-01-26T10:48:31.582",
-      "by": 1,
-      "by_cfbot": false,
-      "what": "Attached mail thread example@message-8"
-   }
+    "model": "commitfest.patchhistory",
+    "pk": 2,
+    "fields": {
+        "patch": 1,
+        "date": "2025-01-26T10:48:31.582",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Attached mail thread example@message-8"
+    }
 },
 {
-   "model": "commitfest.patchhistory",
-   "pk": 3,
-   "fields": {
-      "patch": 1,
-      "date": "2025-01-26T10:48:54.115",
-      "by": 1,
-      "by_cfbot": false,
-      "what": "Changed authors to   (admin)"
-   }
+    "model": "commitfest.patchhistory",
+    "pk": 3,
+    "fields": {
+        "patch": 1,
+        "date": "2025-01-26T10:48:54.115",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Changed authors to   (admin)"
+    }
 },
 {
-   "model": "commitfest.patchhistory",
-   "pk": 4,
-   "fields": {
-      "patch": 2,
-      "date": "2025-01-26T10:51:17.306",
-      "by": 1,
-      "by_cfbot": false,
-      "what": "Created patch record"
-   }
+    "model": "commitfest.patchhistory",
+    "pk": 4,
+    "fields": {
+        "patch": 2,
+        "date": "2025-01-26T10:51:17.306",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Created patch record"
+    }
 },
 {
-   "model": "commitfest.patchhistory",
-   "pk": 5,
-   "fields": {
-      "patch": 2,
-      "date": "2025-01-26T10:51:17.307",
-      "by": 1,
-      "by_cfbot": false,
-      "what": "Attached mail thread example@message-0"
-   }
+    "model": "commitfest.patchhistory",
+    "pk": 5,
+    "fields": {
+        "patch": 2,
+        "date": "2025-01-26T10:51:17.307",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Attached mail thread example@message-0"
+    }
 },
 {
-   "model": "commitfest.patchhistory",
-   "pk": 6,
-   "fields": {
-      "patch": 1,
-      "date": "2025-01-26T10:53:20.498",
-      "by": 1,
-      "by_cfbot": false,
-      "what": "New status: Ready for Committer"
-   }
+    "model": "commitfest.patchhistory",
+    "pk": 6,
+    "fields": {
+        "patch": 1,
+        "date": "2025-01-26T10:53:20.498",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "New status: Ready for Committer"
+    }
 },
 {
-   "model": "commitfest.patchhistory",
-   "pk": 7,
-   "fields": {
-      "patch": 3,
-      "date": "2025-01-26T11:02:07.468",
-      "by": 1,
-      "by_cfbot": false,
-      "what": "Created patch record"
-   }
+    "model": "commitfest.patchhistory",
+    "pk": 7,
+    "fields": {
+        "patch": 3,
+        "date": "2025-01-26T11:02:07.468",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Created patch record"
+    }
 },
 {
-   "model": "commitfest.patchhistory",
-   "pk": 8,
-   "fields": {
-      "patch": 3,
-      "date": "2025-01-26T11:02:07.469",
-      "by": 1,
-      "by_cfbot": false,
-      "what": "Attached mail thread example@message-3"
-   }
+    "model": "commitfest.patchhistory",
+    "pk": 8,
+    "fields": {
+        "patch": 3,
+        "date": "2025-01-26T11:02:07.469",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Attached mail thread example@message-3"
+    }
 },
 {
-   "model": "commitfest.mailthread",
-   "pk": 1,
-   "fields": {
-      "messageid": "example@message-8",
-      "subject": "RE: Conflict detection for update_deleted in logical replication",
-      "firstmessage": "2025-01-20T06:53:39",
-      "firstauthor": "test@test.com",
-      "latestmessage": "2025-01-20T06:53:39",
-      "latestauthor": "test@test.com",
-      "latestsubject": "RE: Conflict detection for update_deleted in logical replication",
-      "latestmsgid": "example@message-8"
-   }
+    "model": "commitfest.mailthread",
+    "pk": 1,
+    "fields": {
+        "messageid": "example@message-8",
+        "subject": "RE: Conflict detection for update_deleted in logical replication",
+        "firstmessage": "2025-01-20T06:53:39",
+        "firstauthor": "test@test.com",
+        "latestmessage": "2025-01-20T06:53:39",
+        "latestauthor": "test@test.com",
+        "latestsubject": "RE: Conflict detection for update_deleted in logical replication",
+        "latestmsgid": "example@message-8"
+    }
 },
 {
-   "model": "commitfest.mailthread",
-   "pk": 2,
-   "fields": {
-      "messageid": "example@message-0",
-      "subject": "Re: Sample rate added to pg_stat_statements",
-      "firstmessage": "2025-01-20T14:20:10",
-      "firstauthor": "test@test.com",
-      "latestmessage": "2025-01-20T14:20:10",
-      "latestauthor": "test@test.com",
-      "latestsubject": "Re: Sample rate added to pg_stat_statements",
-      "latestmsgid": "example@message-0"
-   }
+    "model": "commitfest.mailthread",
+    "pk": 2,
+    "fields": {
+        "messageid": "example@message-0",
+        "subject": "Re: Sample rate added to pg_stat_statements",
+        "firstmessage": "2025-01-20T14:20:10",
+        "firstauthor": "test@test.com",
+        "latestmessage": "2025-01-20T14:20:10",
+        "latestauthor": "test@test.com",
+        "latestsubject": "Re: Sample rate added to pg_stat_statements",
+        "latestmsgid": "example@message-0"
+    }
 },
 {
-   "model": "commitfest.mailthread",
-   "pk": 3,
-   "fields": {
-      "messageid": "example@message-3",
-      "subject": "Re: per backend I/O statistics",
-      "firstmessage": "2025-01-20T13:26:55",
-      "firstauthor": "test@test.com",
-      "latestmessage": "2025-01-20T13:26:55",
-      "latestauthor": "test@test.com",
-      "latestsubject": "Re: per backend I/O statistics",
-      "latestmsgid": "example@message-3"
-   }
+    "model": "commitfest.mailthread",
+    "pk": 3,
+    "fields": {
+        "messageid": "example@message-3",
+        "subject": "Re: per backend I/O statistics",
+        "firstmessage": "2025-01-20T13:26:55",
+        "firstauthor": "test@test.com",
+        "latestmessage": "2025-01-20T13:26:55",
+        "latestauthor": "test@test.com",
+        "latestsubject": "Re: per backend I/O statistics",
+        "latestmsgid": "example@message-3"
+    }
 },
 {
-   "model": "commitfest.patchstatus",
-   "pk": 1,
-   "fields": {
-      "statusstring": "Needs review",
-      "sortkey": 10
-   }
+    "model": "commitfest.patchstatus",
+    "pk": 1,
+    "fields": {
+        "statusstring": "Needs review",
+        "sortkey": 10
+    }
 },
 {
-   "model": "commitfest.patchstatus",
-   "pk": 2,
-   "fields": {
-      "statusstring": "Waiting on Author",
-      "sortkey": 15
-   }
+    "model": "commitfest.patchstatus",
+    "pk": 2,
+    "fields": {
+        "statusstring": "Waiting on Author",
+        "sortkey": 15
+    }
 },
 {
-   "model": "commitfest.patchstatus",
-   "pk": 3,
-   "fields": {
-      "statusstring": "Ready for Committer",
-      "sortkey": 20
-   }
+    "model": "commitfest.patchstatus",
+    "pk": 3,
+    "fields": {
+        "statusstring": "Ready for Committer",
+        "sortkey": 20
+    }
 },
 {
-   "model": "commitfest.patchstatus",
-   "pk": 4,
-   "fields": {
-      "statusstring": "Committed",
-      "sortkey": 25
-   }
+    "model": "commitfest.patchstatus",
+    "pk": 4,
+    "fields": {
+        "statusstring": "Committed",
+        "sortkey": 25
+    }
 },
 {
-   "model": "commitfest.patchstatus",
-   "pk": 5,
-   "fields": {
-      "statusstring": "Moved to next CF",
-      "sortkey": 30
-   }
+    "model": "commitfest.patchstatus",
+    "pk": 5,
+    "fields": {
+        "statusstring": "Moved to next CF",
+        "sortkey": 30
+    }
 },
 {
-   "model": "commitfest.patchstatus",
-   "pk": 6,
-   "fields": {
-      "statusstring": "Rejected",
-      "sortkey": 50
-   }
+    "model": "commitfest.patchstatus",
+    "pk": 6,
+    "fields": {
+        "statusstring": "Rejected",
+        "sortkey": 50
+    }
 },
 {
-   "model": "commitfest.patchstatus",
-   "pk": 7,
-   "fields": {
-      "statusstring": "Returned with Feedback",
-      "sortkey": 50
-   }
+    "model": "commitfest.patchstatus",
+    "pk": 7,
+    "fields": {
+        "statusstring": "Returned with Feedback",
+        "sortkey": 50
+    }
 },
 {
-   "model": "commitfest.patchstatus",
-   "pk": 8,
-   "fields": {
-      "statusstring": "Withdrawn",
-      "sortkey": 50
-   }
+    "model": "commitfest.patchstatus",
+    "pk": 8,
+    "fields": {
+        "statusstring": "Withdrawn",
+        "sortkey": 50
+    }
 }
 ]
