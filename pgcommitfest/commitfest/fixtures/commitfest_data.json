@@ -369,5 +369,145 @@
         "statusstring": "Withdrawn",
         "sortkey": 50
     }
+},
+{
+    "model": "commitfest.cfbotbranch",
+    "pk": 1,
+    "fields": {
+        "branch_id": 123,
+        "branch_name": "cf/1",
+        "commit_id": "abcdefg",
+        "apply_url": "http://cfbot.cputube.org/patch_4573.log",
+        "status": "finished",
+        "needs_rebase_since": null,
+        "created": "2025-01-26T22:06:02.980",
+        "modified": "2025-01-26T22:06:02.980"
+    }
+},
+{
+    "model": "commitfest.cfbotbranch",
+    "pk": 2,
+    "fields": {
+        "branch_id": 345,
+        "branch_name": "cf/2",
+        "commit_id": null,
+        "apply_url": "http://cfbot.cputube.org/patch_4573.log",
+        "status": "failed",
+        "needs_rebase_since": null,
+        "created": "2025-01-26T22:11:09.961",
+        "modified": "2025-01-26T22:20:39.372"
+    }
+},
+{
+    "model": "commitfest.cfbotbranch",
+    "pk": 3,
+    "fields": {
+        "branch_id": 567,
+        "branch_name": "cf/3",
+        "commit_id": "abc123",
+        "apply_url": "http://cfbot.cputube.org/patch_4748.log",
+        "status": "failed",
+        "needs_rebase_since": null,
+        "created": "2025-01-26T22:22:46.602",
+        "modified": "2025-01-26T22:26:41.587"
+    }
+},
+{
+    "model": "commitfest.cfbottask",
+    "pk": 1,
+    "fields": {
+        "task_id": "12345",
+        "task_name": "Linux build",
+        "patch": 1,
+        "branch_id": 123,
+        "position": 1,
+        "status": "COMPLETED",
+        "created": "2025-01-26T22:06:49.237",
+        "modified": "2025-01-26T22:07:40.405"
+    }
+},
+{
+    "model": "commitfest.cfbottask",
+    "pk": 2,
+    "fields": {
+        "task_id": "12346",
+        "task_name": "MacOS Build",
+        "patch": 1,
+        "branch_id": 123,
+        "position": 2,
+        "status": "COMPLETED",
+        "created": "2025-01-26T22:07:32.041",
+        "modified": "2025-01-26T22:07:32.041"
+    }
+},
+{
+    "model": "commitfest.cfbottask",
+    "pk": 3,
+    "fields": {
+        "task_id": "4561",
+        "task_name": "Redhat",
+        "patch": 3,
+        "branch_id": 567,
+        "position": 1,
+        "status": "COMPLETED",
+        "created": "2025-01-26T22:24:37.445",
+        "modified": "2025-01-26T22:24:37.445"
+    }
+},
+{
+    "model": "commitfest.cfbottask",
+    "pk": 4,
+    "fields": {
+        "task_id": "4562",
+        "task_name": "MacOS build",
+        "patch": 3,
+        "branch_id": 567,
+        "position": 2,
+        "status": "EXECUTING",
+        "created": "2025-01-26T22:25:15.283",
+        "modified": "2025-01-26T22:27:09.055"
+    }
+},
+{
+    "model": "commitfest.cfbottask",
+    "pk": 5,
+    "fields": {
+        "task_id": "4563",
+        "task_name": "FreeBSD",
+        "patch": 3,
+        "branch_id": 567,
+        "position": 3,
+        "status": "FAILED",
+        "created": "2025-01-26T22:25:48.021",
+        "modified": "2025-01-26T22:25:48.021"
+    }
+},
+{
+    "model": "commitfest.cfbottask",
+    "pk": 6,
+    "fields": {
+        "task_id": "4564",
+        "task_name": "NetBSD",
+        "patch": 3,
+        "branch_id": 567,
+        "position": 4,
+        "status": "CREATED",
+        "created": "2025-01-26T22:29:09.156",
+        "modified": "2025-01-26T22:29:09.156"
+    }
+},
+{
+    "model": "commitfest.cfbottask",
+    "pk": 7,
+    "fields": {
+        "task_id": "4565",
+        "task_name": "Linux Valgrind",
+        "patch": 3,
+        "branch_id": 567,
+        "position": 5,
+        "status": "SCHEDULED",
+        "created": "2025-01-26T22:30:03.199",
+        "modified": "2025-01-26T22:30:03.199"
+    }
 }
 ]

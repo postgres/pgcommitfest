@@ -381,6 +381,16 @@ class CfbotBranch(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        """Only used by the admin panel to save empty commit id as NULL
+
+        The actual cfbot webhook doesn't use the django ORM to save the data.
+        """
+
+        if not self.commit_id:
+            self.commit_id = None
+        super(CfbotBranch, self).save(*args, **kwargs)
+
 
 class CfbotTask(models.Model):
     STATUS_CHOICES = [

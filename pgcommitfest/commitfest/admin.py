@@ -27,6 +27,8 @@ admin.site.register(Topic)
 admin.site.register(Patch, PatchAdmin)
 admin.site.register(PatchHistory)
 admin.site.register(TargetVersion)
+admin.site.register(CfbotBranch)
+admin.site.register(CfbotTask)
 
 admin.site.register(MailThread)
 admin.site.register(MailThreadAttachment, MailThreadAttachmentAdmin)
