@@ -73,3 +73,13 @@ div.form-group div.controls input.threadpick-input {
 .github-logo {
     height: 20px;
 }
+
+.additions {
+    font-weight: bold;
+    color: green;
+}
+
+.deletions {
+    font-weight: bold;
+    color: red;
+}

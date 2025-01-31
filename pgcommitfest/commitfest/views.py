@@ -191,6 +191,8 @@ def commitfest(request, cfid):
             orderby_str = 'p.id'
         elif sortkey == 5:
             orderby_str = 'p.name, created'
+        elif sortkey == 6:
+            orderby_str = "branch.all_additions + branch.all_deletions NULLS LAST, created"
         else:
             orderby_str = 'p.id'
             sortkey = 0
@@ -229,7 +231,12 @@ def commitfest(request, cfid):
             count(*) total,
             string_agg(task.task_name, ', ') FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) as failed_task_names,
             branch.commit_id IS NULL as needs_rebase,
-            branch.apply_url
+            branch.apply_url,
+            branch.patch_count,
+            branch.first_additions,
+            branch.first_deletions,
+            branch.all_additions,
+            branch.all_deletions
         FROM commitfest_cfbotbranch branch
         LEFT JOIN commitfest_cfbottask task ON task.branch_id = branch.branch_id
         WHERE branch.patch_id=p.id
@@ -241,8 +248,9 @@ INNER JOIN commitfest_patchoncommitfest poc ON poc.patch_id=p.id
 INNER JOIN commitfest_topic t ON t.id=p.topic_id
 LEFT JOIN auth_user committer ON committer.id=p.committer_id
 LEFT JOIN commitfest_targetversion v ON p.targetversion_id=v.id
+LEFT JOIN commitfest_cfbotbranch branch ON branch.patch_id=p.id
 WHERE poc.commitfest_id=%(cid)s {0}
-GROUP BY p.id, poc.id, committer.id, t.id, v.version
+GROUP BY p.id, poc.id, committer.id, t.id, v.version, branch.patch_id
 ORDER BY is_open DESC, {1}""".format(where_str, orderby_str), params)
     patches = [dict(zip([col[0] for col in curs.description], row)) for row in curs.fetchall()]
 
@@ -842,8 +850,12 @@ def cfbot_ingest(message):
     cursor.execute("""INSERT INTO commitfest_cfbotbranch (patch_id, branch_id,
                                                 branch_name, commit_id,
                                                 apply_url, status,
-                                                created, modified)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                                created, modified,
+                                                version, patch_count,
+                                                first_additions, first_deletions,
+                                                all_additions, all_deletions
+                                                )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (patch_id) DO UPDATE
                         SET status = EXCLUDED.status,
                             modified = EXCLUDED.modified,
@@ -851,7 +863,13 @@ def cfbot_ingest(message):
                             branch_name = EXCLUDED.branch_name,
                             commit_id = EXCLUDED.commit_id,
                             apply_url = EXCLUDED.apply_url,
-                            created = EXCLUDED.created
+                            created = EXCLUDED.created,
+                            version = EXCLUDED.version,
+                            patch_count = EXCLUDED.patch_count,
+                            first_additions = EXCLUDED.first_additions,
+                            first_deletions = EXCLUDED.first_deletions,
+                            all_additions = EXCLUDED.all_additions,
+                            all_deletions = EXCLUDED.all_deletions
                         WHERE commitfest_cfbotbranch.created < EXCLUDED.created
                             OR (commitfest_cfbotbranch.branch_id = EXCLUDED.branch_id
                                 AND commitfest_cfbotbranch.modified < EXCLUDED.modified)
@@ -864,7 +882,13 @@ def cfbot_ingest(message):
                        branch_status["apply_url"],
                        branch_status["status"],
                        branch_status["created"],
-                       branch_status["modified"])
+                       branch_status["modified"],
+                       branch_status["version"],
+                       branch_status["patch_count"],
+                       branch_status["first_additions"],
+                       branch_status["first_deletions"],
+                       branch_status["all_additions"],
+                       branch_status["all_deletions"])
                    )
 
     # Now we check what we have in our database. If that contains a different

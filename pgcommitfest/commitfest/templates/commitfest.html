@@ -65,6 +65,7 @@
    <th>Status</th>
    <th>Ver</th>
    <th>CI status</th>
+   <th><a href="#" style="color:#333333;" onclick="return sortpatches(6);">Stats</a>{%if sortkey == 6%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%endif%}</th>
    <th>Author</th>
    <th>Reviewers</th>
    <th>Committer</th>
@@ -111,6 +112,11 @@
       {{p.cfbot_results.completed}}/{{p.cfbot_results.total}}
       </span>
     </a>
+    {%endif%}
+   </td>
+   <td>
+    {%if p.cfbot_results and p.cfbot_results.all_additions is not none %}
+    <span class="additions">+{{ p.cfbot_results.all_additions }}</span><span class="deletions">&#8722;{{ p.cfbot_results.all_deletions }}</span>
     {%endif%}
    </td>
    <td>{{p.author_names|default:''}}</td>
