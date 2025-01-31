@@ -380,6 +380,12 @@ class CfbotBranch(models.Model):
     needs_rebase_since = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+    version = models.TextField(null=True, blank=True)
+    patch_count = models.IntegerField(null=True, blank=True)
+    first_additions = models.IntegerField(null=True, blank=True)
+    first_deletions = models.IntegerField(null=True, blank=True)
+    all_additions = models.IntegerField(null=True, blank=True)
+    all_deletions = models.IntegerField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         """Only used by the admin panel to save empty commit id as NULL

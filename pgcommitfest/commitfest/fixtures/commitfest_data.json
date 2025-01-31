@@ -133,6 +133,27 @@
     }
 },
 {
+    "model": "commitfest.patch",
+    "pk": 4,
+    "fields": {
+        "name": "create subscription with (origin = none, copy_data = none)",
+        "topic": 3,
+        "wikilink": "",
+        "gitlink": "",
+        "targetversion": null,
+        "committer": null,
+        "created": "2025-01-31T13:30:19.744",
+        "modified": "2025-01-31T13:30:21.305",
+        "lastmail": "2025-01-20T12:44:40",
+        "authors": [],
+        "reviewers": [],
+        "subscribers": [],
+        "mailthread_set": [
+            4
+        ]
+    }
+},
+{
     "model": "commitfest.patchoncommitfest",
     "pk": 1,
     "fields": {
@@ -172,6 +193,17 @@
         "patch": 3,
         "commitfest": 3,
         "enterdate": "2025-01-26T11:02:07.467",
+        "leavedate": null,
+        "status": 1
+    }
+},
+{
+    "model": "commitfest.patchoncommitfest",
+    "pk": 5,
+    "fields": {
+        "patch": 4,
+        "commitfest": 2,
+        "enterdate": "2025-01-31T13:30:19.745",
         "leavedate": null,
         "status": 1
     }
@@ -265,6 +297,28 @@
     }
 },
 {
+    "model": "commitfest.patchhistory",
+    "pk": 9,
+    "fields": {
+        "patch": 4,
+        "date": "2025-01-31T13:30:19.745",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Created patch record"
+    }
+},
+{
+    "model": "commitfest.patchhistory",
+    "pk": 10,
+    "fields": {
+        "patch": 4,
+        "date": "2025-01-31T13:30:19.748",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Attached mail thread example@message-4"
+    }
+},
+{
     "model": "commitfest.mailthread",
     "pk": 1,
     "fields": {
@@ -304,6 +358,20 @@
         "latestauthor": "test@test.com",
         "latestsubject": "Re: per backend I/O statistics",
         "latestmsgid": "example@message-3"
+    }
+},
+{
+    "model": "commitfest.mailthread",
+    "pk": 4,
+    "fields": {
+        "messageid": "example@message-4",
+        "subject": "Re: create subscription with (origin = none, copy_data = on)",
+        "firstmessage": "2025-01-20T12:44:40",
+        "firstauthor": "test@test.com",
+        "latestmessage": "2025-01-20T12:44:40",
+        "latestauthor": "test@test.com",
+        "latestsubject": "Re: create subscription with (origin = none, copy_data = on)",
+        "latestmsgid": "example@message-4"
     }
 },
 {
@@ -381,7 +449,13 @@
         "status": "finished",
         "needs_rebase_since": null,
         "created": "2025-01-26T22:06:02.980",
-        "modified": "2025-01-26T22:06:02.980"
+        "modified": "2025-01-29T22:50:37.805",
+        "version": "",
+        "patch_count": 5,
+        "first_additions": 10,
+        "first_deletions": 5,
+        "all_additions": 834,
+        "all_deletions": 128
     }
 },
 {
@@ -395,7 +469,13 @@
         "status": "failed",
         "needs_rebase_since": null,
         "created": "2025-01-26T22:11:09.961",
-        "modified": "2025-01-26T22:20:39.372"
+        "modified": "2025-01-26T22:20:39.372",
+        "version": null,
+        "patch_count": null,
+        "first_additions": null,
+        "first_deletions": null,
+        "all_additions": null,
+        "all_deletions": null
     }
 },
 {
@@ -409,7 +489,33 @@
         "status": "failed",
         "needs_rebase_since": null,
         "created": "2025-01-26T22:22:46.602",
-        "modified": "2025-01-26T22:26:41.587"
+        "modified": "2025-01-29T22:58:51.032",
+        "version": "",
+        "patch_count": 3,
+        "first_additions": 345,
+        "first_deletions": 158,
+        "all_additions": 8764,
+        "all_deletions": 345
+    }
+},
+{
+    "model": "commitfest.cfbotbranch",
+    "pk": 4,
+    "fields": {
+        "branch_id": 76,
+        "branch_name": "cf/4",
+        "commit_id": "abcggg",
+        "apply_url": "http://cfbot.cputube.org/patch_4748.log",
+        "status": "testing",
+        "needs_rebase_since": null,
+        "created": "2025-01-31T13:32:22.017",
+        "modified": "2025-01-31T13:32:22.017",
+        "version": "",
+        "patch_count": 1,
+        "first_additions": 123,
+        "first_deletions": 14,
+        "all_additions": 123,
+        "all_deletions": 14
     }
 },
 {
