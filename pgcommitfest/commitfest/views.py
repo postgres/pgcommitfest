@@ -283,7 +283,7 @@ ORDER BY is_open DESC, {1}""".format(where_str, orderby_str), params)
 
 def patches_by_messageid(messageid):
     # First try to find the messageid in our database
-    patches = Patch.objects.select_related().filter(mailthread__messageid=messageid).order_by('created', ).all()
+    patches = Patch.objects.select_related().filter(mailthread_set__messageid=messageid).order_by('created', ).all()
     if patches:
         return patches
 
@@ -300,7 +300,7 @@ def patches_by_messageid(messageid):
 
     first_email = min(thread, key=lambda x: x['date'])
 
-    return Patch.objects.select_related().filter(mailthread__messageid=first_email['msgid']).order_by('created',).all()
+    return Patch.objects.select_related().filter(mailthread_set__messageid=first_email['msgid']).order_by('created',).all()
 
 
 def global_search(request):
