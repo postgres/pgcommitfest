@@ -4,7 +4,10 @@ on:
   push:
     branches:
       - main
+<<<<<<< HEAD
       - prod
+=======
+>>>>>>> 96758a1 (Implement github action to deploy to test environment)
 
 jobs:
   deployment:
