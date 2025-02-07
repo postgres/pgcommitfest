@@ -1,0 +1,13 @@
+name: TransferDB
+
+# Manually triggered only
+on: workflow_dispatch
+
+jobs:
+  transferdb:
+    runs-on: ubuntu-latest
+    environment: admin
+    steps:
+      - name: Trigger db transfer
+        run: |
+          curl -fsS -X POST ${{ secrets.TRANSFER_URL }} -H "X-Key: ${{ secrets.TRANSFER_KEY }}"
