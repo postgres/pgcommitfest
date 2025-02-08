@@ -440,7 +440,7 @@ def newpatch(request, cfid):
             # Now add the thread
             try:
                 doAttachThread(cf, patch, form.cleaned_data['threadmsgid'], request.user)
-                return HttpResponseRedirect("/patch/%s/edit/" % (patch.id,))
+                return HttpResponseRedirect("/patch/%s/" % (patch.id,))
             except Http404:
                 # Thread not found!
                 # This is a horrible breakage of API layers
@@ -451,13 +451,14 @@ def newpatch(request, cfid):
             # not happen very often. If we successfully attached to it, we will have already returned.
             patch.delete()
     else:
-        form = NewPatchForm()
+        form = NewPatchForm(request=request)
 
     return render(request, 'base_form.html', {
         'form': form,
         'title': 'New patch',
         'breadcrumbs': [{'title': cf.title, 'href': '/%s/' % cf.pk}, ],
         'savebutton': 'Create patch',
+        'selectize_multiple_fields': form.selectize_multiple_fields.items(),
         'threadbrowse': True,
     })
 
