@@ -71,13 +71,19 @@ class PatchForm(forms.ModelForm):
             self.fields[field].label_from_instance = lambda u: '{} ({})'.format(u.username, u.get_full_name())
 
 
-class NewPatchForm(forms.ModelForm):
-    threadmsgid = forms.CharField(max_length=200, required=True, label='Specify thread msgid', widget=ThreadPickWidget)
-#    patchfile = forms.FileField(allow_empty_file=False, max_length=50000, label='or upload patch file', required=False, help_text='This may be supported sometime in the future, and would then autogenerate a mail to the hackers list. At such a time, the threadmsgid would no longer be required.')
+class NewPatchForm(PatchForm):
+    # Put threadmsgid first
+    field_order = ['threadmsgid']
 
-    class Meta:
-        model = Patch
-        fields = ('name', 'topic', )
+    threadmsgid = forms.CharField(max_length=200, required=True, label='Specify thread msgid', widget=ThreadPickWidget)
+
+    def __init__(self, *args, **kwargs):
+        request = kwargs.pop('request', None)
+        super(NewPatchForm, self).__init__(*args, **kwargs)
+
+        if request:
+            self.fields['authors'].queryset = User.objects.filter(pk=request.user.id)
+            self.fields['authors'].initial = [request.user.id]
 
     def clean_threadmsgid(self):
         try:
