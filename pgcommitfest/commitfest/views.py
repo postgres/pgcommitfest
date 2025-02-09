@@ -437,6 +437,7 @@ def newpatch(request, cfid):
             poc = PatchOnCommitFest(patch=patch, commitfest=cf, enterdate=datetime.now())
             poc.save()
             PatchHistory(patch=patch, by=request.user, what='Created patch record').save()
+
             # Now add the thread
             try:
                 doAttachThread(cf, patch, form.cleaned_data['threadmsgid'], request.user)
