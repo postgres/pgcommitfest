@@ -3,15 +3,15 @@ from django.contrib import admin
 from .models import (
     CfbotBranch,
     CfbotTask,
-    Committer,
     CommitFest,
+    Committer,
+    MailThread,
+    MailThreadAttachment,
     Patch,
     PatchHistory,
     PatchOnCommitFest,
     TargetVersion,
     Topic,
-    MailThread,
-    MailThreadAttachment,
 )
 
 

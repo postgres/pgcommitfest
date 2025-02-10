@@ -1,38 +1,46 @@
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect
-from django.http import Http404, HttpResponseForbidden
-from django.views.decorators.csrf import csrf_exempt
-from django.db import transaction, connection
-from django.db.models import Q
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db import connection, transaction
+from django.db.models import Q
+from django.http import (
+    Http404,
+    HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseRedirect,
+)
+from django.shortcuts import get_object_or_404, render
+from django.views.decorators.csrf import csrf_exempt
 
-from django.conf import settings
-
+import hmac
+import json
+import urllib
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
-import json
-import hmac
-import urllib
 
 from pgcommitfest.mailqueue.util import send_mail, send_simple_mail
 from pgcommitfest.userprofile.util import UserWrapper
 
-from .models import (
-    CommitFest,
-    Patch,
-    PatchOnCommitFest,
-    PatchHistory,
-    Committer,
-    CfbotBranch,
-)
-from .models import MailThread
-from .forms import PatchForm, NewPatchForm, CommentForm, CommitFestFilterForm
-from .forms import BulkEmailForm
-from .ajax import doAttachThread, refresh_single_thread, _archivesAPI
+from .ajax import _archivesAPI, doAttachThread, refresh_single_thread
 from .feeds import ActivityFeed
+from .forms import (
+    BulkEmailForm,
+    CommentForm,
+    CommitFestFilterForm,
+    NewPatchForm,
+    PatchForm,
+)
+from .models import (
+    CfbotBranch,
+    CommitFest,
+    Committer,
+    MailThread,
+    Patch,
+    PatchHistory,
+    PatchOnCommitFest,
+)
 
 
 def home(request):

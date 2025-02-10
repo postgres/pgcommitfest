@@ -1,11 +1,11 @@
-from django.urls import re_path
 from django.contrib import admin
+from django.urls import re_path
 
-import pgcommitfest.commitfest.views as views
-import pgcommitfest.commitfest.reports as reports
+import pgcommitfest.auth
 import pgcommitfest.commitfest.ajax as ajax
 import pgcommitfest.commitfest.lookups as lookups
-import pgcommitfest.auth
+import pgcommitfest.commitfest.reports as reports
+import pgcommitfest.commitfest.views as views
 import pgcommitfest.userprofile.views
 
 # Uncomment the next two lines to enable the admin:

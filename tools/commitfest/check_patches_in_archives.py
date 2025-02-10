@@ -7,11 +7,12 @@
 # so we don't block the archives unnecessarily.
 #
 
+import logging
 import os
 import sys
-import requests
+
 import magic
-import logging
+import requests
 
 # Set up for accessing django
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../../"))
@@ -20,8 +21,8 @@ import django  # noqa: E402
 
 django.setup()
 
-from django.db import connection  # noqa: E402
 from django.conf import settings  # noqa: E402
+from django.db import connection  # noqa: E402
 
 from pgcommitfest.commitfest.models import MailThreadAttachment  # noqa: E402
 

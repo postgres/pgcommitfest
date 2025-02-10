@@ -8,9 +8,9 @@
 # by one.
 #
 
-import sys
 import os
 import smtplib
+import sys
 
 # Set up to run in django environment
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../../"))

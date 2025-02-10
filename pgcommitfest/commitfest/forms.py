@@ -1,13 +1,13 @@
 from django import forms
+from django.contrib.auth.models import User
+from django.db.models import Q
 from django.forms import ValidationError
 from django.forms.widgets import HiddenInput
-from django.db.models import Q
-from django.contrib.auth.models import User
 from django.http import Http404
 
-from .models import Patch, MailThread, PatchOnCommitFest, TargetVersion
-from .widgets import ThreadPickWidget
 from .ajax import _archivesAPI
+from .models import MailThread, Patch, PatchOnCommitFest, TargetVersion
+from .widgets import ThreadPickWidget
 
 
 class CommitFestFilterForm(forms.Form):

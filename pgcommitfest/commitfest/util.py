@@ -1,5 +1,5 @@
-from django.forms.models import model_to_dict
 import django.db.models.fields.related
+from django.forms.models import model_to_dict
 
 
 class DiffableModel(object):

@@ -1,7 +1,7 @@
-from email.utils import formataddr
 from email.header import Header
+from email.utils import formataddr
 
-from .models import UserProfile, UserExtraEmail
+from .models import UserExtraEmail, UserProfile
 
 
 class UserWrapper(object):
