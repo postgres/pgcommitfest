@@ -7,25 +7,40 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('commitfest', '0003_withdrawn_status'),
+        ("commitfest", "0003_withdrawn_status"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TargetVersion',
+            name="TargetVersion",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('version', models.CharField(max_length=8, unique=True)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("version", models.CharField(max_length=8, unique=True)),
             ],
             options={
-                'ordering': ['-version', ],
+                "ordering": [
+                    "-version",
+                ],
             },
         ),
         migrations.AddField(
-            model_name='patch',
-            name='targetversion',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='commitfest.TargetVersion', verbose_name='Target version'),
+            model_name="patch",
+            name="targetversion",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="commitfest.TargetVersion",
+                verbose_name="Target version",
+            ),
         ),
     ]

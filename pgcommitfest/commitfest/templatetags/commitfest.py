@@ -7,14 +7,14 @@ from pgcommitfest.commitfest.models import PatchOnCommitFest
 register = template.Library()
 
 
-@register.filter(name='patchstatusstring')
+@register.filter(name="patchstatusstring")
 @stringfilter
 def patchstatusstring(value):
     i = int(value)
     return [v for k, v in PatchOnCommitFest._STATUS_CHOICES if k == i][0]
 
 
-@register.filter(name='patchstatuslabel')
+@register.filter(name="patchstatuslabel")
 @stringfilter
 def patchstatuslabel(value):
     i = int(value)
@@ -23,7 +23,7 @@ def patchstatuslabel(value):
 
 @register.filter(is_safe=True)
 def label_class(value, arg):
-    return value.label_tag(attrs={'class': arg})
+    return value.label_tag(attrs={"class": arg})
 
 
 @register.filter(is_safe=True)
@@ -31,17 +31,17 @@ def field_class(value, arg):
     return value.as_widget(attrs={"class": arg})
 
 
-@register.filter(name='alertmap')
+@register.filter(name="alertmap")
 @stringfilter
 def alertmap(value):
-    if value == 'error':
-        return 'alert-danger'
-    elif value == 'warning':
-        return 'alert-warning'
-    elif value == 'success':
-        return 'alert-success'
+    if value == "error":
+        return "alert-danger"
+    elif value == "warning":
+        return "alert-warning"
+    elif value == "success":
+        return "alert-success"
     else:
-        return 'alert-info'
+        return "alert-info"
 
 
 # Generate a GET parameter that's unique per startup of the python process to
@@ -56,7 +56,7 @@ def static_file_param():
     return STATIC_FILE_PARAM
 
 
-@register.filter(name='hidemail')
+@register.filter(name="hidemail")
 @stringfilter
 def hidemail(value):
-    return value.replace('@', ' at ')
+    return value.replace("@", " at ")
