@@ -6,9 +6,9 @@
 # at least not all of them all the time...
 #
 
+import logging
 import os
 import sys
-import logging
 
 # Set up for accessing django
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../../"))
@@ -19,8 +19,8 @@ django.setup()
 
 from django.db import connection  # noqa: E402
 
-from pgcommitfest.commitfest.models import MailThread  # noqa: E402
 from pgcommitfest.commitfest.ajax import refresh_single_thread  # noqa: E402
+from pgcommitfest.commitfest.models import MailThread  # noqa: E402
 
 if __name__ == "__main__":
     debug = "--debug" in sys.argv

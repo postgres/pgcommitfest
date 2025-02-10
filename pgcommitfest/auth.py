@@ -24,27 +24,27 @@
 #   directory that's processed before the default django.contrib.admin)
 #
 
-from django.http import HttpResponse, HttpResponseRedirect
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.models import User
-from django.contrib.auth.backends import ModelBackend
+from django.conf import settings
 from django.contrib.auth import login as django_login
 from django.contrib.auth import logout as django_logout
-from django.dispatch import Signal
+from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth.models import User
 from django.db import transaction
-from django.conf import settings
+from django.dispatch import Signal
+from django.http import HttpResponse, HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
 
 import base64
+import hmac
 import json
 import socket
-import hmac
-from urllib.parse import urlencode, parse_qs
+import time
+from urllib.parse import parse_qs, urlencode
+
 import requests
+from Cryptodome import Random
 from Cryptodome.Cipher import AES
 from Cryptodome.Hash import SHA
-from Cryptodome import Random
-import time
-
 
 # This signal fires when a user is created based on data from upstream.
 auth_user_created_from_upstream = Signal()

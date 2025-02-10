@@ -1,5 +1,6 @@
-from django.template.defaultfilters import stringfilter
 from django import template
+from django.template.defaultfilters import stringfilter
+
 from uuid import uuid4
 
 from pgcommitfest.commitfest.models import PatchOnCommitFest

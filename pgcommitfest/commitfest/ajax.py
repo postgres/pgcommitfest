@@ -1,19 +1,27 @@
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, Http404
 from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+
+import json
+import re
+import textwrap
 
 import requests
-import json
-import textwrap
-import re
 
 from pgcommitfest.auth import user_search
-from .models import CommitFest, Patch, MailThread, MailThreadAttachment
-from .models import MailThreadAnnotation, PatchHistory
+
+from .models import (
+    CommitFest,
+    MailThread,
+    MailThreadAnnotation,
+    MailThreadAttachment,
+    Patch,
+    PatchHistory,
+)
 
 
 class HttpResponseServiceUnavailable(HttpResponse):

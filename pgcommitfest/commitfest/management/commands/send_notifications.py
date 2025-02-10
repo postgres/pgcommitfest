@@ -1,11 +1,10 @@
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.conf import settings
-
 
 from pgcommitfest.commitfest.models import PendingNotification
-from pgcommitfest.userprofile.models import UserProfile
 from pgcommitfest.mailqueue.util import send_template_mail
+from pgcommitfest.userprofile.models import UserProfile
 
 
 class Command(BaseCommand):

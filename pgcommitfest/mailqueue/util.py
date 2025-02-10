@@ -1,10 +1,10 @@
 from django.template.loader import get_template
 
-from email.mime.text import MIMEText
+from email import encoders
 from email.mime.multipart import MIMEMultipart
 from email.mime.nonmultipart import MIMENonMultipart
+from email.mime.text import MIMEText
 from email.utils import formatdate
-from email import encoders
 
 from .models import QueuedMail
 
