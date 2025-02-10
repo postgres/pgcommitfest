@@ -21,16 +21,23 @@ class UserWrapper(object):
 
     @property
     def encoded_email_header(self):
-        return formataddr((
-            str(Header("%s %s" % (self.user.first_name, self.user.last_name), 'utf-8')),
-            self.email))
+        return formataddr(
+            (
+                str(
+                    Header(
+                        "%s %s" % (self.user.first_name, self.user.last_name), "utf-8"
+                    )
+                ),
+                self.email,
+            )
+        )
 
 
 def handle_user_data(sender, **kwargs):
-    user = kwargs.pop('user')
-    userdata = kwargs.pop('userdata')
+    user = kwargs.pop("user")
+    userdata = kwargs.pop("userdata")
 
-    secondary = userdata.get('secondaryemails', [])
+    secondary = userdata.get("secondaryemails", [])
 
     # Remove any email attached to this user that are not upstream. Since the foreign keys
     # are set to SET_NULL, they will all revert to being the users default in this case.

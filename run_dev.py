@@ -11,6 +11,7 @@ Requiring everyone to use the same python version is not practical, so instead
 we have this tiny script that will find the path to the Django admin static
 files and run uWSGI with the correct path.
 """
+
 from importlib.machinery import PathFinder
 import subprocess
 import sys

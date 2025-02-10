@@ -5,37 +5,77 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('commitfest', '0005_history_dateindex'),
+        ("commitfest", "0005_history_dateindex"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='CfbotBranch',
+            name="CfbotBranch",
             fields=[
-                ('patch', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, related_name='cfbot_branch', serialize=False, to='commitfest.patch')),
-                ('branch_id', models.IntegerField()),
-                ('branch_name', models.TextField()),
-                ('commit_id', models.TextField(blank=True, null=True)),
-                ('apply_url', models.TextField()),
-                ('status', models.TextField(choices=[('testing', 'Testing'), ('finished', 'Finished'), ('failed', 'Failed'), ('timeout', 'Timeout')])),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('modified', models.DateTimeField(auto_now=True)),
+                (
+                    "patch",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        primary_key=True,
+                        related_name="cfbot_branch",
+                        serialize=False,
+                        to="commitfest.patch",
+                    ),
+                ),
+                ("branch_id", models.IntegerField()),
+                ("branch_name", models.TextField()),
+                ("commit_id", models.TextField(blank=True, null=True)),
+                ("apply_url", models.TextField()),
+                (
+                    "status",
+                    models.TextField(
+                        choices=[
+                            ("testing", "Testing"),
+                            ("finished", "Finished"),
+                            ("failed", "Failed"),
+                            ("timeout", "Timeout"),
+                        ]
+                    ),
+                ),
+                ("created", models.DateTimeField(auto_now_add=True)),
+                ("modified", models.DateTimeField(auto_now=True)),
             ],
         ),
         migrations.CreateModel(
-            name='CfbotTask',
+            name="CfbotTask",
             fields=[
-                ('id', models.BigAutoField(primary_key=True, serialize=False)),
-                ('task_id', models.TextField(unique=True)),
-                ('task_name', models.TextField()),
-                ('branch_id', models.IntegerField()),
-                ('position', models.IntegerField()),
-                ('status', models.TextField(choices=[('CREATED', 'Created'), ('NEEDS_APPROVAL', 'Needs Approval'), ('TRIGGERED', 'Triggered'), ('EXECUTING', 'Executing'), ('FAILED', 'Failed'), ('COMPLETED', 'Completed'), ('SCHEDULED', 'Scheduled'), ('ABORTED', 'Aborted'), ('ERRORED', 'Errored')])),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('modified', models.DateTimeField(auto_now=True)),
-                ('patch', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cfbot_tasks', to='commitfest.patch')),
+                ("id", models.BigAutoField(primary_key=True, serialize=False)),
+                ("task_id", models.TextField(unique=True)),
+                ("task_name", models.TextField()),
+                ("branch_id", models.IntegerField()),
+                ("position", models.IntegerField()),
+                (
+                    "status",
+                    models.TextField(
+                        choices=[
+                            ("CREATED", "Created"),
+                            ("NEEDS_APPROVAL", "Needs Approval"),
+                            ("TRIGGERED", "Triggered"),
+                            ("EXECUTING", "Executing"),
+                            ("FAILED", "Failed"),
+                            ("COMPLETED", "Completed"),
+                            ("SCHEDULED", "Scheduled"),
+                            ("ABORTED", "Aborted"),
+                            ("ERRORED", "Errored"),
+                        ]
+                    ),
+                ),
+                ("created", models.DateTimeField(auto_now_add=True)),
+                ("modified", models.DateTimeField(auto_now=True)),
+                (
+                    "patch",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="cfbot_tasks",
+                        to="commitfest.patch",
+                    ),
+                ),
             ],
         ),
         migrations.RunSQL(
