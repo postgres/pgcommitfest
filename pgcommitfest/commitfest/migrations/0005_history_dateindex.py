@@ -6,15 +6,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('commitfest', '0004_target_version'),
+        ("commitfest", "0004_target_version"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='patchhistory',
-            name='date',
+            model_name="patchhistory",
+            name="date",
             field=models.DateTimeField(auto_now_add=True, db_index=True),
         ),
     ]

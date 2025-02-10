@@ -2,7 +2,7 @@ from django.apps import AppConfig
 
 
 class CFAppConfig(AppConfig):
-    name = 'pgcommitfest.commitfest'
+    name = "pgcommitfest.commitfest"
 
     def ready(self):
         from pgcommitfest.auth import auth_user_data_received

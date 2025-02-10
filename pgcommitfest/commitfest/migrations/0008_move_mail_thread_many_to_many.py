@@ -4,9 +4,8 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('commitfest', '0007_needs_rebase_emails'),
+        ("commitfest", "0007_needs_rebase_emails"),
     ]
 
     operations = [
@@ -15,14 +14,18 @@ class Migration(migrations.Migration):
             reverse_sql=migrations.RunSQL.noop,
             state_operations=[
                 migrations.RemoveField(
-                    model_name='mailthread',
-                    name='patches',
+                    model_name="mailthread",
+                    name="patches",
                 ),
                 migrations.AddField(
-                    model_name='patch',
-                    name='mailthread_set',
-                    field=models.ManyToManyField(db_table='commitfest_mailthread_patches', related_name='patches', to='commitfest.mailthread'),
+                    model_name="patch",
+                    name="mailthread_set",
+                    field=models.ManyToManyField(
+                        db_table="commitfest_mailthread_patches",
+                        related_name="patches",
+                        to="commitfest.mailthread",
+                    ),
                 ),
-            ]
+            ],
         )
     ]
