@@ -1,11 +1,11 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 
 from datetime import datetime
 
-from .util import DiffableModel
-
 from pgcommitfest.userprofile.models import UserProfile
+
+from .util import DiffableModel
 
 
 # We have few enough of these, and it's really the only thing we

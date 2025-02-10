@@ -12,9 +12,9 @@ we have this tiny script that will find the path to the Django admin static
 files and run uWSGI with the correct path.
 """
 
-from importlib.machinery import PathFinder
 import subprocess
 import sys
+from importlib.machinery import PathFinder
 
 django_path = PathFinder().find_spec("django").submodule_search_locations[0]
 

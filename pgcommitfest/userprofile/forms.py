@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import UserProfile, UserExtraEmail
+from .models import UserExtraEmail, UserProfile
 
 
 class UserProfileForm(forms.ModelForm):
