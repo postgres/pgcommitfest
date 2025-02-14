@@ -1,0 +1,16 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - prod
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name }}
+    steps:
+      - name: Trigger deploy
+        run: |
+          curl -fsS -X POST ${{ secrets.HOOKURL }} -H "X-Key: ${{ secrets.HOOKSECRET }}"
