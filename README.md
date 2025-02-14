@@ -69,3 +69,5 @@ codestyle.
 ln -s ../../tools/githook/pre-commit .git/hooks/
 
 ```
+
+CI will also check this for you.
