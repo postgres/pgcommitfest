@@ -19,3 +19,11 @@ jobs:
         uses: astral-sh/ruff-action@v2
         with:
           args: "format --check"
+
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
+
+      - name: Run Biome
+        run: biome ci .
