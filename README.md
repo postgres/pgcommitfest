@@ -76,13 +76,19 @@ admin interface, go back to the main interface. You're now logged in.
 
 ## Contributing
 
-Before committing make sure to install the git pre-commit hook to adhere to the
-codestyle.
+Code formatting and linting is done using [`ruff`] and [`biome`]. You can run
+formatting using `make format`. Linting can be done using `make lint` and
+automatic fixing of linting errors can be done using `make lint-fix`. CI checks
+that you adhere to these coding standards.
+
+You can install the git pre-commit hook to help you adhere to the codestyle:
 
 ```bash
 ln -s ../../tools/githook/pre-commit .git/hooks/
-
 ```
+
+[`ruff`]: https://docs.astral.sh/ruff/)
+[`biome`]: https://biomejs.dev/
 
 If you'd like to regenerate the database dump files, you can run the following commands:
 ```
