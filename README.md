@@ -100,10 +100,10 @@ If you want to discuss development of a fix/feature over chat. Please join the
 ### Staging server
 
 The staging server is available at: <https://commitfest-test.postgresql.org/>
-User and password are both `pgtest`. The `main` branch is automatically
-deployed to the staging server. After some time on the staging server, commits
-will be merged into the `prod` branch, which automatically deploys to the
-production server.
+User and password for the HTTP authentication popup are both `pgtest`. The
+`main` branch is automatically deployed to the staging server. After some time
+on the staging server, commits will be merged into the `prod` branch, which
+automatically deploys to the production server.
 
 ### Regenerating the database dump files
 
