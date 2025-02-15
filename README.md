@@ -87,7 +87,7 @@ You can install the git pre-commit hook to help you adhere to the codestyle:
 ln -s ../../tools/githook/pre-commit .git/hooks/
 ```
 
-[`ruff`]: https://docs.astral.sh/ruff/)
+[`ruff`]: https://docs.astral.sh/ruff/
 [`biome`]: https://biomejs.dev/
 
 ### Discord
