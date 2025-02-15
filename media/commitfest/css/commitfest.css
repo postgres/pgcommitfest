@@ -4,47 +4,45 @@
 
 /* For close button with float disabled */
 .close-nofloat {
-   float: none !important;
+    float: none !important;
 }
 
 /* General form styling */
 .form-horizontal div.form-group {
-   margin-bottom: 10px;
+    margin-bottom: 10px;
 }
 div.form-group div.controls ul {
-   list-style-type: none;
-   margin: 0px;
-   padding: 0px;
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
 }
 div.form-group div.controls ul li {
-   display: inline;
+    display: inline;
 }
 div.form-group div.controls ul li label {
-   display: inline;
-   font-weight: normal;
-   vertical-align:middle;
+    display: inline;
+    font-weight: normal;
+    vertical-align: middle;
 }
 div.form-group div.controls ul li label input {
-   display: inline;
-   vertical-align:middle;
+    display: inline;
+    vertical-align: middle;
 }
-div.form-group div.controls input[type='checkbox'] {
-   width: 10px;
+div.form-group div.controls input[type="checkbox"] {
+    width: 10px;
 }
 
 div.form-group div.controls input.threadpick-input {
-   width: 80%;
-   display: inline;
+    width: 80%;
+    display: inline;
 }
-
-
 
 /*
  * Attach thread dialog
  */
 #attachThreadListWrap.loading {
     display: block;
-    background: url('/media/commitfest/spinner.gif') no-repeat center;
+    background: url("/media/commitfest/spinner.gif") no-repeat center;
     width: 124px;
     height: 124px;
     margin: 0 auto;
@@ -57,7 +55,7 @@ div.form-group div.controls input.threadpick-input {
  * Annotate message dialog */
 #annotateMessageBody.loading {
     display: block;
-    background: url('/media/commitfest/spinner.gif') no-repeat center;
+    background: url("/media/commitfest/spinner.gif") no-repeat center;
     width: 124px;
     height: 124px;
     margin: 0 auto;
