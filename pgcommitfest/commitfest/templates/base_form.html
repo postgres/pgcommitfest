@@ -110,20 +110,5 @@ $('#searchUserModal').on('shown.bs.modal', function() {
 	  $('#searchUserSearchField').focus();
 });
 {%endif%}
-
-/* Build our button callbacks */
-$(document).ready(function() {
-   $('button.attachThreadButton').each(function (i,o) {
-      var b = $(o);
-      b.click(function() {
-	 $('#attachThreadAttachOnly').val('1');
-         browseThreads(function(msgid) {
-            b.prev().val(msgid);
-            return true;
-         });
-         return false;
-      });
-   });
-});
 </script>
 {%endblock%}

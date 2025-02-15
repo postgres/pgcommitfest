@@ -32,6 +32,7 @@ function findLatestThreads() {
                 sel.append(
                     $("<option/>")
                         .text(`${i.from}: ${i.subj} (${i.date})`)
+                        .data("subject", i.subj)
                         .val(i.msgid),
                 );
             });
@@ -60,12 +61,18 @@ function browseThreads(attachfunc, closefunc) {
         if (!msgid || msgid === "") {
             msgid = $("#attachThreadList").val();
             if (!msgid) return;
+            subject = $("#attachThreadList option:selected").data("subject");
+            subject = subject.replace(/\bre: /gi, "");
+            subject = subject.replace(/\bfwd: /gi, "");
+            // Strips [PATCH], [POC], etc. prefixes
+            subject = subject.replace(/\[\w+\]: /gi, "");
+            subject = subject.replace(/\[\w+\] /gi, "");
         }
 
         $("#attachThreadListWrap").addClass("loading");
         $("#attachThreadSearchButton").addClass("disabled");
         $("#attachThreadButton").addClass("disabled");
-        if (attachfunc(msgid)) {
+        if (attachfunc(msgid, subject)) {
             $("#attachModal").modal("hide");
         }
         $("#attachThreadListWrap").removeClass("loading");
@@ -351,3 +358,22 @@ git fetch commitfest cf/${patchId}
 git checkout commitfest/cf/${patchId}
 `);
 }
+
+/* Build our button callbacks */
+$(document).ready(() => {
+    $("button.attachThreadButton").each((i, o) => {
+        const b = $(o);
+        b.click(() => {
+            $("#attachThreadAttachOnly").val("1");
+            browseThreads((msgid, subject) => {
+                b.prev().val(msgid);
+                const description_field = $("#id_name");
+                if (description_field.val() === "") {
+                    description_field.val(subject);
+                }
+                return true;
+            });
+            return false;
+        });
+    });
+});
