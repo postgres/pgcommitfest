@@ -25,18 +25,18 @@ function findLatestThreads() {
         s: $("#attachThreadSearchField").val(),
         a: $("#attachThreadAttachOnly").val(),
     })
-        .success(function (data) {
+        .success((data) => {
             sel = $("#attachThreadList");
             sel.find("option").remove();
-            $.each(data, function (m, i) {
+            $.each(data, (m, i) => {
                 sel.append(
                     $("<option/>")
-                        .text(i.from + ": " + i.subj + " (" + i.date + ")")
+                        .text(`${i.from}: ${i.subj} (${i.date})`)
                         .val(i.msgid),
                 );
             });
         })
-        .always(function () {
+        .always(() => {
             $("#attachThreadListWrap").removeClass("loading");
             $("#attachThreadSearchButton").removeClass("disabled");
             attachThreadChanged();
@@ -48,16 +48,16 @@ function browseThreads(attachfunc, closefunc) {
     $("#attachThreadList").find("option").remove();
     $("#attachThreadMessageId").val("");
     $("#attachModal").off("hidden.bs.modal");
-    $("#attachModal").on("hidden.bs.modal", function (e) {
+    $("#attachModal").on("hidden.bs.modal", (e) => {
         if (closefunc) closefunc();
     });
     $("#attachModal").modal();
     findLatestThreads();
 
     $("#doAttachThreadButton").unbind("click");
-    $("#doAttachThreadButton").click(function () {
+    $("#doAttachThreadButton").click(() => {
         msgid = $("#attachThreadMessageId").val();
-        if (!msgid || msgid == "") {
+        if (!msgid || msgid === "") {
             msgid = $("#attachThreadList").val();
             if (!msgid) return;
         }
@@ -76,14 +76,14 @@ function browseThreads(attachfunc, closefunc) {
 
 function attachThread(cfid, patchid, closefunc) {
     browseThreads(
-        function (msgid) {
+        (msgid) => {
             doAttachThread(cfid, patchid, msgid, !closefunc);
             if (closefunc) {
                 /* We don't really care about closing it, we just reload immediately */
                 closefunc();
             }
         },
-        function () {
+        () => {
             if (closefunc) closefunc();
         },
     );
@@ -92,9 +92,7 @@ function attachThread(cfid, patchid, closefunc) {
 function detachThread(cfid, patchid, msgid) {
     if (
         confirm(
-            'Are you sure you want to detach the thread with messageid "' +
-                msgid +
-                '" from this patch?',
+            `Are you sure you want to detach the thread with messageid "${msgid}" from this patch?`,
         )
     ) {
         $.post("/ajax/detachThread/", {
@@ -102,10 +100,10 @@ function detachThread(cfid, patchid, msgid) {
             p: patchid,
             msg: msgid,
         })
-            .success(function (data) {
+            .success((data) => {
                 location.reload();
             })
-            .fail(function (data) {
+            .fail((data) => {
                 alert("Failed to detach thread!");
             });
     }
@@ -125,20 +123,20 @@ function doAttachThread(cfid, patchid, msgid, reloadonsuccess) {
         p: patchid,
         msg: msgid,
     })
-        .success(function (data) {
-            if (data != "OK") {
+        .success((data) => {
+            if (data !== "OK") {
                 alert(data);
             }
             if (reloadonsuccess) location.reload();
             return true;
         })
-        .fail(function (data) {
-            if (data.status == 404) {
-                alert("Message with messageid " + msgid + " not found");
-            } else if (data.status == 503) {
-                alert("Failed to attach thread: " + data.responseText);
+        .fail((data) => {
+            if (data.status === 404) {
+                alert(`Message with messageid ${msgid} not found`);
+            } else if (data.status === 503) {
+                alert(`Failed to attach thread: ${data.responseText}`);
             } else {
-                alert("Failed to attach thread: " + data.statusText);
+                alert(`Failed to attach thread: ${data.statusText}`);
             }
             return false;
         });
@@ -150,25 +148,17 @@ function updateAnnotationMessages(threadid) {
     $.get("/ajax/getMessages", {
         t: threadid,
     })
-        .success(function (data) {
+        .success((data) => {
             sel = $("#annotateMessageList");
             sel.find("option").remove();
             sel.append('<option value="">---</option>');
-            $.each(data, function (i, m) {
+            $.each(data, (i, m) => {
                 sel.append(
-                    '<option value="' +
-                        m.msgid +
-                        '">' +
-                        m.from +
-                        ": " +
-                        m.subj +
-                        " (" +
-                        m.date +
-                        ")</option>",
+                    `<option value="${m.msgid}">${m.from}: ${m.subj} (${m.date})</option>`,
                 );
             });
         })
-        .always(function () {
+        .always(() => {
             $("#annotateMessageBody").removeClass("loading");
         });
 }
@@ -180,8 +170,8 @@ function addAnnotation(threadid) {
     $("#annotateThreadList").focus();
     updateAnnotationMessages(threadid);
     $("#doAnnotateMessageButton").unbind("click");
-    $("#doAnnotateMessageButton").click(function () {
-        var msg = $("#annotateMessage").val();
+    $("#doAnnotateMessageButton").click(() => {
+        const msg = $("#annotateMessage").val();
         if (msg.length >= 500) {
             alert(
                 "Maximum length for an annotation is 500 characters.\nYou should probably post an actual message in the thread!",
@@ -195,8 +185,8 @@ function addAnnotation(threadid) {
             msgid: $.trim($("#annotateMsgId").val()),
             msg: msg,
         })
-            .success(function (data) {
-                if (data != "OK") {
+            .success((data) => {
+                if (data !== "OK") {
                     alert(data);
                     $("#annotateMessageBody").removeClass("loading");
                 } else {
@@ -204,7 +194,7 @@ function addAnnotation(threadid) {
                     location.reload();
                 }
             })
-            .fail(function (data) {
+            .fail((data) => {
                 alert("Failed to annotate message");
                 $("#annotateMessageBody").removeClass("loading");
             });
@@ -212,7 +202,7 @@ function addAnnotation(threadid) {
 }
 
 function annotateMsgPicked() {
-    var val = $("#annotateMessageList").val();
+    const val = $("#annotateMessageList").val();
     if (val) {
         $("#annotateMsgId").val(val);
         annotateChanged();
@@ -221,7 +211,7 @@ function annotateMsgPicked() {
 
 function annotateChanged() {
     /* Enable/disable the annotate button */
-    if ($("#annotateMessage").val() != "" && $("#annotateMsgId").val()) {
+    if ($("#annotateMessage").val() !== "" && $("#annotateMsgId").val()) {
         $("#doAnnotateMessageButton").removeClass("disabled");
     } else {
         $("#doAnnotateMessageButton").addClass("disabled");
@@ -233,10 +223,10 @@ function deleteAnnotation(annid) {
         $.post("/ajax/deleteAnnotation/", {
             id: annid,
         })
-            .success(function (data) {
+            .success((data) => {
                 location.reload();
             })
-            .fail(function (data) {
+            .fail((data) => {
                 alert("Failed to delete annotation!");
             });
     }
@@ -246,21 +236,21 @@ function flagCommitted(committer) {
     $("#commitModal").modal();
     $("#committerSelect").val(committer);
     $("#doCommitButton").unbind("click");
-    $("#doCommitButton").click(function () {
-        var c = $("#committerSelect").val();
+    $("#doCommitButton").click(() => {
+        const c = $("#committerSelect").val();
         if (!c) {
             alert(
                 "You need to select a committer before you can mark a patch as committed!",
             );
             return;
         }
-        document.location.href = "close/committed/?c=" + c;
+        document.location.href = `close/committed/?c=${c}`;
     });
     return false;
 }
 
 function sortpatches(sortby) {
-    if ($("#id_sortkey").val() == sortby) {
+    if ($("#id_sortkey").val() === sortby) {
         $("#id_sortkey").val(0);
     } else {
         $("#id_sortkey").val(sortby);
@@ -271,13 +261,13 @@ function sortpatches(sortby) {
 }
 
 function toggleButtonCollapse(buttonId, collapseId) {
-    $("#" + buttonId).button("toggle");
-    $("#" + collapseId).toggleClass("in");
+    $(`#${buttonId}`).button("toggle");
+    $(`#${collapseId}`).toggleClass("in");
 }
 
 function togglePatchFilterButton(buttonId, collapseId) {
     /* Figure out if we are collapsing it */
-    if ($("#" + collapseId).hasClass("in")) {
+    if ($(`#${collapseId}`).hasClass("in")) {
         /* Go back to ourselves without a querystring to reset the form, unless it's already empty */
         if (document.location.href.indexOf("?") > -1) {
             document.location.href = ".";
@@ -293,7 +283,7 @@ function togglePatchFilterButton(buttonId, collapseId) {
  */
 function search_and_store_user() {
     $("#doSelectUserButton").unbind("click");
-    $("#doSelectUserButton").click(function () {
+    $("#doSelectUserButton").click(() => {
         if (!$("#searchUserList").val()) {
             return false;
         }
@@ -302,16 +292,16 @@ function search_and_store_user() {
         $.get("/ajax/importUser/", {
             u: $("#searchUserList").val(),
         })
-            .success(function (data) {
-                if (data == "OK") {
+            .success((data) => {
+                if (data === "OK") {
                     alert("User imported!");
                     $("#searchUserModal").modal("hide");
                 } else {
-                    alert("Failed to import user: " + data);
+                    alert(`Failed to import user: ${data}`);
                 }
             })
-            .fail(function (data, statustxt) {
-                alert("Failed to import user: " + statustxt);
+            .fail((data, statustxt) => {
+                alert(`Failed to import user: ${statustxt}`);
             });
 
         return false;
@@ -330,24 +320,16 @@ function findUsers() {
     $.get("/ajax/searchUsers/", {
         s: $("#searchUserSearchField").val(),
     })
-        .success(function (data) {
+        .success((data) => {
             sel = $("#searchUserList");
             sel.find("option").remove();
-            $.each(data, function (i, u) {
+            $.each(data, (i, u) => {
                 sel.append(
-                    '<option value="' +
-                        u.u +
-                        '">' +
-                        u.u +
-                        " (" +
-                        u.f +
-                        " " +
-                        u.l +
-                        ")</option>",
+                    `<option value="${u.u}">${u.u} (${u.f} ${u.l})</option>`,
                 );
             });
         })
-        .always(function () {
+        .always(() => {
             $("#searchUserListWrap").removeClass("loading");
             $("#searchUserSearchButton").removeClass("disabled");
             searchUserListChanged();
