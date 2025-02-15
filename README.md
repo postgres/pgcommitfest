@@ -90,6 +90,23 @@ ln -s ../../tools/githook/pre-commit .git/hooks/
 [`ruff`]: https://docs.astral.sh/ruff/)
 [`biome`]: https://biomejs.dev/
 
+### Discord
+
+If you want to discuss development of a fix/feature over chat. Please join the
+`#commitfest-dev` channel on the ["PostgreSQL Hacking" Discord server][1]
+
+[1]: https://discord.gg/XZy2DXj7Wz
+
+### Staging server
+
+The staging server is available at: <https://commitfest-test.postgresql.org/>
+User and password are both `pgtest`. The `main` branch is automatically
+deployed to the staging server. After some time on the staging server, commits
+will be merged into the `prod` branch, which automatically deploys to the
+production server.
+
+### Regenerating the database dump files
+
 If you'd like to regenerate the database dump files, you can run the following commands:
 ```
 ./manage.py dumpdata auth  --format=json --indent=4 --exclude=auth.permission > pgcommitfest/commitfest/fixtures/auth_data.json
