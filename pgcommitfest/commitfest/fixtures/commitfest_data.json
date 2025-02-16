@@ -1,5 +1,26 @@
 [
 {
+    "model": "commitfest.committer",
+    "pk": 1,
+    "fields": {
+        "active": true
+    }
+},
+{
+    "model": "commitfest.committer",
+    "pk": 4,
+    "fields": {
+        "active": true
+    }
+},
+{
+    "model": "commitfest.committer",
+    "pk": 5,
+    "fields": {
+        "active": false
+    }
+},
+{
     "model": "commitfest.commitfest",
     "pk": 1,
     "fields": {
@@ -154,6 +175,48 @@
     }
 },
 {
+    "model": "commitfest.patch",
+    "pk": 5,
+    "fields": {
+        "name": "Add get_bytes() and set_bytes() functions",
+        "topic": 3,
+        "wikilink": "",
+        "gitlink": "",
+        "targetversion": null,
+        "committer": 4,
+        "created": "2025-02-16T21:59:04.131",
+        "modified": "2025-02-16T22:03:24.902",
+        "lastmail": "2025-01-20T14:01:53",
+        "authors": [],
+        "reviewers": [],
+        "subscribers": [],
+        "mailthread_set": [
+            5
+        ]
+    }
+},
+{
+    "model": "commitfest.patch",
+    "pk": 6,
+    "fields": {
+        "name": "Add RESPECT/IGNORE NULLS and FROM FIRST/LAST options",
+        "topic": 3,
+        "wikilink": "",
+        "gitlink": "",
+        "targetversion": null,
+        "committer": null,
+        "created": "2025-02-16T22:03:58.476",
+        "modified": "2025-02-16T22:04:23.180",
+        "lastmail": "2025-01-19T23:55:17",
+        "authors": [],
+        "reviewers": [],
+        "subscribers": [],
+        "mailthread_set": [
+            6
+        ]
+    }
+},
+{
     "model": "commitfest.patchoncommitfest",
     "pk": 1,
     "fields": {
@@ -206,6 +269,28 @@
         "enterdate": "2025-01-31T13:30:19.745",
         "leavedate": null,
         "status": 1
+    }
+},
+{
+    "model": "commitfest.patchoncommitfest",
+    "pk": 6,
+    "fields": {
+        "patch": 5,
+        "commitfest": 2,
+        "enterdate": "2025-02-16T21:59:04.131",
+        "leavedate": "2025-02-16T22:03:24.896",
+        "status": 4
+    }
+},
+{
+    "model": "commitfest.patchoncommitfest",
+    "pk": 7,
+    "fields": {
+        "patch": 6,
+        "commitfest": 2,
+        "enterdate": "2025-02-16T22:03:58.477",
+        "leavedate": "2025-02-16T22:04:18.213",
+        "status": 6
     }
 },
 {
@@ -319,6 +404,83 @@
     }
 },
 {
+    "model": "commitfest.patchhistory",
+    "pk": 11,
+    "fields": {
+        "patch": 5,
+        "date": "2025-02-16T21:59:04.132",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Created patch record"
+    }
+},
+{
+    "model": "commitfest.patchhistory",
+    "pk": 12,
+    "fields": {
+        "patch": 5,
+        "date": "2025-02-16T21:59:04.134",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Attached mail thread example@message-1"
+    }
+},
+{
+    "model": "commitfest.patchhistory",
+    "pk": 13,
+    "fields": {
+        "patch": 5,
+        "date": "2025-02-16T22:03:24.897",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Changed committer to committer"
+    }
+},
+{
+    "model": "commitfest.patchhistory",
+    "pk": 14,
+    "fields": {
+        "patch": 5,
+        "date": "2025-02-16T22:03:24.903",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Closed in commitfest Sample In Progress Commitfest with status: Committed"
+    }
+},
+{
+    "model": "commitfest.patchhistory",
+    "pk": 15,
+    "fields": {
+        "patch": 6,
+        "date": "2025-02-16T22:03:58.479",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Created patch record"
+    }
+},
+{
+    "model": "commitfest.patchhistory",
+    "pk": 16,
+    "fields": {
+        "patch": 6,
+        "date": "2025-02-16T22:03:58.486",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Attached mail thread example@message-16"
+    }
+},
+{
+    "model": "commitfest.patchhistory",
+    "pk": 17,
+    "fields": {
+        "patch": 6,
+        "date": "2025-02-16T22:04:18.217",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Closed in commitfest Sample In Progress Commitfest with status: Rejected"
+    }
+},
+{
     "model": "commitfest.mailthread",
     "pk": 1,
     "fields": {
@@ -372,6 +534,34 @@
         "latestauthor": "test@test.com",
         "latestsubject": "Re: create subscription with (origin = none, copy_data = on)",
         "latestmsgid": "example@message-4"
+    }
+},
+{
+    "model": "commitfest.mailthread",
+    "pk": 5,
+    "fields": {
+        "messageid": "example@message-1",
+        "subject": "Re: [PATCH] Add get_bytes() and set_bytes() functions",
+        "firstmessage": "2025-01-20T14:01:53",
+        "firstauthor": "test@test.com",
+        "latestmessage": "2025-01-20T14:01:53",
+        "latestauthor": "test@test.com",
+        "latestsubject": "Re: [PATCH] Add get_bytes() and set_bytes() functions",
+        "latestmsgid": "example@message-1"
+    }
+},
+{
+    "model": "commitfest.mailthread",
+    "pk": 6,
+    "fields": {
+        "messageid": "example@message-16",
+        "subject": "Re: Add RESPECT/IGNORE NULLS and FROM FIRST/LAST options",
+        "firstmessage": "2025-01-19T23:55:17",
+        "firstauthor": "test@test.com",
+        "latestmessage": "2025-01-19T23:55:17",
+        "latestauthor": "test@test.com",
+        "latestsubject": "Re: Add RESPECT/IGNORE NULLS and FROM FIRST/LAST options",
+        "latestmsgid": "example@message-16"
     }
 },
 {
