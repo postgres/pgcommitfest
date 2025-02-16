@@ -48,17 +48,20 @@ be provided.
 ```
 
 #### Load data
-For a quick start, you can load some dummy data into the database. Here's how you do that:
+For a quick start, you can load some dummy data into the database. Here's how
+you do that:
 
-```
+```bash
 ./manage.py loaddata auth_data.json
 ./manage.py loaddata commitfest_data.json
 ```
 
-If you do this, the admin username and password are `admin` and `admin`.
+If you do this, the admin username and password are `admin` and `admin`. There
+are a few other users as well (`staff`, `normal`, `committer`,
+`inactive-committer`), that all have the same password as their username.
 
-On the other hand, if you'd like to start from scratch instead, you can run the following command to create
-a super user:
+On the other hand, if you'd like to start from scratch instead, you can run the
+following command to create a super user:
 
 ```bash
 ./manage.py createsuperuser
