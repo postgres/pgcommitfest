@@ -257,7 +257,7 @@ function flagCommitted(committer) {
 }
 
 function sortpatches(sortby) {
-    const sortkey = $("#id_sortkey").val();
+    const sortkey = Number.parseInt($("#id_sortkey").val());
     if (sortkey === sortby) {
         $("#id_sortkey").val(-sortby);
     } else if (-sortkey === sortby) {
