@@ -98,6 +98,14 @@ class PatchForm(forms.ModelForm):
                 u.username, u.get_full_name()
             )
 
+        # Only allow modifying reviewers and committers if the patch is closed.
+        if (
+            self.instance.id is None
+            or self.instance.current_patch_on_commitfest().is_open
+        ):
+            del self.fields["committer"]
+            del self.fields["reviewers"]
+
 
 class NewPatchForm(PatchForm):
     # Put threadmsgid first

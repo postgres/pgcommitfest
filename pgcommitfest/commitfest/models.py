@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.shortcuts import get_object_or_404
 
 from datetime import datetime
 
@@ -154,6 +155,10 @@ class Patch(models.Model, DiffableModel):
     def current_commitfest(self):
         return self.commitfests.order_by("-startdate").first()
 
+    def current_patch_on_commitfest(self):
+        cf = self.current_commitfest()
+        return get_object_or_404(PatchOnCommitFest, patch=self, commitfest=cf)
+
     # Some accessors
     @property
     def authors_string(self):
@@ -257,6 +262,10 @@ class PatchOnCommitFest(models.Model):
     @property
     def is_closed(self):
         return self.status not in self.OPEN_STATUSES
+
+    @property
+    def is_open(self):
+        return not self.is_closed
 
     @property
     def statusstring(self):
