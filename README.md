@@ -78,8 +78,11 @@ admin interface, go back to the main interface. You're now logged in.
 
 Code formatting and linting is done using [`ruff`] and [`biome`]. You can run
 formatting using `make format`. Linting can be done using `make lint` and
-automatic fixing of linting errors can be done using `make lint-fix`. CI checks
-that you adhere to these coding standards.
+automatic fixing of linting errors can be done using `make lint-fix` or `make
+lint-fix-unsafe` (unsafe fixes can slightly change program behaviour, but often
+the fixed behaviour is the one you intended). You can also run both `make
+format` and `make lint-fix-unsafe` together by using `make fix`. CI
+automatically checks that you adhere to these coding standards.
 
 You can install the git pre-commit hook to help you adhere to the codestyle:
 
