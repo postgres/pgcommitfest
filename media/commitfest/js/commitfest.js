@@ -257,15 +257,15 @@ function flagCommitted(committer) {
 }
 
 function sortpatches(sortby) {
-   let sortkey = $('#id_sortkey').val()
-   if (sortkey == sortby) {
-      $('#id_sortkey').val(-sortby)
-   } else if(-sortkey == sortby){
-      $('#id_sortkey').val(0)
-   } else {
-      $('#id_sortkey').val(sortby);
-   }
-   $('#filterform').submit();
+    const sortkey = $("#id_sortkey").val();
+    if (sortkey === sortby) {
+        $("#id_sortkey").val(-sortby);
+    } else if (-sortkey === sortby) {
+        $("#id_sortkey").val(0);
+    } else {
+        $("#id_sortkey").val(sortby);
+    }
+    $("#filterform").submit();
 
     return false;
 }
