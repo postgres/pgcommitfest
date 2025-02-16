@@ -264,9 +264,7 @@ def commitfest(request, cfid):
                 "branch.all_additions + branch.all_deletions NULLS LAST, created"
             )
         elif sortkey == -6:
-            orderby_str = (
-                "branch.all_additions + branch.all_deletions DESC NULLS LAST, created"
-            )
+            orderby_str = "branch.all_additions + branch.all_deletions DESC NULLS LAST, created DESC"
         else:
             orderby_str = "p.id"
             sortkey = 0
