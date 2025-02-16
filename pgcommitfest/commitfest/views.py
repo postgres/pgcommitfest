@@ -713,7 +713,7 @@ def reviewer(request, patchid, status):
 
 @login_required
 @transaction.atomic
-def committer(request, cfid, patchid, status):
+def committer(request, patchid, status):
     patch = get_object_or_404(Patch, pk=patchid)
 
     committer = list(Committer.objects.filter(user=request.user, active=True))
