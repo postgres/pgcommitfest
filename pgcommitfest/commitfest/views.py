@@ -241,17 +241,31 @@ def commitfest(request, cfid):
 
         if sortkey == 1:
             orderby_str = "modified, created"
+        elif sortkey == -1:
+            orderby_str = "modified DESC, created DESC"
         elif sortkey == 2:
             orderby_str = "lastmail, created"
+        elif sortkey == -2:
+            orderby_str = "lastmail DESC, created DESC"
         elif sortkey == 3:
             orderby_str = "num_cfs DESC, modified, created"
+        elif sortkey == -3:
+            orderby_str = "num_cfs ASC, modified DESC, created DESC"
         elif sortkey == 4:
             orderby_str = "p.id"
+        elif sortkey == -4:
+            orderby_str = "p.id DESC"
         elif sortkey == 5:
             orderby_str = "p.name, created"
+        elif sortkey == -5:
+            orderby_str = "p.name DESC, created DESC"
         elif sortkey == 6:
             orderby_str = (
                 "branch.all_additions + branch.all_deletions NULLS LAST, created"
+            )
+        elif sortkey == -6:
+            orderby_str = (
+                "branch.all_additions + branch.all_deletions DESC NULLS LAST, created"
             )
         else:
             orderby_str = "p.id"
