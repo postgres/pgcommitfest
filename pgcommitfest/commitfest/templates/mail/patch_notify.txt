@@ -5,7 +5,7 @@ have received updates in the PostgreSQL commitfest app:
 {{p.patch.name}}
 https://commitfest.postgresql.org/{{p.patch.patchoncommitfest_set.all.0.commitfest.id}}/{{p.patch.id}}/
 {%for h in p.entries%}
-* {{h.what}} by {{h.by_string()}}{%endfor%}
+* {{h.what}} by {{h.by_string}}{%endfor%}
 
 
 {%endfor%}
