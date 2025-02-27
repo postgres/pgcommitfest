@@ -289,7 +289,7 @@ def commitfest(request, cfid):
     # Let's not overload the poor django ORM
     curs = connection.cursor()
     curs.execute(
-        """SELECT p.id, p.name, poc.status, v.version AS targetversion, p.created, p.modified, p.lastmail, committer.username AS committer, t.topic,
+        """SELECT p.id, p.name, poc.status, v.version AS targetversion, p.created, p.modified, p.lastmail, committer.first_name || ' ' || committer.last_name || ' (' || committer.username || ')' AS committer, t.topic,
 (poc.status=ANY(%(openstatuses)s)) AS is_open,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_authors cpa ON cpa.user_id=auth_user.id WHERE cpa.patch_id=p.id) AS author_names,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_reviewers cpr ON cpr.user_id=auth_user.id WHERE cpr.patch_id=p.id) AS reviewer_names,
