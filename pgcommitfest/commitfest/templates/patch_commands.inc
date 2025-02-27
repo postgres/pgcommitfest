@@ -22,6 +22,7 @@
      <li role="presentation"><a href="close/withdrawn/" onclick="return verify_withdrawn()">Withdrawn</a></li>
      <li role="presentation"><a href="close/feedback/" onclick="return verify_returned()">Returned with feedback</a></li>
      <li role="presentation"><a href="close/next/?cfid={{cf.id}}" onclick="return verify_next()">Move to next CF</a></li>
+     <li role="presentation"><a href="close/draft/" onclick="return verify_draft()">Move to Drafts</a></li>
      <li role="presentation"><a href="close/committed/" onclick="return flagCommitted({%if patch.committer%}'{{patch.committer}}'{%elif is_committer%}'{{user.username}}'{%else%}null{%endif%})">Committed</a></li>
     </ul>
    </div>

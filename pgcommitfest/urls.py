@@ -27,7 +27,8 @@ urlpatterns = [
     re_path(r"^(\d+)/new/$", views.newpatch),
     re_path(r"^patch/(\d+)/status/(review|author|committer)/$", views.status),
     re_path(
-        r"^patch/(\d+)/close/(reject|withdrawn|feedback|committed|next)/$", views.close
+        r"^patch/(\d+)/close/(reject|withdrawn|feedback|committed|next|draft)/$",
+        views.close,
     ),
     re_path(r"^patch/(\d+)/reviewer/(become|remove)/$", views.reviewer),
     re_path(r"^patch/(\d+)/committer/(become|remove)/$", views.committer),

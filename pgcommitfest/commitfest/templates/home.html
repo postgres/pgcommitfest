@@ -24,6 +24,7 @@
  </form>
  <h3>List of commitfests</h3>
  <ul>
+   <li><a href="/0/">Drafts</a></li>
   {%for c in commitfests%}
    <li><a href="/{{c.id}}/">{{c}}</a> ({{c.statusstring}}{%if c.startdate%} - {{c.periodstring}}{%endif%})</li>
   {%endfor%}
