@@ -46,7 +46,9 @@ from .models import (
 
 
 def home(request):
-    commitfests = list(CommitFest.objects.all())
+    # Skip "special" commitfest holding areas (primary keys <= 0); they're
+    # handled separately.
+    commitfests = list(CommitFest.objects.filter(pk__gt=0))
     opencf = next((c for c in commitfests if c.status == CommitFest.STATUS_OPEN), None)
     inprogresscf = next(
         (c for c in commitfests if c.status == CommitFest.STATUS_INPROGRESS), None
@@ -447,6 +449,7 @@ def patchlist(request, cf, personalized=False):
     params = {
         "openstatuses": PatchOnCommitFest.OPEN_STATUSES,
         "cid": cf.id,
+        "parking": CommitFest.STATUS_PARKING,
     }
     params.update(whereparams)
 
@@ -458,7 +461,9 @@ def patchlist(request, cf, personalized=False):
 (poc.status=ANY(%(openstatuses)s)) AS is_open,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_authors cpa ON cpa.user_id=auth_user.id WHERE cpa.patch_id=p.id) AS author_names,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_reviewers cpr ON cpr.user_id=auth_user.id WHERE cpr.patch_id=p.id) AS reviewer_names,
-(SELECT count(1) FROM commitfest_patchoncommitfest pcf WHERE pcf.patch_id=p.id) AS num_cfs,
+(SELECT count(1) FROM commitfest_patchoncommitfest pcf
+                 INNER JOIN commitfest_commitfest cf ON cf.id = pcf.commitfest_id
+                 WHERE pcf.patch_id=p.id AND cf.status != %(parking)s) AS num_cfs,
 
 branch.needs_rebase_since,
 branch.failing_since,
@@ -638,7 +643,7 @@ def patch(request, patchid):
     patch_commitfests = (
         PatchOnCommitFest.objects.select_related("commitfest")
         .filter(patch=patch)
-        .order_by("-commitfest__startdate")
+        .order_by("-enterdate")
         .all()
     )
     cf = patch_commitfests[0].commitfest
@@ -1034,6 +1039,7 @@ def close(request, patchid, status):
             PatchOnCommitFest.STATUS_REVIEW,
             PatchOnCommitFest.STATUS_AUTHOR,
             PatchOnCommitFest.STATUS_COMMITTER,
+            PatchOnCommitFest.STATUS_PARKED,
         ):
             # This one can be moved
             pass
@@ -1086,14 +1092,66 @@ def close(request, patchid, status):
                     "/%s/%s/" % (poc.commitfest.id, poc.patch.id)
                 )
         # Create a mapping to the new commitfest that we are bouncing
-        # this patch to.
-        newpoc = PatchOnCommitFest(
+        # this patch to. Patches may be bounced back and forth from the parking
+        # lot, so we have to handle a potential previous entry for this patch.
+        PatchOnCommitFest.objects.update_or_create(
             patch=poc.patch,
             commitfest=newcf[0],
-            status=oldstatus,
-            enterdate=datetime.now(),
+            defaults=dict(
+                status=oldstatus,
+                enterdate=datetime.now(),
+                leavedate=None,
+            ),
         )
-        newpoc.save()
+    elif status == "parked":
+        # Parking has similar considerations to "next", but we're more lenient
+        # about what can be moved in.
+        if poc.status in (
+            PatchOnCommitFest.STATUS_COMMITTED,
+            PatchOnCommitFest.STATUS_NEXT,
+            PatchOnCommitFest.STATUS_PARKED,
+            PatchOnCommitFest.STATUS_REJECTED,
+        ):
+            # Can't be moved!
+            messages.error(
+                request,
+                "A patch in status {0} cannot be moved to the parking lot.".format(
+                    poc.statusstring
+                ),
+            )
+            return HttpResponseRedirect("/%s/%s/" % (poc.commitfest.id, poc.patch.id))
+        elif poc.status in (
+            PatchOnCommitFest.STATUS_AUTHOR,
+            PatchOnCommitFest.STATUS_COMMITTER,
+            PatchOnCommitFest.STATUS_RETURNED,
+            PatchOnCommitFest.STATUS_REVIEW,
+            PatchOnCommitFest.STATUS_WITHDRAWN,
+        ):
+            # This one can be moved
+            pass
+        else:
+            messages.error(request, "Invalid existing patch status")
+
+        poc.status = PatchOnCommitFest.STATUS_PARKED
+
+        # Map this patch directly to the parking lot.
+        try:
+            parking_lot = CommitFest.objects.get(pk=0)
+        except CommitFest.DoesNotExist:
+            messages.error(request, "No parking lot exists!")
+            return HttpResponseRedirect("/%s/%s/" % (poc.commitfest.id, poc.patch.id))
+
+        # Patches may be bounced back and forth from the parking lot, so we have
+        # to handle a potential previous entry for this patch.
+        PatchOnCommitFest.objects.update_or_create(
+            patch=poc.patch,
+            commitfest=parking_lot,
+            defaults=dict(
+                status=PatchOnCommitFest.STATUS_AUTHOR,
+                enterdate=datetime.now(),
+                leavedate=None,
+            ),
+        )
     elif status == "committed":
         committer = get_object_or_404(Committer, user__username=request.GET["c"])
         if committer != poc.patch.committer:
