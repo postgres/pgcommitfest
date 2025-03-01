@@ -27,3 +27,9 @@ jobs:
 
       - name: Run Biome
         run: biome ci .
+
+      - name: Install djhtml
+        run: pip install djhtml
+
+      - name: Run djhtml
+        run: djhtml pgcommitfest/*/templates/*.html --tabwidth=1 --check
