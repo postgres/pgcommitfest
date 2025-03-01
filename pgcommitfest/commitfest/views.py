@@ -304,6 +304,7 @@ def commitfest(request, cfid):
             count(*) total,
             string_agg(task.task_name, ', ') FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) as failed_task_names,
             branch.commit_id IS NULL as needs_rebase,
+            branch.status as branch_status,
             branch.apply_url,
             branch.patch_count,
             branch.first_additions,

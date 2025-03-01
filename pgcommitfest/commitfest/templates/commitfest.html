@@ -101,7 +101,7 @@
     <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{p.id}}~1...cf/{{p.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
     <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{p.id}}"
        title="View CI history{%if p.cfbot_results.failed_task_names %}. Failed jobs: {{p.cfbot_results.failed_task_names}}{%endif%}">
-      {%if p.cfbot_results.failed > 0 %}
+      {%if p.cfbot_results.failed > 0 or p.cfbot_results.branch_status == 'failed' or p.cfbot_results.branch_status == 'timeout' %}
       <img src="/media/commitfest/new_failure.svg"/>
       {%elif p.cfbot_results.completed < p.cfbot_results.total  %}
       <img src="/media/commitfest/running.svg"/>
