@@ -30,6 +30,12 @@ div.form-group div.controls ul li label input {
 }
 div.form-group div.controls input[type="checkbox"] {
     width: 10px;
+    height: unset;
+    display: inline-block;
+}
+div.form-group div.controls > div.form-control:has(input[type="checkbox"]) {
+    display: flex;
+    gap: 8px;
 }
 
 div.form-group div.controls input.threadpick-input {
