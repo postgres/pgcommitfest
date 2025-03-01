@@ -91,34 +91,36 @@
    <td><span class="label label-{{p.status|patchstatuslabel}}">{{p.status|patchstatusstring}}</span></td>
    <td>{%if p.targetversion%}<span class="label label-default">{{p.targetversion}}</span>{%endif%}</td>
    <td class="cfbot-summary">
-    {%if not p.cfbot_results %}
+    {%with p.cfbot_results as cfb%}
+    {%if not cfb %}
       <span class="label label-default">Not processed</span>
-    {%elif p.cfbot_results.needs_rebase %}
-    <a href="{{p.cfbot_results.apply_url}}" title="View git apply logs">
+    {%elif cfb.needs_rebase %}
+    <a href="{{cfb.apply_url}}" title="View git apply logs">
      <span class="label label-warning">Needs rebase!</span>
     </a>
     {%else%}
     <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{p.id}}~1...cf/{{p.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
     <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{p.id}}"
-       title="View CI history{%if p.cfbot_results.failed_task_names %}. Failed jobs: {{p.cfbot_results.failed_task_names}}{%endif%}">
-      {%if p.cfbot_results.failed > 0 or p.cfbot_results.branch_status == 'failed' or p.cfbot_results.branch_status == 'timeout' %}
+       title="View CI history{%if cfb.failed_task_names %}. Failed jobs: {{cfb.failed_task_names}}{%endif%}">
+      {%if cfb.failed > 0 or cfb.branch_status == 'failed' or cfb.branch_status == 'timeout' %}
       <img src="/media/commitfest/new_failure.svg"/>
-      {%elif p.cfbot_results.completed < p.cfbot_results.total  %}
+      {%elif cfb.completed < cfb.total  %}
       <img src="/media/commitfest/running.svg"/>
       {%else%}
       <img src="/media/commitfest/new_success.svg"/>
       {%endif%}
       <span class="run-counters">
-      {{p.cfbot_results.completed}}/{{p.cfbot_results.total}}
+      {{cfb.completed}}/{{cfb.total}}
       </span>
     </a>
     {%endif%}
    </td>
    <td>
-    {%if p.cfbot_results and p.cfbot_results.all_additions is not none %}
-    <span class="additions">+{{ p.cfbot_results.all_additions }}</span><span class="deletions">&#8722;{{ p.cfbot_results.all_deletions }}</span>
+    {%if cfb and cfb.all_additions is not none %}
+    <span class="additions">+{{ cfb.all_additions }}</span><span class="deletions">&#8722;{{ cfb.all_deletions }}</span>
     {%endif%}
    </td>
+   {%endwith%}
    <td>{{p.author_names|default:''}}</td>
    <td>{{p.reviewer_names|default:''}}</td>
    <td>{{p.committer|default:''}}</td>
