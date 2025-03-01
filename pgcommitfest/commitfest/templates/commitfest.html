@@ -2,89 +2,89 @@
 {%load commitfest %}
 {%block contents%}
 
-<button type="button" class="btn btn-default{%if has_filter%} active{%endif%}" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
-<div class="btn-group">
+ <button type="button" class="btn btn-default{%if has_filter%} active{%endif%}" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
+ <div class="btn-group">
   <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">Shortcuts <span class="caret"></span></a>
   <ul class="dropdown-menu">
-    <li><a href="?reviewer=-2">Patches with no reviewers</a></li>
-    <li><a href="?author=-3">Patches where you are author</a></li>
-    <li><a href="?reviewer=-3">Patches where you are reviewer</a></li>
+   <li><a href="?reviewer=-2">Patches with no reviewers</a></li>
+   <li><a href="?author=-3">Patches where you are author</a></li>
+   <li><a href="?reviewer=-3">Patches where you are reviewer</a></li>
   </ul>
-</div>
-{%if cf.isopen or user.is_staff %}
-<a class="btn btn-default" href="new/">New patch</a>
-{%endif%}
-<div id="collapseFilters" class="collapse {%if has_filter%}in{%endif%}">
-    <form id="filterform" method="GET" action="." style="margin-bottom: 0px">
-      <table class="table table-condensed" style="margin-bottom: 0px">
-	<thead>
-	  <tr>
-{%for f in form%}
-         {%if not f.is_hidden%}
-            <td>{{f.label}}</td>
-	 {%else%}
-	    <td></td>
-	 {%endif%}
-{%endfor%}
+ </div>
+ {%if cf.isopen or user.is_staff %}
+  <a class="btn btn-default" href="new/">New patch</a>
+ {%endif%}
+ <div id="collapseFilters" class="collapse {%if has_filter%}in{%endif%}">
+  <form id="filterform" method="GET" action="." style="margin-bottom: 0px">
+   <table class="table table-condensed" style="margin-bottom: 0px">
+    <thead>
+     <tr>
+      {%for f in form%}
+       {%if not f.is_hidden%}
+        <td>{{f.label}}</td>
+       {%else%}
+        <td></td>
+       {%endif%}
+      {%endfor%}
 	    {%comment%} Add one extra for buttons {%endcomment%}
-	    <td></td>
-	  </tr>
-	</thead>
-	<tbody>
-	  <tr>
-{%for f in form%}
-            <td>{{f|field_class:"form-control"}}</td>
-{%endfor%}
-	    <td>
-	      <input type="submit" class="btn btn-default" value="Filter">
-	      <a class="btn btn-default" href=".">Clear</a>
-	    </td>
-	  </tr>
-	</tbody>
-      </table>
-    </form>
-</div>
+      <td></td>
+     </tr>
+    </thead>
+    <tbody>
+     <tr>
+      {%for f in form%}
+       <td>{{f|field_class:"form-control"}}</td>
+      {%endfor%}
+      <td>
+       <input type="submit" class="btn btn-default" value="Filter">
+       <a class="btn btn-default" href=".">Clear</a>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+  </form>
+ </div>
 
-<p>
-<br/>
-<b>Status summary: </b>{%for id,title,num in statussummary%}<a href="?status={{id}}">{{title}}</a>: {{num}}. {%endfor%}
-</p>
+ <p>
+  <br/>
+  <b>Status summary: </b>{%for id,title,num in statussummary%}<a href="?status={{id}}">{{title}}</a>: {{num}}. {%endfor%}
+ </p>
 
-{%for p in patches %}
-{%ifchanged p.is_open%}
-{%if not forloop.first%}
- </tbody>
-</table>
-{%endif%}
-<h3>{{p.is_open|yesno:"Active patches,Closed patches"}}</h3>
-<table class="table table-striped table-bordered table-hover table-condensed">
- <thead>
-  <tr>
-   <th><a href="#" style="color:#333333;" onclick="return sortpatches(5);">Patch</a>{%if sortkey == 5%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -5%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
-   <th><a href="#" style="color:#333333;" onclick="return sortpatches(4);">ID</a>{%if sortkey == 4%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -4%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
-   <th>Status</th>
-   <th>Ver</th>
-   <th><a href="#" style="color:#333333;" onclick="return sortpatches(7);">CI status</a>{%if sortkey == 7%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -7%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
-   <th><a href="#" style="color:#333333;" onclick="return sortpatches(6);">Stats</a>{%if sortkey == 6%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -6%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
-   <th>Author</th>
-   <th>Reviewers</th>
-   <th>Committer</th>
-   <th><a href="#" style="color:#333333;" onclick="return sortpatches(3);">Num cfs</a>{%if sortkey == 3%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -3%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
-   <th><a href="#" style="color:#333333;" onclick="return sortpatches(1);">Latest activity</a>{%if sortkey == 1%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -1%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
-   <th><a href="#" style="color:#333333;" onclick="return sortpatches(2);">Latest mail</a>{%if sortkey == 2%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -2%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
-{%if user.is_staff%}
-   <th>Select</th>
-{%endif%}
-  </tr>
- </thead>
- <tbody>
-{%endifchanged%}
+ {%for p in patches %}
+  {%ifchanged p.is_open%}
+   {%if not forloop.first%}
+    </tbody>
+    </table>
+   {%endif%}
+   <h3>{{p.is_open|yesno:"Active patches,Closed patches"}}</h3>
+   <table class="table table-striped table-bordered table-hover table-condensed">
+    <thead>
+     <tr>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(5);">Patch</a>{%if sortkey == 5%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -5%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(4);">ID</a>{%if sortkey == 4%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -4%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      <th>Status</th>
+      <th>Ver</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(7);">CI status</a>{%if sortkey == 7%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -7%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(6);">Stats</a>{%if sortkey == 6%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -6%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      <th>Author</th>
+      <th>Reviewers</th>
+      <th>Committer</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(3);">Num cfs</a>{%if sortkey == 3%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -3%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(1);">Latest activity</a>{%if sortkey == 1%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -1%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(2);">Latest mail</a>{%if sortkey == 2%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -2%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      {%if user.is_staff%}
+       <th>Select</th>
+      {%endif%}
+     </tr>
+    </thead>
+    <tbody>
+  {%endifchanged%}
 
-{%if grouping%}
-{%ifchanged p.topic%}
-  <tr><th colspan="{%if user.is_staff%}11{%else%}10{%endif%}">{{p.topic}}</th></tr>
-{%endifchanged%}
-{%endif%}
+  {%if grouping%}
+   {%ifchanged p.topic%}
+    <tr><th colspan="{%if user.is_staff%}11{%else%}10{%endif%}">{{p.topic}}</th></tr>
+   {%endifchanged%}
+  {%endif%}
   <tr>
    <td><a href="/patch/{{p.id}}/">{{p.name}}</a></td>
    <td>{{p.id}}</td>
@@ -92,97 +92,97 @@
    <td>{%if p.targetversion%}<span class="label label-default">{{p.targetversion}}</span>{%endif%}</td>
    <td class="cfbot-summary">
     {%with p.cfbot_results as cfb%}
-    {%if not cfb %}
+     {%if not cfb %}
       <span class="label label-default">Not processed</span>
-    {%elif p.needs_rebase_since %}
-    <a href="{{cfb.apply_url}}" title="View git apply logs. Needs rebase since {{p.needs_rebase_since|timesince}}. {%if p.failing_since and p.failing_since != p.needs_rebase_since %}Failing since {{p.failing_since|timesince}}.{%endif%}">
-     <span class="label label-warning">Needs rebase!</span>
-    </a>
-    {%else%}
-    <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{p.id}}~1...cf/{{p.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
-    <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{p.id}}"
-       title="View CI history. {%if p.failing_since%}Failing since {{p.failing_since|timesince}}. {%endif%}{%if cfb.failed_task_names %}Failed jobs: {{cfb.failed_task_names}}{%endif%}">
-      {%if cfb.failed > 0 or cfb.branch_status == 'failed' or cfb.branch_status == 'timeout' %}
-      <img src="/media/commitfest/new_failure.svg"/>
-      {%elif cfb.completed < cfb.total  %}
-      <img src="/media/commitfest/running.svg"/>
-      {%else%}
-      <img src="/media/commitfest/new_success.svg"/>
+     {%elif p.needs_rebase_since %}
+      <a href="{{cfb.apply_url}}" title="View git apply logs. Needs rebase since {{p.needs_rebase_since|timesince}}. {%if p.failing_since and p.failing_since != p.needs_rebase_since %}Failing since {{p.failing_since|timesince}}.{%endif%}">
+       <span class="label label-warning">Needs rebase!</span>
+      </a>
+     {%else%}
+      <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{p.id}}~1...cf/{{p.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
+      <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{p.id}}"
+         title="View CI history. {%if p.failing_since%}Failing since {{p.failing_since|timesince}}. {%endif%}{%if cfb.failed_task_names %}Failed jobs: {{cfb.failed_task_names}}{%endif%}">
+       {%if cfb.failed > 0 or cfb.branch_status == 'failed' or cfb.branch_status == 'timeout' %}
+        <img src="/media/commitfest/new_failure.svg"/>
+       {%elif cfb.completed < cfb.total  %}
+        <img src="/media/commitfest/running.svg"/>
+       {%else%}
+        <img src="/media/commitfest/new_success.svg"/>
+       {%endif%}
+       <span class="run-counters">
+        {{cfb.completed}}/{{cfb.total}}
+       </span>
+      </a>
+     {%endif%}
+     </td>
+     <td>
+      {%if cfb and cfb.all_additions is not none %}
+       <span class="additions">+{{ cfb.all_additions }}</span><span class="deletions">&#8722;{{ cfb.all_deletions }}</span>
       {%endif%}
-      <span class="run-counters">
-      {{cfb.completed}}/{{cfb.total}}
-      </span>
-    </a>
+     </td>
+    {%endwith%}
+    <td>{{p.author_names|default:''}}</td>
+    <td>{{p.reviewer_names|default:''}}</td>
+    <td>{{p.committer|default:''}}</td>
+    <td>{{p.num_cfs}}</td>
+    <td style="white-space: nowrap;">{{p.modified|date:"Y-m-d"}}<br/>{{p.modified|date:"H:i"}}</td>
+    <td style="white-space: nowrap;">{{p.lastmail|date:"Y-m-d"}}<br/>{{p.lastmail|date:"H:i"}}</td>
+    {%if user.is_staff%}
+     <td style="white-space: nowrap;"><input type="checkbox" class="sender_checkbox" id="send_authors_{{p.id}}">Author<br/><input type="checkbox" class="sender_checkbox" id="send_reviewers_{{p.id}}">Reviewer</td>
     {%endif%}
-   </td>
-   <td>
-    {%if cfb and cfb.all_additions is not none %}
-    <span class="additions">+{{ cfb.all_additions }}</span><span class="deletions">&#8722;{{ cfb.all_deletions }}</span>
-    {%endif%}
-   </td>
-   {%endwith%}
-   <td>{{p.author_names|default:''}}</td>
-   <td>{{p.reviewer_names|default:''}}</td>
-   <td>{{p.committer|default:''}}</td>
-   <td>{{p.num_cfs}}</td>
-   <td style="white-space: nowrap;">{{p.modified|date:"Y-m-d"}}<br/>{{p.modified|date:"H:i"}}</td>
-   <td style="white-space: nowrap;">{{p.lastmail|date:"Y-m-d"}}<br/>{{p.lastmail|date:"H:i"}}</td>
-{%if user.is_staff%}
-   <td style="white-space: nowrap;"><input type="checkbox" class="sender_checkbox" id="send_authors_{{p.id}}">Author<br/><input type="checkbox" class="sender_checkbox" id="send_reviewers_{{p.id}}">Reviewer</td>
-{%endif%}
-  </tr>
-{%if forloop.last%}
- </tbody>
-</table>
-{%endif%}
-{%endfor%}
+   </tr>
+   {%if forloop.last%}
+    </tbody>
+    </table>
+   {%endif%}
+ {%endfor%}
 
-<div>
-{%if cf.isopen or user.is_staff %}
-<a class="btn btn-default" href="new/">New patch</a>
-{%endif%}
-{%if user.is_staff%}
- <div class="btn-group dropup">
-  <button type="button" class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#">Send private mail <span class="caret"></span></button>
-  <ul class="dropdown-menu">
-    <li><a href="javascript:send_selected()">Selected</a></li>
-    <li><a href="send_email/?reviewers={{openpatchids|join:","}}">All reviewers (open patches)</a></li>
-    <li><a href="send_email/?authors={{openpatchids|join:","}}">All authors (open patches)</a></li>
-    <li><a href="send_email/?authors={{openpatchids|join:","}}&reviewers={{openpatchids|join:","}}">All authors and reviewers (open patches)</a></li>
-  </ul>
- </div>
+ <div>
+  {%if cf.isopen or user.is_staff %}
+   <a class="btn btn-default" href="new/">New patch</a>
+  {%endif%}
+  {%if user.is_staff%}
+   <div class="btn-group dropup">
+    <button type="button" class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#">Send private mail <span class="caret"></span></button>
+    <ul class="dropdown-menu">
+     <li><a href="javascript:send_selected()">Selected</a></li>
+     <li><a href="send_email/?reviewers={{openpatchids|join:","}}">All reviewers (open patches)</a></li>
+     <li><a href="send_email/?authors={{openpatchids|join:","}}">All authors (open patches)</a></li>
+     <li><a href="send_email/?authors={{openpatchids|join:","}}&reviewers={{openpatchids|join:","}}">All authors and reviewers (open patches)</a></li>
+    </ul>
+   </div>
 
- <div class="btn-group dropup">
-   <button type="button" class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#">Reports <span class="caret"></span></button>
-   <ul class="dropdown-menu">
+   <div class="btn-group dropup">
+    <button type="button" class="btn btn-default dropdown-toggle " data-toggle="dropdown" href="#">Reports <span class="caret"></span></button>
+    <ul class="dropdown-menu">
      <li><a href="reports/authorstats/">Author stats</a></li>
-   </ul>
+    </ul>
+   </div>
+  {%endif%}
  </div>
-{%endif%}
-</div>
 {%endblock%}
 
 {%block morescript%}
-<script>
-{%if user.is_staff%}
+ <script>
+  {%if user.is_staff%}
    function send_selected() {
-      var authors = [];
-      var reviewers = [];
-      $('input.sender_checkbox').each(function(index, el) {
-         if (el.checked) {
-            if (el.id.indexOf('send_authors_') == 0) {
-               authors.push(el.id.substring(13));
-            } else {
-               reviewers.push(el.id.substring(15));
-            }
-         }
-      });
-      if (authors.length==0 && reviewers.length==0) {
-         alert('Nothing to send.');
-         return;
+    var authors = [];
+    var reviewers = [];
+    $('input.sender_checkbox').each(function(index, el) {
+     if (el.checked) {
+      if (el.id.indexOf('send_authors_') == 0) {
+       authors.push(el.id.substring(13));
+      } else {
+       reviewers.push(el.id.substring(15));
       }
-      document.location.href = 'send_email/?authors=' + authors.join(',') + '&reviewers=' + reviewers.join(',');
+     }
+    });
+    if (authors.length==0 && reviewers.length==0) {
+     alert('Nothing to send.');
+     return;
+    }
+    document.location.href = 'send_email/?authors=' + authors.join(',') + '&reviewers=' + reviewers.join(',');
    }
-{%endif%}
-</script>
+  {%endif%}
+ </script>
 {%endblock%}
