@@ -239,11 +239,7 @@ def commitfest(request, cfid):
         except ValueError:
             sortkey = 0
 
-        if sortkey == 1:
-            orderby_str = "modified, created"
-        elif sortkey == -1:
-            orderby_str = "modified DESC, created DESC"
-        elif sortkey == 2:
+        if sortkey == 2:
             orderby_str = "lastmail, created"
         elif sortkey == -2:
             orderby_str = "lastmail DESC, created DESC"
