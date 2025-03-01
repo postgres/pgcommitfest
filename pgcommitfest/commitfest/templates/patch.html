@@ -17,10 +17,10 @@
       <td>
         {%if not cfbot_branch %}
         <span class="label label-default">Not processed</span></a>
-        {%elif not cfbot_branch.commit_id %}
+        {%elif cfbot_branch.needs_rebase_since %}
           <a href="{{cfbot_branch.apply_url}}">
           <span class="label label-warning" title="View git apply logs">Needs rebase!</span></a>
-          Additional links previous successfully applied patch (outdated):
+          Needs rebase since {{cfbot_branch.needs_rebase_since|timesince}}. {%if cfbot_branch.failing_since and cfbot_branch.failing_since != cfbot_branch.needs_rebase_since %}Failing since {{cfbot_branch.failing_since|timesince}}. {%endif%}<br>Additional links previous successfully applied patch (outdated):<br>
           <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" title="View previous successfully applied patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
           <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
           <span class="label label-default">Summary</span></a>
