@@ -312,8 +312,6 @@ branch.failing_since,
             branch.status as branch_status,
             branch.apply_url,
             branch.patch_count,
-            branch.first_additions,
-            branch.first_deletions,
             branch.all_additions,
             branch.all_deletions
         FROM commitfest_cfbotbranch branch
