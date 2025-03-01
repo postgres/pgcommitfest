@@ -30,3 +30,5 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MOCK_ARCHIVE_DATA = os.path.join(
     BASE_DIR, "commitfest", "fixtures", "archive_data.json"
 )
+
+CFBOT_SECRET = "INSECURE"
