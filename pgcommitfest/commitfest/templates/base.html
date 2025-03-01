@@ -1,48 +1,48 @@
 {%load commitfest%}
 <!DOCTYPE html>
 <html>
-<head>
+ <head>
   <title>{{title}}</title>
   <link rel="stylesheet" href="/media/commitfest/css/jquery-ui.css" type="text/css">
   <link rel="stylesheet" href="/media/commitfest/css/bootstrap.css" />
   <link rel="stylesheet" href="/media/commitfest/css/bootstrap-theme.min.css" />
   <link rel="stylesheet" href="/media/commitfest/css/commitfest.css?{% static_file_param %}" />
   <link rel="shortcut icon" href="/media/commitfest/favicon.ico" />
-{%block extrahead%}{%endblock%}
-{%if rss_alternate%}  <link rel="alternate" type="application/rss+xml" title="{{rss_alternate_title}}" href="{{rss_alternate}}" />{%endif%}
-</head>
-<body>
-<div class="container-fluid">
-<ul class="breadcrumb">
- <li><a href="/">Home</a></li>
-{%for c in breadcrumbs%}
- <li><a href="{{c.href}}">{{c.title}}</a></li>
-{%endfor%}
- <li class="active">{{title}}</li>
- <li class="pull-right active">
-{%if user.is_authenticated%}
- Logged in as {{user}} (<a href="/account/profile/">edit profile</a> | <a href="/account/logout/">log out</a>{%if user.is_staff%} | <a href="/admin/">administration</a>{%endif%})
-{%else%}
- <a href="/account/login/?next={{request.path}}">Log in</a>
-{%endif%}
- </li>
-{%if header_activity%} <li class="pull-right active"><a href="{{header_activity_link}}">{{header_activity}}</a></li>{%endif%}
-</ul>
+  {%block extrahead%}{%endblock%}
+  {%if rss_alternate%}  <link rel="alternate" type="application/rss+xml" title="{{rss_alternate_title}}" href="{{rss_alternate}}" />{%endif%}
+ </head>
+ <body>
+  <div class="container-fluid">
+   <ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    {%for c in breadcrumbs%}
+     <li><a href="{{c.href}}">{{c.title}}</a></li>
+    {%endfor%}
+    <li class="active">{{title}}</li>
+    <li class="pull-right active">
+     {%if user.is_authenticated%}
+      Logged in as {{user}} (<a href="/account/profile/">edit profile</a> | <a href="/account/logout/">log out</a>{%if user.is_staff%} | <a href="/admin/">administration</a>{%endif%})
+     {%else%}
+      <a href="/account/login/?next={{request.path}}">Log in</a>
+     {%endif%}
+    </li>
+    {%if header_activity%} <li class="pull-right active"><a href="{{header_activity_link}}">{{header_activity}}</a></li>{%endif%}
+   </ul>
 
-<h1>{{title}}</h1>
+   <h1>{{title}}</h1>
 
-{%if messages%}
- {%for m in messages%}
-  <div class="alert {{m.tags|alertmap}}">{{m}}</div>
- {%endfor%}
-{%endif%}
+   {%if messages%}
+    {%for m in messages%}
+     <div class="alert {{m.tags|alertmap}}">{{m}}</div>
+    {%endfor%}
+   {%endif%}
 
-{%block contents%}
-{%endblock%}
-</div>
-<script src="/media/commitfest/js/jquery.js"></script>
-<script src="/media/commitfest/js/jquery-ui.js"></script>
-<script src="/media/commitfest/js/bootstrap.js"></script>
-<script src="/media/commitfest/js/commitfest.js?{% static_file_param %}"></script>
-{%block morescript%}{%endblock%}
-</html>
+   {%block contents%}
+   {%endblock%}
+  </div>
+  <script src="/media/commitfest/js/jquery.js"></script>
+  <script src="/media/commitfest/js/jquery-ui.js"></script>
+  <script src="/media/commitfest/js/bootstrap.js"></script>
+  <script src="/media/commitfest/js/commitfest.js?{% static_file_param %}"></script>
+  {%block morescript%}{%endblock%}
+ </html>
