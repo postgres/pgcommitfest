@@ -217,6 +217,27 @@
     }
 },
 {
+    "model": "commitfest.patch",
+    "pk": 7,
+    "fields": {
+        "name": "Old BufferDesc refcount in PrintBufferDescs and PrintPinnedBufs",
+        "topic": 3,
+        "wikilink": "",
+        "gitlink": "",
+        "targetversion": null,
+        "committer": null,
+        "created": "2025-03-01T22:27:53.214",
+        "modified": "2025-03-01T22:27:53.221",
+        "lastmail": "2025-01-18T07:14:02",
+        "authors": [],
+        "reviewers": [],
+        "subscribers": [],
+        "mailthread_set": [
+            7
+        ]
+    }
+},
+{
     "model": "commitfest.patchoncommitfest",
     "pk": 1,
     "fields": {
@@ -291,6 +312,17 @@
         "enterdate": "2025-02-16T22:03:58.477",
         "leavedate": "2025-02-16T22:04:18.213",
         "status": 6
+    }
+},
+{
+    "model": "commitfest.patchoncommitfest",
+    "pk": 8,
+    "fields": {
+        "patch": 7,
+        "commitfest": 2,
+        "enterdate": "2025-03-01T22:27:53.214",
+        "leavedate": null,
+        "status": 1
     }
 },
 {
@@ -481,6 +513,28 @@
     }
 },
 {
+    "model": "commitfest.patchhistory",
+    "pk": 18,
+    "fields": {
+        "patch": 7,
+        "date": "2025-03-01T22:27:53.215",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Created patch record"
+    }
+},
+{
+    "model": "commitfest.patchhistory",
+    "pk": 19,
+    "fields": {
+        "patch": 7,
+        "date": "2025-03-01T22:27:53.218",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Attached mail thread example@message-31"
+    }
+},
+{
     "model": "commitfest.mailthread",
     "pk": 1,
     "fields": {
@@ -565,6 +619,20 @@
     }
 },
 {
+    "model": "commitfest.mailthread",
+    "pk": 7,
+    "fields": {
+        "messageid": "example@message-31",
+        "subject": "Re: Old BufferDesc refcount in PrintBufferDescs and PrintPinnedBufs",
+        "firstmessage": "2025-01-18T07:14:02",
+        "firstauthor": "test@test.com",
+        "latestmessage": "2025-01-18T07:14:02",
+        "latestauthor": "test@test.com",
+        "latestsubject": "Re: Old BufferDesc refcount in PrintBufferDescs and PrintPinnedBufs",
+        "latestmsgid": "example@message-31"
+    }
+},
+{
     "model": "commitfest.patchstatus",
     "pk": 1,
     "fields": {
@@ -638,6 +706,7 @@
         "apply_url": "http://cfbot.cputube.org/patch_4573.log",
         "status": "finished",
         "needs_rebase_since": null,
+        "failing_since": null,
         "created": "2025-01-26T22:06:02.980",
         "modified": "2025-01-29T22:50:37.805",
         "version": "",
@@ -657,10 +726,11 @@
         "commit_id": null,
         "apply_url": "http://cfbot.cputube.org/patch_4573.log",
         "status": "failed",
-        "needs_rebase_since": null,
+        "needs_rebase_since": "2025-03-01T22:30:42",
+        "failing_since": "2025-02-01T22:30:42",
         "created": "2025-01-26T22:11:09.961",
-        "modified": "2025-01-26T22:20:39.372",
-        "version": null,
+        "modified": "2025-03-01T22:59:14.717",
+        "version": "",
         "patch_count": null,
         "first_additions": null,
         "first_deletions": null,
@@ -678,8 +748,9 @@
         "apply_url": "http://cfbot.cputube.org/patch_4748.log",
         "status": "failed",
         "needs_rebase_since": null,
+        "failing_since": "2025-03-01T23:18:06",
         "created": "2025-01-26T22:22:46.602",
-        "modified": "2025-01-29T22:58:51.032",
+        "modified": "2025-03-01T23:18:10.856",
         "version": "",
         "patch_count": 3,
         "first_additions": 345,
@@ -698,6 +769,7 @@
         "apply_url": "http://cfbot.cputube.org/patch_4748.log",
         "status": "testing",
         "needs_rebase_since": null,
+        "failing_since": null,
         "created": "2025-01-31T13:32:22.017",
         "modified": "2025-01-31T13:32:22.017",
         "version": "",
@@ -706,6 +778,27 @@
         "first_deletions": 14,
         "all_additions": 123,
         "all_deletions": 14
+    }
+},
+{
+    "model": "commitfest.cfbotbranch",
+    "pk": 7,
+    "fields": {
+        "branch_id": 12,
+        "branch_name": "cf/7",
+        "commit_id": "efg123",
+        "apply_url": "http://cfbot.cputube.org/patch_7.log",
+        "status": "timeout",
+        "needs_rebase_since": null,
+        "failing_since": "2025-03-01T22:29:07",
+        "created": "2025-03-01T22:29:25.461",
+        "modified": "2025-03-01T22:30:14.495",
+        "version": "",
+        "patch_count": 1,
+        "first_additions": 1,
+        "first_deletions": 2,
+        "all_additions": 1,
+        "all_deletions": 2
     }
 },
 {
