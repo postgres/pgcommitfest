@@ -469,6 +469,7 @@ class CfbotBranch(models.Model):
     # Actually a postgres enum column
     status = models.TextField(choices=STATUS_CHOICES, null=False)
     needs_rebase_since = models.DateTimeField(null=True, blank=True)
+    failing_since = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     version = models.TextField(null=True, blank=True)

@@ -64,7 +64,7 @@
    <th><a href="#" style="color:#333333;" onclick="return sortpatches(4);">ID</a>{%if sortkey == 4%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -4%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
    <th>Status</th>
    <th>Ver</th>
-   <th>CI status</th>
+   <th><a href="#" style="color:#333333;" onclick="return sortpatches(7);">CI status</a>{%if sortkey == 7%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -7%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
    <th><a href="#" style="color:#333333;" onclick="return sortpatches(6);">Stats</a>{%if sortkey == 6%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -6%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
    <th>Author</th>
    <th>Reviewers</th>
@@ -94,14 +94,14 @@
     {%with p.cfbot_results as cfb%}
     {%if not cfb %}
       <span class="label label-default">Not processed</span>
-    {%elif cfb.needs_rebase %}
-    <a href="{{cfb.apply_url}}" title="View git apply logs">
+    {%elif p.needs_rebase_since %}
+    <a href="{{cfb.apply_url}}" title="View git apply logs. Needs rebase since {{p.needs_rebase_since|timesince}}. {%if p.failing_since and p.failing_since != p.needs_rebase_since %}Failing since {{p.failing_since|timesince}}.{%endif%}">
      <span class="label label-warning">Needs rebase!</span>
     </a>
     {%else%}
     <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{p.id}}~1...cf/{{p.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
     <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{p.id}}"
-       title="View CI history{%if cfb.failed_task_names %}. Failed jobs: {{cfb.failed_task_names}}{%endif%}">
+       title="View CI history. {%if p.failing_since%}Failing since {{p.failing_since|timesince}}. {%endif%}{%if cfb.failed_task_names %}Failed jobs: {{cfb.failed_task_names}}{%endif%}">
       {%if cfb.failed > 0 or cfb.branch_status == 'failed' or cfb.branch_status == 'timeout' %}
       <img src="/media/commitfest/new_failure.svg"/>
       {%elif cfb.completed < cfb.total  %}

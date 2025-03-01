@@ -265,6 +265,10 @@ def commitfest(request, cfid):
             )
         elif sortkey == -6:
             orderby_str = "branch.all_additions + branch.all_deletions DESC NULLS LAST, created DESC"
+        elif sortkey == 7:
+            orderby_str = "branch.failing_since DESC NULLS FIRST, branch.created DESC"
+        elif sortkey == -7:
+            orderby_str = "branch.failing_since NULLS LAST, branch.created"
         else:
             orderby_str = "p.id"
             sortkey = 0
@@ -294,6 +298,8 @@ def commitfest(request, cfid):
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_authors cpa ON cpa.user_id=auth_user.id WHERE cpa.patch_id=p.id) AS author_names,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_reviewers cpr ON cpr.user_id=auth_user.id WHERE cpr.patch_id=p.id) AS reviewer_names,
 (SELECT count(1) FROM commitfest_patchoncommitfest pcf WHERE pcf.patch_id=p.id) AS num_cfs,
+branch.needs_rebase_since,
+branch.failing_since,
 (
     SELECT row_to_json(t) as cfbot_results
     from (
@@ -303,7 +309,6 @@ def commitfest(request, cfid):
             count(*) FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) failed,
             count(*) total,
             string_agg(task.task_name, ', ') FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) as failed_task_names,
-            branch.commit_id IS NULL as needs_rebase,
             branch.status as branch_status,
             branch.apply_url,
             branch.patch_count,
@@ -1250,13 +1255,14 @@ def cfbot_ingest(message):
     # CONFLICT does not allow us to return that). We need to know the previous
     # state so we can skip sending notifications if the needs_rebase status did
     # not change.
+    needs_save = False
     needs_rebase = branch_status["commit_id"] is None
     if bool(branch_in_db.needs_rebase_since) is not needs_rebase:
         if needs_rebase:
             branch_in_db.needs_rebase_since = datetime.now()
         else:
             branch_in_db.needs_rebase_since = None
-        branch_in_db.save()
+        needs_save = True
 
         if needs_rebase:
             PatchHistory(
@@ -1269,6 +1275,27 @@ def cfbot_ingest(message):
                 by_cfbot=True,
                 what="Patch does not need rebase anymore",
             ).save_and_notify(authors_only=True)
+
+    # Similarly, we change the failing_since field using a separate UPDATE
+    failing = branch_status["status"] in ("failed", "timeout") or needs_rebase
+    finished = branch_status["status"] == "finished"
+
+    if "task_status" in message and message["task_status"]["status"] in (
+        "ABORTED",
+        "ERRORED",
+        "FAILED",
+    ):
+        failing = True
+
+    if (failing or finished) and bool(branch_in_db.failing_since) is not failing:
+        if failing:
+            branch_in_db.failing_since = datetime.now()
+        else:
+            branch_in_db.failing_since = None
+        needs_save = True
+
+    if needs_save:
+        branch_in_db.save()
 
 
 @csrf_exempt
