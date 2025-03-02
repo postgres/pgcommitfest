@@ -64,7 +64,7 @@ def home(request):
         patch_list = patchlist(request, cf)
 
     if patch_list.redirect:
-        return HttpResponseRedirect("/")
+        return patch_list.redirect
 
     return render(
         request,
@@ -222,8 +222,13 @@ def patchlist(request, cf, personalized=False):
         elif request.GET["author"] == "-3":
             # Checking for "yourself" requires the user to be logged in!
             if not request.user.is_authenticated:
-                return HttpResponseRedirect(
-                    "%s?next=%s" % (settings.LOGIN_URL, request.path)
+                return PatchList(
+                    patches=[],
+                    has_filter=False,
+                    sortkey=0,
+                    redirect=HttpResponseRedirect(
+                        "%s?next=%s" % (settings.LOGIN_URL, request.path)
+                    ),
                 )
             whereclauses.append(
                 "EXISTS (SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s)"
@@ -247,8 +252,13 @@ def patchlist(request, cf, personalized=False):
         elif request.GET["reviewer"] == "-3":
             # Checking for "yourself" requires the user to be logged in!
             if not request.user.is_authenticated:
-                return HttpResponseRedirect(
-                    "%s?next=%s" % (settings.LOGIN_URL, request.path)
+                return PatchList(
+                    patches=[],
+                    has_filter=False,
+                    sortkey=0,
+                    redirect=HttpResponseRedirect(
+                        "%s?next=%s" % (settings.LOGIN_URL, request.path)
+                    ),
                 )
             whereclauses.append(
                 "EXISTS (SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(self)s)"
@@ -401,7 +411,12 @@ def patchlist(request, cf, personalized=False):
 
     if not has_filter and sortkey == 0 and request.GET:
         # Redirect to get rid of the ugly url
-        return PatchList(patches=[], has_filter=False, sortkey=0, redirect=True)
+        return PatchList(
+            patches=[],
+            has_filter=False,
+            sortkey=0,
+            redirect=HttpResponseRedirect(request.path),
+        )
 
     if whereclauses:
         where_str = "({0})".format(") AND (".join(whereclauses))
@@ -474,7 +489,7 @@ def commitfest(request, cfid):
 
     patch_list = patchlist(request, cf)
     if patch_list.redirect:
-        return HttpResponseRedirect(f"/{cf.id}/")
+        return patch_list.redirect
 
     # Generate patch status summary.
     curs = connection.cursor()
