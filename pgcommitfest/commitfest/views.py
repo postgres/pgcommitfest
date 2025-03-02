@@ -311,7 +311,7 @@ def patchlist(request, cf, personalized=False):
                 ) AND (
                     poc.status=ANY(%(review_statuses)s)
                 )
-            THEN 'Patches you might want to review'
+            THEN 'Patches that are ready for your review'
             ELSE 'Blocked on others'
             END AS topic,
             cf.id AS cf_id,
@@ -377,9 +377,24 @@ def patchlist(request, cf, personalized=False):
         orderby_str = "poc.commitfest_id DESC, lastmail"
     else:
         if personalized:
-            orderby_str = (
-                "topic DESC, branch.failing_since NULLS FIRST, cf.id, lastmail DESC"
-            )
+            # First we sort by topic, to have the grouping work.
+            # Then we show non-failing patches first, and the ones that are
+            # shortest failing we show first. We consider patches in a closed
+            # commitfest, as if they are failing since that commitfest was
+            # closed.
+            # Then we sort by start date of the CF, to show entries in the "In
+            # progress" commitfest before ones in the "Open" commitfest.
+            # And then to break ties, we put ones with the most recent email at
+            # the top.
+            orderby_str = """topic DESC,
+                COALESCE(
+                    branch.failing_since,
+                    CASE WHEN cf.status = %(cf_closed_status)s
+                    THEN enddate ELSE NULL END
+                ) DESC NULLS FIRST,
+                cf.startdate,
+                lastmail DESC"""
+            whereparams["cf_closed_status"] = CommitFest.STATUS_CLOSED
         else:
             orderby_str = "topic, created"
         sortkey = 0
