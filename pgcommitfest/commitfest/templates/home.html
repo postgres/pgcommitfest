@@ -48,7 +48,7 @@
     </tbody>
     </table>
    {%endif%}
-   <h3>{{user.is_authenticated|yesno:"Your personal dashboard,Patches in the current commitfest"}}</h3>
+   <h3>{%if user.is_authenticated%}Open patches you are subscribed to{%elif p.is_open%}Active patches in the current commitfest{%else%}Closed patches in the current commitfest{%endif%}</h3>
    <table class="table table-striped table-bordered table-hover table-condensed">
     <thead>
      <tr>
