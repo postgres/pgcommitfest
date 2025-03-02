@@ -32,4 +32,4 @@ jobs:
         run: pip install djhtml
 
       - name: Run djhtml
-        run: djhtml pgcommitfest/*/templates/*.html --tabwidth=1 --check
+        run: djhtml pgcommitfest/*/templates/*.html pgcommitfest/*/templates/*.inc --tabwidth=1 --check
