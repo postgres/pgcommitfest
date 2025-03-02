@@ -3,9 +3,23 @@ from django.template.defaultfilters import stringfilter
 
 from uuid import uuid4
 
-from pgcommitfest.commitfest.models import PatchOnCommitFest
+from pgcommitfest.commitfest.models import CommitFest, PatchOnCommitFest
 
 register = template.Library()
+
+
+@register.filter(name="commitfeststatusstring")
+@stringfilter
+def commitfeststatusstring(value):
+    i = int(value)
+    return [v for k, v in CommitFest._STATUS_CHOICES if k == i][0]
+
+
+@register.filter(name="commitfeststatuslabel")
+@stringfilter
+def commitfeststatuslabel(value):
+    i = int(value)
+    return [v for k, v in CommitFest._STATUS_LABELS if k == i][0]
 
 
 @register.filter(name="patchstatusstring")

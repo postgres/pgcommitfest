@@ -87,3 +87,7 @@ div.form-group div.controls input.threadpick-input {
     font-weight: bold;
     color: red;
 }
+
+.search-bar {
+    display: inline-block;
+}

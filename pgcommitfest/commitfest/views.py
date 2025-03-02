@@ -13,6 +13,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 
+import collections
 import hmac
 import json
 import urllib
@@ -44,22 +45,56 @@ from .models import (
 
 
 def home(request):
-    commitfests = list(CommitFest.objects.all())
-    opencf = next((c for c in commitfests if c.status == CommitFest.STATUS_OPEN), None)
-    inprogresscf = next(
-        (c for c in commitfests if c.status == CommitFest.STATUS_INPROGRESS), None
-    )
+    cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
+    if len(cfs) == 0:
+        cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
+
+    if len(cfs) > 0:
+        cf = cfs[0]
+    else:
+        cf = None
+
+    # Generates a fairly expensive query, which we shouldn't do unless
+    # the user is logged in. XXX: Figure out how to avoid doing that..
+    form = CommitFestFilterForm(None, request.GET)
+
+    if request.user.is_authenticated:
+        patch_list = patchlist(request, cf, personalized=True)
+    else:
+        patch_list = patchlist(request, cf)
+
+    if patch_list.redirect:
+        return HttpResponseRedirect("/")
 
     return render(
         request,
         "home.html",
         {
-            "commitfests": commitfests,
-            "opencf": opencf,
-            "inprogresscf": inprogresscf,
-            "title": "Commitfests",
+            "form": form,
+            "title": None,
+            "patches": patch_list.patches,
+            "statussummary": "",
+            "has_filter": patch_list.has_filter,
+            "grouping": patch_list.sortkey == 0,
+            "sortkey": patch_list.sortkey,
+            "openpatchids": [p["id"] for p in patch_list.patches if p["is_open"]],
             "header_activity": "Activity log",
             "header_activity_link": "/activity/",
+        },
+    )
+
+
+def archive(request):
+    commitfests = list(CommitFest.objects.all())
+
+    return render(
+        request,
+        "archive.html",
+        {
+            "commitfests": commitfests,
+            "title": "Commitfests",
+            "header_activity": "Activity log",
+            "header_activity_link": "activity/",
         },
     )
 
@@ -150,13 +185,16 @@ def redir(request, what, end):
     return HttpResponseRedirect(f"/{cfs[0].id}/{end}{query_string}")
 
 
-def commitfest(request, cfid):
-    # Find ourselves
-    cf = get_object_or_404(CommitFest, pk=cfid)
+PatchList = collections.namedtuple(
+    "PatchList", ["patches", "has_filter", "sortkey", "redirect"]
+)
 
+
+def patchlist(request, cf, personalized=False):
     # Build a dynamic filter based on the filtering options entered
     whereclauses = []
     whereparams = {}
+
     if request.GET.get("status", "-1") != "-1":
         try:
             whereparams["status"] = int(request.GET["status"])
@@ -232,68 +270,144 @@ def commitfest(request, cfid):
 
     has_filter = len(whereclauses) > 0
 
-    # Figure out custom ordering
-    if request.GET.get("sortkey", "") != "":
-        try:
-            sortkey = int(request.GET["sortkey"])
-        except ValueError:
-            sortkey = 0
+    if personalized:
+        whereclauses.append("""
+            EXISTS (
+                SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(self)s
+            ) OR EXISTS (
+                SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s
+            ) OR p.committer_id=%(self)s""")
+        whereparams["self"] = request.user.id
 
-        if sortkey == 2:
-            orderby_str = "lastmail, created"
-        elif sortkey == -2:
-            orderby_str = "lastmail DESC, created DESC"
-        elif sortkey == 3:
-            orderby_str = "num_cfs DESC, modified, created"
-        elif sortkey == -3:
-            orderby_str = "num_cfs ASC, modified DESC, created DESC"
-        elif sortkey == 4:
-            orderby_str = "p.id"
-        elif sortkey == -4:
-            orderby_str = "p.id DESC"
-        elif sortkey == 5:
-            orderby_str = "p.name, created"
-        elif sortkey == -5:
-            orderby_str = "p.name DESC, created DESC"
-        elif sortkey == 6:
-            orderby_str = (
-                "branch.all_additions + branch.all_deletions NULLS LAST, created"
-            )
-        elif sortkey == -6:
-            orderby_str = "branch.all_additions + branch.all_deletions DESC NULLS LAST, created DESC"
-        elif sortkey == 7:
-            orderby_str = "branch.failing_since DESC NULLS FIRST, branch.created DESC"
-        elif sortkey == -7:
-            orderby_str = "branch.failing_since NULLS LAST, branch.created"
-        else:
-            orderby_str = "p.id"
-            sortkey = 0
+        whereclauses.append("poc.status=ANY(%(openstatuses)s)")
     else:
-        orderby_str = "topic, created"
+        whereclauses.append("poc.commitfest_id=%(cid)s")
+
+    if personalized:
+        # For now we can just order by these names in descending order, because
+        # they are crafted such that they alphabetically sort in the intended
+        # order.
+        columns_str = """
+            CASE WHEN
+                EXISTS (
+                    SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s
+                ) AND (
+                    poc.commitfest_id < %(cid)s
+                )
+            THEN 'Your still open patches in a closed commitfest (you should move or close these)'
+            WHEN
+                EXISTS (
+                    SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s
+                ) AND (
+                    poc.status=%(needs_author)s
+                    OR branch.needs_rebase_since IS NOT NULL
+                    OR branch.failing_since + interval '4 days' < now()
+                    OR (%(is_committer)s AND poc.status=%(needs_committer)s)
+                )
+            THEN 'Your patches that need changes from you'
+            WHEN
+                NOT EXISTS (
+                    SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s
+                ) AND (
+                    poc.status=ANY(%(review_statuses)s)
+                )
+            THEN 'Patches you might want to review'
+            ELSE 'Blocked on others'
+            END AS topic,
+            cf.id AS cf_id,
+            cf.name AS cf_name,
+            cf.status AS cf_status,
+        """
+        whereparams["needs_author"] = PatchOnCommitFest.STATUS_AUTHOR
+        whereparams["needs_committer"] = PatchOnCommitFest.STATUS_COMMITTER
+        is_committer = bool(Committer.objects.filter(user=request.user, active=True))
+        whereparams["is_committer"] = is_committer
+
+        if is_committer:
+            whereparams["review_statuses"] = [
+                PatchOnCommitFest.STATUS_REVIEW,
+                PatchOnCommitFest.STATUS_COMMITTER,
+            ]
+        else:
+            whereparams["review_statuses"] = [
+                PatchOnCommitFest.STATUS_REVIEW,
+            ]
+        joins_str = "INNER JOIN commitfest_commitfest cf ON poc.commitfest_id=cf.id"
+        groupby_str = "cf.id,"
+    else:
+        columns_str = "t.topic as topic,"
+        joins_str = ""
+        groupby_str = ""
+
+    # Figure out custom ordering
+    try:
+        sortkey = int(request.GET.get("sortkey", "0"))
+    except ValueError:
+        sortkey = 0
+
+    if sortkey == 2:
+        orderby_str = "lastmail, created"
+    elif sortkey == -2:
+        orderby_str = "lastmail DESC, created DESC"
+    elif sortkey == 3:
+        orderby_str = "num_cfs DESC, modified, created"
+    elif sortkey == -3:
+        orderby_str = "num_cfs ASC, modified DESC, created DESC"
+    elif sortkey == 4:
+        orderby_str = "p.id"
+    elif sortkey == -4:
+        orderby_str = "p.id DESC"
+    elif sortkey == 5:
+        orderby_str = "p.name, created"
+    elif sortkey == -5:
+        orderby_str = "p.name DESC, created DESC"
+    elif sortkey == 6:
+        orderby_str = "branch.all_additions + branch.all_deletions NULLS LAST, created"
+    elif sortkey == -6:
+        orderby_str = (
+            "branch.all_additions + branch.all_deletions DESC NULLS LAST, created DESC"
+        )
+    elif sortkey == 7:
+        orderby_str = "branch.failing_since DESC NULLS FIRST, branch.created DESC"
+    elif sortkey == -7:
+        orderby_str = "branch.failing_since NULLS LAST, branch.created"
+    elif sortkey == 8:
+        orderby_str = "poc.commitfest_id, lastmail DESC"
+    elif sortkey == -8:
+        orderby_str = "poc.commitfest_id DESC, lastmail"
+    else:
+        if personalized:
+            orderby_str = (
+                "topic DESC, branch.failing_since NULLS FIRST, cf.id, lastmail DESC"
+            )
+        else:
+            orderby_str = "topic, created"
         sortkey = 0
 
     if not has_filter and sortkey == 0 and request.GET:
         # Redirect to get rid of the ugly url
-        return HttpResponseRedirect("/%s/" % cf.id)
+        return PatchList(patches=[], has_filter=False, sortkey=0, redirect=True)
 
     if whereclauses:
-        where_str = "AND ({0})".format(" AND ".join(whereclauses))
+        where_str = "({0})".format(") AND (".join(whereclauses))
     else:
-        where_str = ""
+        where_str = "true"
     params = {
-        "cid": cf.id,
         "openstatuses": PatchOnCommitFest.OPEN_STATUSES,
+        "cid": cf.id,
     }
     params.update(whereparams)
 
     # Let's not overload the poor django ORM
     curs = connection.cursor()
     curs.execute(
-        """SELECT p.id, p.name, poc.status, v.version AS targetversion, p.created, p.modified, p.lastmail, committer.first_name || ' ' || committer.last_name || ' (' || committer.username || ')' AS committer, t.topic,
+        f"""SELECT p.id, p.name, poc.status, v.version AS targetversion, p.created, p.modified, p.lastmail, committer.first_name || ' ' || committer.last_name || ' (' || committer.username || ')' AS committer,
+        {columns_str}
 (poc.status=ANY(%(openstatuses)s)) AS is_open,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_authors cpa ON cpa.user_id=auth_user.id WHERE cpa.patch_id=p.id) AS author_names,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_reviewers cpr ON cpr.user_id=auth_user.id WHERE cpr.patch_id=p.id) AS reviewer_names,
 (SELECT count(1) FROM commitfest_patchoncommitfest pcf WHERE pcf.patch_id=p.id) AS num_cfs,
+
 branch.needs_rebase_since,
 branch.failing_since,
 (
@@ -319,17 +433,33 @@ branch.failing_since,
 FROM commitfest_patch p
 INNER JOIN commitfest_patchoncommitfest poc ON poc.patch_id=p.id
 INNER JOIN commitfest_topic t ON t.id=p.topic_id
+{joins_str}
 LEFT JOIN auth_user committer ON committer.id=p.committer_id
 LEFT JOIN commitfest_targetversion v ON p.targetversion_id=v.id
 LEFT JOIN commitfest_cfbotbranch branch ON branch.patch_id=p.id
-WHERE poc.commitfest_id=%(cid)s {0}
-GROUP BY p.id, poc.id, committer.id, t.id, v.version, branch.patch_id
-ORDER BY is_open DESC, {1}""".format(where_str, orderby_str),
+WHERE {where_str}
+GROUP BY p.id, poc.id, {groupby_str} committer.id, t.id, v.version, branch.patch_id
+ORDER BY is_open DESC, {orderby_str}""",
         params,
     )
     patches = [
         dict(zip([col[0] for col in curs.description], row)) for row in curs.fetchall()
     ]
+    return PatchList(
+        patches=patches,
+        sortkey=sortkey,
+        has_filter=has_filter,
+        redirect=False,
+    )
+
+
+def commitfest(request, cfid):
+    # Find ourselves
+    cf = get_object_or_404(CommitFest, pk=cfid)
+
+    patch_list = patchlist(request, cf)
+    if patch_list.redirect:
+        return HttpResponseRedirect(f"/{cf.id}/")
 
     # Generate patch status summary.
     curs = connection.cursor()
@@ -352,13 +482,13 @@ ORDER BY is_open DESC, {1}""".format(where_str, orderby_str),
         {
             "cf": cf,
             "form": form,
-            "patches": patches,
+            "patches": patch_list.patches,
             "statussummary": statussummary,
-            "has_filter": has_filter,
+            "has_filter": patch_list.has_filter,
             "title": cf.title,
-            "grouping": sortkey == 0,
-            "sortkey": sortkey,
-            "openpatchids": [p["id"] for p in patches if p["is_open"]],
+            "grouping": patch_list.sortkey == 0,
+            "sortkey": patch_list.sortkey,
+            "openpatchids": [p["id"] for p in patch_list.patches if p["is_open"]],
             "header_activity": "Activity log",
             "header_activity_link": "activity/",
         },
