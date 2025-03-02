@@ -124,7 +124,7 @@
     <td>{{p.reviewer_names|default:''}}</td>
     <td>{{p.committer|default:''}}</td>
     <td>{{p.num_cfs}}</td>
-    <td style="white-space: nowrap;">{{p.lastmail|date:"Y-m-d"}}<br/>{{p.lastmail|date:"H:i"}}</td>
+    <td style="white-space: nowrap;" title="{{p.lastmail}}">{%if p.lastmail %}{{p.lastmail|timesince}} ago{%endif%}</td>
     {%if user.is_staff%}
      <td style="white-space: nowrap;"><input type="checkbox" class="sender_checkbox" id="send_authors_{{p.id}}">Author<br/><input type="checkbox" class="sender_checkbox" id="send_reviewers_{{p.id}}">Reviewer</td>
     {%endif%}
