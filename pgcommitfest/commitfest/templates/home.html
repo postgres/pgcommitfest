@@ -1,31 +1,135 @@
 {%extends "base.html"%}
+{%load commitfest %}
 {%block contents%}
- <p>
-  {%if inprogresscf%}A commitfest is currently in progress: <a href="/{{inprogresscf.id}}/">{{inprogresscf}}</a>.{%endif%}
- </p>
- <p>
-  Useful links that you can use and bookmark:
- </p>
- <ul>
-  <li><a href="/current/">All patches in the current commitfest</a></li>
-  <li><a href="/open/">All patches in the open commitfest</a></li>
-  <li><a href="/open/new/">Create a new commitfest entry</a></li>
-  <li><a href="/current/?author=-3">Your entries in the current commitfest</a></li>
-  <li><a href="/open/?author=-3">Your entries in the open commitfest</a></li>
-  <li><a href="/current/?reviewer=-3">Entries that you are reviewing in current commitfest</a></li>
- </ul>
- <h3>Commands</h3>
- <form method="GET" action="/search/" class="form-inline">
+ <a class="btn btn-default" href="/open/new/">New patch</a>
+ <a class="btn btn-default" href="/current/">Current commitfest</a></li>
+ <a class="btn btn-default" href="/open/">Open commitfest</a></li>
+ <a class="btn btn-default" href="/archive/">Archive</a></li>
+ <button type="button" class="btn btn-default{%if has_filter%} active{%endif%}" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
+ <form method="GET" action="/search/" class="form-inline search-bar pull-right">
   <div class="form-group">
-   <input type="text" class="form-control" id="searchterm" name="searchterm" placeholder="Global search">
+   <input type="text" class="form-control" id="searchterm" name="searchterm" placeholder="Keyword or Message-ID">
   </div>
   <button type="submit" class="btn btn-default">Search</button>
  </form>
- <h3>List of commitfests</h3>
- <ul>
-  {%for c in commitfests%}
-   <li><a href="/{{c.id}}/">{{c}}</a> ({{c.statusstring}}{%if c.startdate%} - {{c.periodstring}}{%endif%})</li>
-  {%endfor%}
- </ul>
- <br/>
+ <div id="collapseFilters" class="collapse {%if has_filter%}in{%endif%}">
+  <form id="filterform" method="GET" action="." style="margin-bottom: 0px">
+   <table class="table table-condensed" style="margin-bottom: 0px">
+    <thead>
+     <tr>
+      {%for f in form%}
+       {%if not f.is_hidden%}
+        <td>{{f.label}}</td>
+       {%else%}
+        <td></td>
+       {%endif%}
+      {%endfor%}
+	    {%comment%} Add one extra for buttons {%endcomment%}
+      <td></td>
+     </tr>
+    </thead>
+    <tbody>
+     <tr>
+      {%for f in form%}
+       <td>{{f|field_class:"form-control"}}</td>
+      {%endfor%}
+      <td>
+       <input type="submit" class="btn btn-default" value="Filter">
+       <a class="btn btn-default" href=".">Clear</a>
+      </td>
+     </tr>
+    </tbody>
+   </table>
+  </form>
+ </div>
+ {%for p in patches %}
+  {%ifchanged p.is_open%}
+   {%if not forloop.first%}
+    </tbody>
+    </table>
+   {%endif%}
+   <h3>{{user.is_authenticated|yesno:"Your personal dashboard,Patches in the current commitfest"}}</h3>
+   <table class="table table-striped table-bordered table-hover table-condensed">
+    <thead>
+     <tr>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(5);">Patch</a>{%if sortkey == 5%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -5%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(4);">ID</a>{%if sortkey == 4%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -4%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      {%if user.is_authenticated %}
+       <th><a href="#" style="color:#333333;" onclick="return sortpatches(8);">CF</a>{%if sortkey == 8%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -8%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      {%endif%}
+      <th>Status</th>
+      <th>Ver</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(7);">CI status</a>{%if sortkey == 7%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -7%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(6);">Stats</a>{%if sortkey == 6%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -6%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      <th>Author</th>
+      <th>Reviewers</th>
+      <th>Committer</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(3);">Num cfs</a>{%if sortkey == 3%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -3%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(2);">Latest mail</a>{%if sortkey == 2%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -2%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
+      {%if user.is_staff%}
+       <th>Select</th>
+      {%endif%}
+     </tr>
+    </thead>
+    <tbody>
+  {%endifchanged%}
+
+  {%if grouping%}
+   {%ifchanged p.topic%}
+    <tr><th colspan="{%if user.is_staff%}13{%elif user.is_authenticated %}12{%else%}11{%endif%}">{{p.topic}}</th></tr>
+   {%endifchanged%}
+  {%endif%}
+  <tr>
+   <td><a href="/patch/{{p.id}}/">{{p.name}}</a></td>
+   <td>{{p.id}}</td>
+   {%if user.is_authenticated %}
+    <td><a href="/{{p.cf_id}}/"><span class="label label-{{p.cf_status|commitfeststatuslabel}}">{{p.cf_name}}</span></a></td>
+   {%endif%}
+   <td><span class="label label-{{p.status|patchstatuslabel}}">{{p.status|patchstatusstring}}</span></td>
+   <td>{%if p.targetversion%}<span class="label label-default">{{p.targetversion}}</span>{%endif%}</td>
+   <td class="cfbot-summary">
+    {%with p.cfbot_results as cfb%}
+     {%if not cfb %}
+      <span class="label label-default">Not processed</span>
+     {%elif p.needs_rebase_since %}
+      <a href="{{cfb.apply_url}}" title="View git apply logs. Needs rebase since {{p.needs_rebase_since|timesince}}. {%if p.failing_since and p.failing_since != p.needs_rebase_since %}Failing since {{p.failing_since|timesince}}.{%endif%}">
+       <span class="label label-warning">Needs rebase!</span>
+      </a>
+     {%else%}
+      <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{p.id}}~1...cf/{{p.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
+      <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{p.id}}"
+         title="View CI history. {%if p.failing_since%}Failing since {{p.failing_since|timesince}}. {%endif%}{%if cfb.failed_task_names %}Failed jobs: {{cfb.failed_task_names}}{%endif%}">
+       {%if cfb.failed > 0 or cfb.branch_status == 'failed' or cfb.branch_status == 'timeout' %}
+        <img src="/media/commitfest/new_failure.svg"/>
+       {%elif cfb.completed < cfb.total  %}
+        <img src="/media/commitfest/running.svg"/>
+       {%else%}
+        <img src="/media/commitfest/new_success.svg"/>
+       {%endif%}
+       <span class="run-counters">
+        {{cfb.completed}}/{{cfb.total}}
+       </span>
+      </a>
+     {%endif%}
+     </td>
+     <td>
+      {%if cfb and cfb.all_additions is not none %}
+       <span class="additions">+{{ cfb.all_additions }}</span><span class="deletions">&#8722;{{ cfb.all_deletions }}</span>
+      {%endif%}
+     </td>
+    {%endwith%}
+    <td>{{p.author_names|default:''}}</td>
+    <td>{{p.reviewer_names|default:''}}</td>
+    <td>{{p.committer|default:''}}</td>
+    <td>{{p.num_cfs}}</td>
+    <td style="white-space: nowrap;" title="{{p.lastmail}}">{%if p.lastmail %}{{p.lastmail|timesince}} ago{%endif%}</td>
+    {%if user.is_staff%}
+     <td style="white-space: nowrap;"><input type="checkbox" class="sender_checkbox" id="send_authors_{{p.id}}">Author<br/><input type="checkbox" class="sender_checkbox" id="send_reviewers_{{p.id}}">Reviewer</td>
+    {%endif%}
+   </tr>
+   {%if forloop.last%}
+    </tbody>
+    </table>
+   {%endif%}
+ {%endfor%}
 {%endblock%}
