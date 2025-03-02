@@ -566,11 +566,7 @@ def newpatch(request, cfid):
     if request.method == "POST":
         form = NewPatchForm(data=request.POST)
         if form.is_valid():
-            patch = Patch(
-                name=form.cleaned_data["name"], topic=form.cleaned_data["topic"]
-            )
-            patch.set_modified()
-            patch.save()
+            patch = form.save()
             poc = PatchOnCommitFest(
                 patch=patch, commitfest=cf, enterdate=datetime.now()
             )
