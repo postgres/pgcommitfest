@@ -141,7 +141,7 @@ class Patch(models.Model, DiffableModel):
 
     # Datestamps for tracking activity
     created = models.DateTimeField(blank=False, null=False, auto_now_add=True)
-    modified = models.DateTimeField(blank=False, null=False)
+    modified = models.DateTimeField(blank=False, null=False, auto_now_add=True)
 
     # Materialize the last time an email was sent on any of the threads
     # that's attached to this message.
