@@ -1,7 +1,7 @@
 format:
 	ruff format
 	npx @biomejs/biome format --write
-	djhtml pgcommitfest/*/templates/*.html --tabwidth=1
+	djhtml pgcommitfest/*/templates/*.html pgcommitfest/*/templates/*.inc --tabwidth=1
 
 lint:
 	ruff check
