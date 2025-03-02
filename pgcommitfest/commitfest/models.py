@@ -44,6 +44,12 @@ class CommitFest(models.Model):
         (STATUS_INPROGRESS, "In Progress"),
         (STATUS_CLOSED, "Closed"),
     )
+    _STATUS_LABELS = (
+        (STATUS_FUTURE, "default"),
+        (STATUS_OPEN, "info"),
+        (STATUS_INPROGRESS, "success"),
+        (STATUS_CLOSED, "danger"),
+    )
     name = models.CharField(max_length=100, blank=False, null=False, unique=True)
     status = models.IntegerField(
         null=False, blank=False, default=1, choices=_STATUS_CHOICES

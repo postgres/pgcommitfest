@@ -26,7 +26,10 @@ class CommitFestFilterForm(forms.Form):
         c = [(-1, "* All")] + list(PatchOnCommitFest._STATUS_CHOICES)
         self.fields["status"] = forms.ChoiceField(choices=c, required=False)
 
-        q = Q(patch_author__commitfests=cf) | Q(patch_reviewer__commitfests=cf)
+        if cf:
+            q = Q(patch_author__commitfests=cf) | Q(patch_reviewer__commitfests=cf)
+        else:
+            q = Q()
         userchoices = [(-1, "* All"), (-2, "* None"), (-3, "* Yourself")] + [
             (u.id, "%s %s (%s)" % (u.first_name, u.last_name, u.username))
             for u in User.objects.filter(q)
