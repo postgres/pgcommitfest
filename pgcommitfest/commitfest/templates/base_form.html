@@ -22,7 +22,7 @@
         <div class="alert alert-danger">{{e}}</div>
        {%endfor%}
       {%endif%}
-      {%if not field.name in form.selectize_multiple_fields%}{{field|field_class:"form-control"}}{%else%}{{field}}{%endif%}
+      {%if not field.name in form.selectize_fields%}{{field|field_class:"form-control"}}{%else%}{{field}}{%endif%}
       {%if field.help_text%}<br/>{{field.help_text|safe}}{%endif%}</div>
     </div>
    {%else%}
@@ -71,34 +71,12 @@
 {%endblock%}
 
 {%block extrahead%}
- <link rel="stylesheet" href="/media/commitfest/css/selectize.css" />
- <link rel="stylesheet" href="/media/commitfest/css/selectize.default.css" />
+ {%include "selectize_css.html" %}
 {%endblock%}
 {%block morescript%}
- <script src="/media/commitfest/js/selectize.min.js"></script>
+
+ {%include "selectize_js.html" %}
  <script>
-/* Set up selectize fields */
-  {% for f, url in selectize_multiple_fields %}
-   $('#id_{{f}}').selectize({
-    plugins: ['remove_button'],
-    valueField: 'id',
-    labelField: 'value',
-    searchField: 'value',
-    load: function(query, callback) {
-     if (!query.length) return callback();
-     $.ajax({
-      'url': '{{url}}',
-      'type': 'GET',
-      'dataType': 'json',
-      'data': {
-       'query': query,
-      },
-      'error': function() { callback();},
-      'success': function(res) { callback(res.values);},
-     });
-    }
-   });
-  {%endfor%}
   {%if user.is_staff%}
    $('.selectize-control').after(
     $('<a href="#" class="btn btn-default btn-sm">Import user not listed</a>').click(function () {
