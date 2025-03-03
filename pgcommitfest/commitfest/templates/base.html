@@ -14,11 +14,15 @@
  <body>
   <div class="container-fluid">
    <ul class="breadcrumb">
-    <li><a href="/">Home</a></li>
-    {%for c in breadcrumbs%}
-     <li><a href="{{c.href}}">{{c.title}}</a></li>
-    {%endfor%}
-    <li class="active">{{title}}</li>
+    {%if title %}
+     <li><a href="/">Home</a></li>
+     {%for c in breadcrumbs%}
+      <li><a href="{{c.href}}">{{c.title}}</a></li>
+     {%endfor%}
+     <li class="active">{{title}}</li>
+    {%else%}
+     <li class="active">Home</li>
+    {%endif%}
     <li class="pull-right active">
      {%if user.is_authenticated%}
       Logged in as {{user}} (<a href="/account/profile/">edit profile</a> | <a href="/account/logout/">log out</a>{%if user.is_staff%} | <a href="/admin/">administration</a>{%endif%})
