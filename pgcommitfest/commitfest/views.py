@@ -56,7 +56,7 @@ def home(request):
 
     # Generates a fairly expensive query, which we shouldn't do unless
     # the user is logged in. XXX: Figure out how to avoid doing that..
-    form = CommitFestFilterForm(None, request.GET)
+    CommitFestFilterForm(None, request.GET)
 
     if request.user.is_authenticated:
         patch_list = patchlist(request, cf, personalized=True)
@@ -70,7 +70,7 @@ def home(request):
         request,
         "home.html",
         {
-            "form": form,
+            # "form": form,
             "title": None,
             "patches": patch_list.patches,
             "statussummary": "",
