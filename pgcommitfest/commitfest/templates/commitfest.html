@@ -14,36 +14,7 @@
  {%if cf.isopen or user.is_staff %}
   <a class="btn btn-default" href="new/">New patch</a>
  {%endif%}
- <div id="collapseFilters" class="collapse {%if has_filter%}in{%endif%}">
-  <form id="filterform" method="GET" action="." style="margin-bottom: 0px">
-   <table class="table table-condensed" style="margin-bottom: 0px">
-    <thead>
-     <tr>
-      {%for f in form%}
-       {%if not f.is_hidden%}
-        <td>{{f.label}}</td>
-       {%else%}
-        <td></td>
-       {%endif%}
-      {%endfor%}
-	    {%comment%} Add one extra for buttons {%endcomment%}
-      <td></td>
-     </tr>
-    </thead>
-    <tbody>
-     <tr>
-      {%for f in form%}
-       <td>{{f|field_class:"form-control"}}</td>
-      {%endfor%}
-      <td>
-       <input type="submit" class="btn btn-default" value="Filter">
-       <a class="btn btn-default" href=".">Clear</a>
-      </td>
-     </tr>
-    </tbody>
-   </table>
-  </form>
- </div>
+ {%include "filter_form.html" %}
 
  <p>
   <br/>
@@ -160,7 +131,11 @@
  </div>
 {%endblock%}
 
+{%block extrahead%}
+ {%include "selectize_css.html" %}
+{%endblock%}
 {%block morescript%}
+ {%include "selectize_js.html" %}
  <script>
   {%if user.is_staff%}
    function send_selected() {

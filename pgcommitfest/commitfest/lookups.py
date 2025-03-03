@@ -25,7 +25,7 @@ def userlookup(request):
                 "values": [
                     {
                         "id": u.id,
-                        "value": "{} ({})".format(u.username, u.get_full_name()),
+                        "value": f"{u.get_full_name()} ({u.username})",
                     }
                     for u in users
                 ],

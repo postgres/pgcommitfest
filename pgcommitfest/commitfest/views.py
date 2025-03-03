@@ -56,7 +56,7 @@ def home(request):
 
     # Generates a fairly expensive query, which we shouldn't do unless
     # the user is logged in. XXX: Figure out how to avoid doing that..
-    form = CommitFestFilterForm(None, request.GET)
+    form = CommitFestFilterForm(request.GET)
 
     if request.user.is_authenticated:
         patch_list = patchlist(request, cf, personalized=True)
@@ -504,7 +504,7 @@ def commitfest(request, cfid):
 
     # Generates a fairly expensive query, which we shouldn't do unless
     # the user is logged in. XXX: Figure out how to avoid doing that..
-    form = CommitFestFilterForm(cf, request.GET)
+    form = CommitFestFilterForm(request.GET)
 
     return render(
         request,
@@ -707,7 +707,6 @@ def patchform(request, patchid):
             "form": form,
             "patch": patch,
             "title": "Edit patch",
-            "selectize_multiple_fields": form.selectize_multiple_fields.items(),
             "breadcrumbs": [
                 {"title": cf.title, "href": "/%s/" % cf.pk},
                 {"title": "View patch", "href": "/%s/%s/" % (cf.pk, patch.pk)},
@@ -766,7 +765,6 @@ def newpatch(request, cfid):
                 {"title": cf.title, "href": "/%s/" % cf.pk},
             ],
             "savebutton": "Create patch",
-            "selectize_multiple_fields": form.selectize_multiple_fields.items(),
             "threadbrowse": True,
         },
     )
