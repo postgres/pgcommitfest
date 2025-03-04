@@ -65,13 +65,13 @@
      {%if not cfb %}
       <span class="label label-default">Not processed</span>
      {%elif p.needs_rebase_since %}
-      <a href="{{cfb.apply_url}}" title="View git apply logs. Needs rebase since {{p.needs_rebase_since|timesince}}. {%if p.failing_since and p.failing_since != p.needs_rebase_since %}Failing since {{p.failing_since|timesince}}.{%endif%}">
+      <a href="{{cfb.apply_url}}" title="View git apply logs. Needs rebase {% cfsince p.needs_rebase_since %}. {%if p.failing_since and p.failing_since != p.needs_rebase_since %}Failing {% cfsince p.failing_since %}.{%endif%}">
        <span class="label label-warning">Needs rebase!</span>
       </a>
      {%else%}
       <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{p.id}}~1...cf/{{p.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
       <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{p.id}}"
-         title="View CI history. {%if p.failing_since%}Failing since {{p.failing_since|timesince}}. {%endif%}{%if cfb.failed_task_names %}Failed jobs: {{cfb.failed_task_names}}{%endif%}">
+         title="View CI history. {%if p.failing_since%}Failing {% cfsince p.failing_since %}. {%endif%}{%if cfb.failed_task_names %}Failed jobs: {{cfb.failed_task_names}}{%endif%}">
        {%if cfb.failed > 0 or cfb.branch_status == 'failed' or cfb.branch_status == 'timeout' %}
         <img src="/media/commitfest/new_failure.svg"/>
        {%elif cfb.completed < cfb.total  %}
@@ -95,7 +95,7 @@
     <td>{{p.reviewer_names|default:''}}</td>
     <td>{{p.committer|default:''}}</td>
     <td>{{p.num_cfs}}</td>
-    <td style="white-space: nowrap;" title="{{p.lastmail}}">{%if p.lastmail %}{{p.lastmail|timesince}} ago{%endif%}</td>
+    <td style="white-space: nowrap;" title="{{p.lastmail}}">{%if p.lastmail and user.userprofile.show_relative_timestamps %}{% cfwhen p.lastmail %}{%elif p.lastmail %}{{p.lastmail|date:"Y-m-d"}}<br/>{{p.lastmail|date:"H:i"}}{%endif%}</td>
     {%if user.is_staff%}
      <td style="white-space: nowrap;"><input type="checkbox" class="sender_checkbox" id="send_authors_{{p.id}}">Author<br/><input type="checkbox" class="sender_checkbox" id="send_reviewers_{{p.id}}">Reviewer</td>
     {%endif%}
