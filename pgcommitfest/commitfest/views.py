@@ -45,6 +45,27 @@ from .models import (
 
 
 def home(request):
+    commitfests = list(CommitFest.objects.all())
+    opencf = next((c for c in commitfests if c.status == CommitFest.STATUS_OPEN), None)
+    inprogresscf = next(
+        (c for c in commitfests if c.status == CommitFest.STATUS_INPROGRESS), None
+    )
+
+    return render(
+        request,
+        "home.html",
+        {
+            "commitfests": commitfests,
+            "opencf": opencf,
+            "inprogresscf": inprogresscf,
+            "title": "Commitfests",
+            "header_activity": "Activity log",
+            "header_activity_link": "/activity/",
+        },
+    )
+
+
+def me(request):
     cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
     if len(cfs) == 0:
         cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
@@ -68,10 +89,10 @@ def home(request):
 
     return render(
         request,
-        "home.html",
+        "me.html",
         {
             "form": form,
-            "title": None,
+            "title": "Personal Dashboard",
             "patches": patch_list.patches,
             "statussummary": "",
             "has_filter": patch_list.has_filter,
