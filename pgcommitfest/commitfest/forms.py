@@ -32,7 +32,6 @@ class CommitFestFilterForm(forms.Form):
 
         userchoices = [(-1, "* All"), (-2, "* None"), (-3, "* Yourself")]
 
-        print(data)
         selected_user_ids = set()
         if data and "author" in data:
             try:
@@ -51,7 +50,6 @@ class CommitFestFilterForm(forms.Form):
                 (u.id, f"{u.first_name} {u.last_name} ({u.username})")
                 for u in User.objects.filter(pk__in=selected_user_ids)
             )
-            print(userchoices)
 
         self.fields["targetversion"] = forms.ChoiceField(
             choices=[("-1", "* All"), ("-2", "* None")]
