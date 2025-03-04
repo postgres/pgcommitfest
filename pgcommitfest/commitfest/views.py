@@ -65,6 +65,7 @@ def home(request):
     )
 
 
+@login_required
 def me(request):
     cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
     if len(cfs) == 0:
@@ -79,10 +80,7 @@ def me(request):
     # the user is logged in. XXX: Figure out how to avoid doing that..
     form = CommitFestFilterForm(request.GET)
 
-    if request.user.is_authenticated:
-        patch_list = patchlist(request, cf, personalized=True)
-    else:
-        patch_list = patchlist(request, cf)
+    patch_list = patchlist(request, cf, personalized=True)
 
     if patch_list.redirect:
         return patch_list.redirect
