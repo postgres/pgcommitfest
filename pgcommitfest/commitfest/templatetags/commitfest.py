@@ -107,7 +107,7 @@ TIME_CHUNKS = [
 def cfsince(context, d):
     if (
         context["user"].is_authenticated
-        and not context["user"].userprofile.show_relative_timestamps
+        and not context["userprofile"].show_relative_timestamps
     ):
         return f"since {d}"
     partials = cf_duration_partials(d)
