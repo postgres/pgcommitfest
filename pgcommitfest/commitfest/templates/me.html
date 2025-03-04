@@ -89,7 +89,7 @@
     <td>{{p.reviewer_names|default:''}}</td>
     <td>{{p.committer|default:''}}</td>
     <td>{{p.num_cfs}}</td>
-    <td style="white-space: nowrap;" title="{{p.lastmail}}">{%if p.lastmail and user.userprofile.show_relative_timestamps %}{% cfwhen p.lastmail %}{%elif p.lastmail %}{{p.lastmail|date:"Y-m-d"}}<br/>{{p.lastmail|date:"H:i"}}{%endif%}</td>
+    <td style="white-space: nowrap;" title="{{p.lastmail}}">{%if p.lastmail and userprofile.show_relative_timestamps %}{% cfwhen p.lastmail %}{%elif p.lastmail %}{{p.lastmail|date:"Y-m-d"}}<br/>{{p.lastmail|date:"H:i"}}{%endif%}</td>
    </tr>
    {%if forloop.last%}
     </tbody>

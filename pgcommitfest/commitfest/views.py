@@ -22,6 +22,7 @@ from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
 
 from pgcommitfest.mailqueue.util import send_mail, send_simple_mail
+from pgcommitfest.userprofile.models import UserProfile
 from pgcommitfest.userprofile.util import UserWrapper
 
 from .ajax import _archivesAPI, doAttachThread, refresh_single_thread
@@ -99,6 +100,7 @@ def me(request):
             "openpatchids": [p["id"] for p in patch_list.patches if p["is_open"]],
             "header_activity": "Activity log",
             "header_activity_link": "/activity/",
+            "userprofile": getattr(request.user, "uesrprofile", UserProfile()),
         },
     )
 
@@ -540,6 +542,7 @@ def commitfest(request, cfid):
             "openpatchids": [p["id"] for p in patch_list.patches if p["is_open"]],
             "header_activity": "Activity log",
             "header_activity_link": "activity/",
+            "userprofile": getattr(request.user, "uesrprofile", UserProfile()),
         },
     )
 
@@ -677,6 +680,7 @@ def patch(request, patchid):
             "breadcrumbs": [
                 {"title": cf.title, "href": "/%s/" % cf.pk},
             ],
+            "userprofile": getattr(request.user, "uesrprofile", UserProfile()),
         },
     )
 
