@@ -37,9 +37,6 @@
       <th>Committer</th>
       <th><a href="#" style="color:#333333;" onclick="return sortpatches(3);">Num cfs</a>{%if sortkey == 3%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -3%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
       <th><a href="#" style="color:#333333;" onclick="return sortpatches(2);">Latest mail</a>{%if sortkey == 2%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -2%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
-      {%if user.is_staff%}
-       <th>Select</th>
-      {%endif%}
      </tr>
     </thead>
     <tbody>
@@ -47,7 +44,7 @@
 
   {%if grouping%}
    {%ifchanged p.topic%}
-    <tr><th colspan="{%if user.is_staff%}13{%elif user.is_authenticated %}12{%else%}11{%endif%}">{{p.topic}}</th></tr>
+    <tr><th colspan="{%if user.is_authenticated %}12{%else%}11{%endif%}">{{p.topic}}</th></tr>
    {%endifchanged%}
   {%endif%}
   <tr>
@@ -94,9 +91,6 @@
     <td>{{p.committer|default:''}}</td>
     <td>{{p.num_cfs}}</td>
     <td style="white-space: nowrap;" title="{{p.lastmail}}">{%if p.lastmail %}{{p.lastmail|timesince}} ago{%endif%}</td>
-    {%if user.is_staff%}
-     <td style="white-space: nowrap;"><input type="checkbox" class="sender_checkbox" id="send_authors_{{p.id}}">Author<br/><input type="checkbox" class="sender_checkbox" id="send_reviewers_{{p.id}}">Reviewer</td>
-    {%endif%}
    </tr>
    {%if forloop.last%}
     </tbody>
