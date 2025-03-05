@@ -89,7 +89,7 @@ def me(request):
     # Get stats related to user for current commitfest
     curs = connection.cursor()
     curs.execute(
-        '''SELECT
+        """SELECT
             ps.status, ps.statusstring, count(*)
         FROM commitfest_patchoncommitfest poc
         INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status
@@ -102,11 +102,8 @@ def me(request):
             OR pr.user_id=%(user_id)s
             OR psubs.user_id=%(user_id)s
         )
-        GROUP BY ps.status ORDER BY ps.sortkey''',
-        {
-            "id": cf.id,
-            "user_id": request.user.id
-        },
+        GROUP BY ps.status ORDER BY ps.sortkey""",
+        {"id": cf.id, "user_id": request.user.id},
     )
     statussummary = curs.fetchall()
     print(statussummary)
