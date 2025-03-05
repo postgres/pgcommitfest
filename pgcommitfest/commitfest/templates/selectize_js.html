@@ -1,0 +1,41 @@
+<script src="/media/commitfest/js/selectize.min.js"></script>
+<script>
+ {% for f, url in form.selectize_fields.items %}
+  $('#id_{{f}}').selectize({
+   plugins: ['remove_button'],
+   valueField: 'id',
+   labelField: 'value',
+   searchField: 'value',
+   load: function(query, callback) {
+    if (!query.length) return callback();
+    $.ajax({
+     'url': '{{url}}',
+     'type': 'GET',
+     'dataType': 'json',
+     'data': {
+      'query': query,
+     },
+     'error': function() { callback();},
+     'success': function(res) { callback(res.values);},
+    });
+   },
+   onFocus: function() {
+    if (this.$input.is('[multiple]')) {
+     return;
+    }
+    console.log(this.getValue());
+    this.lastValue = this.getValue();
+    this.clear(false);
+   },
+   onBlur: function() {
+    if (this.$input.is('[multiple]')) {
+     return;
+    }
+    if(this.getValue() == '') {
+     this.setValue(this.lastValue);
+    }
+   },
+  });
+ {%endfor%}
+</script>
+

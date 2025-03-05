@@ -44,6 +44,12 @@ class CommitFest(models.Model):
         (STATUS_INPROGRESS, "In Progress"),
         (STATUS_CLOSED, "Closed"),
     )
+    _STATUS_LABELS = (
+        (STATUS_FUTURE, "default"),
+        (STATUS_OPEN, "info"),
+        (STATUS_INPROGRESS, "success"),
+        (STATUS_CLOSED, "danger"),
+    )
     name = models.CharField(max_length=100, blank=False, null=False, unique=True)
     status = models.IntegerField(
         null=False, blank=False, default=1, choices=_STATUS_CHOICES
@@ -141,7 +147,7 @@ class Patch(models.Model, DiffableModel):
 
     # Datestamps for tracking activity
     created = models.DateTimeField(blank=False, null=False, auto_now_add=True)
-    modified = models.DateTimeField(blank=False, null=False)
+    modified = models.DateTimeField(blank=False, null=False, auto_now_add=True)
 
     # Materialize the last time an email was sent on any of the threads
     # that's attached to this message.
@@ -469,6 +475,7 @@ class CfbotBranch(models.Model):
     # Actually a postgres enum column
     status = models.TextField(choices=STATUS_CHOICES, null=False)
     needs_rebase_since = models.DateTimeField(null=True, blank=True)
+    failing_since = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     version = models.TextField(null=True, blank=True)

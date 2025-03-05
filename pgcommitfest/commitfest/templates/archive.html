@@ -1,0 +1,9 @@
+{%extends "base.html"%}
+{%block contents%}
+ <ul>
+  {%for c in commitfests%}
+   <li><a href="/{{c.id}}/">{{c}}</a> ({{c.statusstring}}{%if c.startdate%} - {{c.periodstring}}{%endif%})</li>
+  {%endfor%}
+ </ul>
+{%endblock%}
+

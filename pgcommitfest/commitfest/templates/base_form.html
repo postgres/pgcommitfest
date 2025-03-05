@@ -2,113 +2,91 @@
 {%load commitfest%}
 
 {%block contents%}
-<form class="form-horizontal {{extraformclass}}" method="POST" action=".">{%csrf_token%}
-{%if form.errors%}
- <div class="alert">Please correct the errors below, and re-submit the form.</div>
-{%endif%}
-{%if form.non_field_errors%}
- <div class="alert alert-danger">{{form.non_field_errors}}</div>
-{%endif%}
-{%if note%}
-<div class="alert alert-info">{{note|safe}}</div>
-{%endif%}
- {%for field in form%}
- {%if not field.is_hidden%}
- <div class="form-group">
-   {{field|label_class:"control-label col-lg-1"}}
-   <div class="col-lg-11 controls">
-  {%if field.errors %}
-   {%for e in field.errors%}
- <div class="alert alert-danger">{{e}}</div>
-   {%endfor%}
+ <form class="form-horizontal {{extraformclass}}" method="POST" action=".">{%csrf_token%}
+  {%if form.errors%}
+   <div class="alert">Please correct the errors below, and re-submit the form.</div>
   {%endif%}
-{%if not field.name in form.selectize_multiple_fields%}{{field|field_class:"form-control"}}{%else%}{{field}}{%endif%}
-{%if field.help_text%}<br/>{{field.help_text|safe}}{%endif%}</div>
- </div>
- {%else%}
-{{field}}
- {%endif%}
-{%endfor%}
- <div class="form-group">
-  <div class="col-lg-12">
-   <div class="control"><input type="submit" class="btn btn-default" value="{{savebutton|default:"Save"}}"></div>
-  </div>
- </div>
-</form>
-
-{%if threadbrowse %}
-{%include "thread_attach.inc" %}
-{%endif%}
-
-{%if user.is_staff%}
-<div class="modal fade" id="searchUserModal" role="dialog">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-	<h3>Search user</h3>
-      </div>
-      <div class="modal-body">
-	<form class="form-inline" style="margin-bottom: 5px;">
-	  <div class="input-append">
-	    <input id="searchUserSearchField" type="text" class="span2 search-query" autocomplete="off">
-	    <button id="searchUserSearchButton" onclick="return findUsers()" class="btn btn-default">Search</button>
-	  </div>
-	</form>
-	<div>Search for users above and then pick one in the list below:</div>
-	<div id="searchUserListWrap">
-	  <select id="searchUserList" size="6" style="width:100%;" onchange="searchUserListChanged()"></select>
-	</div>
-      </div>
-      <div class="modal-footer">
-	<a href="#" class="btn btn-default" data-dismiss="modal">Close</a>
-	<a href="#" id="doSelectUserButton" class="btn btn-default btn-primary disabled">Add user to system</a>
-      </div>
+  {%if form.non_field_errors%}
+   <div class="alert alert-danger">{{form.non_field_errors}}</div>
+  {%endif%}
+  {%if note%}
+   <div class="alert alert-info">{{note|safe}}</div>
+  {%endif%}
+  {%for field in form%}
+   {%if not field.is_hidden%}
+    <div class="form-group">
+     {{field|label_class:"control-label col-lg-1"}}
+     <div class="col-lg-11 controls">
+      {%if field.errors %}
+       {%for e in field.errors%}
+        <div class="alert alert-danger">{{e}}</div>
+       {%endfor%}
+      {%endif%}
+      {%if not field.name in form.selectize_fields%}{{field|field_class:"form-control"}}{%else%}{{field}}{%endif%}
+      {%if field.help_text%}<br/>{{field.help_text|safe}}{%endif%}</div>
     </div>
+   {%else%}
+    {{field}}
+   {%endif%}
+  {%endfor%}
+  <div class="form-group">
+   <div class="col-lg-12">
+    <div class="control"><input type="submit" class="btn btn-default" value="{{savebutton|default:"Save"}}"></div>
+   </div>
   </div>
-</div>
-{%endif%}
+ </form>
+
+ {%if threadbrowse %}
+  {%include "thread_attach.inc" %}
+ {%endif%}
+
+ {%if user.is_staff%}
+  <div class="modal fade" id="searchUserModal" role="dialog">
+   <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+     <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h3>Search user</h3>
+     </div>
+     <div class="modal-body">
+      <form class="form-inline" style="margin-bottom: 5px;">
+       <div class="input-append">
+        <input id="searchUserSearchField" type="text" class="span2 search-query" autocomplete="off">
+        <button id="searchUserSearchButton" onclick="return findUsers()" class="btn btn-default">Search</button>
+       </div>
+      </form>
+      <div>Search for users above and then pick one in the list below:</div>
+      <div id="searchUserListWrap">
+       <select id="searchUserList" size="6" style="width:100%;" onchange="searchUserListChanged()"></select>
+      </div>
+     </div>
+     <div class="modal-footer">
+      <a href="#" class="btn btn-default" data-dismiss="modal">Close</a>
+      <a href="#" id="doSelectUserButton" class="btn btn-default btn-primary disabled">Add user to system</a>
+     </div>
+    </div>
+   </div>
+  </div>
+ {%endif%}
 {%endblock%}
 
 {%block extrahead%}
-<link rel="stylesheet" href="/media/commitfest/css/selectize.css" />
-<link rel="stylesheet" href="/media/commitfest/css/selectize.default.css" />
+ {%include "selectize_css.html" %}
 {%endblock%}
 {%block morescript%}
-<script src="/media/commitfest/js/selectize.min.js"></script>
-<script>
-/* Set up selectize fields */
-{% for f, url in selectize_multiple_fields %}
-   $('#id_{{f}}').selectize({
-      plugins: ['remove_button'],
-      valueField: 'id',
-      labelField: 'value',
-      searchField: 'value',
-      load: function(query, callback) {
-         if (!query.length) return callback();
-         $.ajax({
-            'url': '{{url}}',
-            'type': 'GET',
-            'dataType': 'json',
-            'data': {
-               'query': query,
-            },
-            'error': function() { callback();},
-            'success': function(res) { callback(res.values);},
-         });
-      }
-   });
-{%endfor%}
-{%if user.is_staff%}
+
+ {%include "selectize_js.html" %}
+ <script>
+  {%if user.is_staff%}
    $('.selectize-control').after(
-      $('<a href="#" class="btn btn-default btn-sm">Import user not listed</a>').click(function () {
-          search_and_store_user();
-      })
+    $('<a href="#" class="btn btn-default btn-sm">Import user not listed</a>').click(function () {
+     search_and_store_user();
+    })
    );
 
-$('#searchUserModal').on('shown.bs.modal', function() {
-	  $('#searchUserSearchField').focus();
-});
-{%endif%}
-</script>
+   $('#searchUserModal').on('shown.bs.modal', function() {
+    $('#searchUserSearchField').focus();
+   });
+  {%endif%}
+ </script>
 {%endblock%}

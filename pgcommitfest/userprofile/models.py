@@ -52,5 +52,12 @@ class UserProfile(models.Model):
         verbose_name="Notify on all where committer",
     )
 
+    show_relative_timestamps = models.BooleanField(
+        null=False,
+        blank=False,
+        default=True,
+        verbose_name="Show relative timestamps throughout the site",
+    )
+
     def __str__(self):
         return str(self.user)

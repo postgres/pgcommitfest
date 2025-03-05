@@ -170,7 +170,7 @@ class Migration(migrations.Migration):
                 ("wikilink", models.URLField(default="", null=False, blank=True)),
                 ("gitlink", models.URLField(default="", null=False, blank=True)),
                 ("created", models.DateTimeField(auto_now_add=True)),
-                ("modified", models.DateTimeField()),
+                ("modified", models.DateTimeField(auto_now_add=True)),
                 ("lastmail", models.DateTimeField(null=True, blank=True)),
                 (
                     "authors",

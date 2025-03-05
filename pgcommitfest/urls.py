@@ -15,6 +15,8 @@ admin.autodiscover()
 
 urlpatterns = [
     re_path(r"^$", views.home),
+    re_path(r"^me/$", views.me),
+    re_path(r"^archive/$", views.archive),
     re_path(r"^activity(?P<rss>\.rss)?/", views.activity),
     re_path(r"^(\d+)/$", views.commitfest),
     re_path(r"^(open|inprogress|current)/(.*)$", views.redir),

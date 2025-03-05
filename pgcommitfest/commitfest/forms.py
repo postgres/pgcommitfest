@@ -1,6 +1,5 @@
 from django import forms
 from django.contrib.auth.models import User
-from django.db.models import Q
 from django.forms import ValidationError
 from django.forms.widgets import HiddenInput
 from django.http import Http404
@@ -11,36 +10,55 @@ from .widgets import ThreadPickWidget
 
 
 class CommitFestFilterForm(forms.Form):
+    selectize_fields = {
+        "author": "/lookups/user",
+        "reviewer": "/lookups/user",
+    }
+
     text = forms.CharField(max_length=50, required=False)
     status = forms.ChoiceField(required=False)
     targetversion = forms.ChoiceField(required=False)
-    author = forms.ChoiceField(required=False)
-    reviewer = forms.ChoiceField(required=False)
+    author = forms.ChoiceField(required=False, label="Author (type to search)")
+    reviewer = forms.ChoiceField(required=False, label="Reviewer (type to search)")
     sortkey = forms.IntegerField(required=False)
 
-    def __init__(self, cf, *args, **kwargs):
-        super(CommitFestFilterForm, self).__init__(*args, **kwargs)
+    def __init__(self, data, *args, **kwargs):
+        super(CommitFestFilterForm, self).__init__(data, *args, **kwargs)
 
         self.fields["sortkey"].widget = forms.HiddenInput()
 
         c = [(-1, "* All")] + list(PatchOnCommitFest._STATUS_CHOICES)
         self.fields["status"] = forms.ChoiceField(choices=c, required=False)
 
-        q = Q(patch_author__commitfests=cf) | Q(patch_reviewer__commitfests=cf)
-        userchoices = [(-1, "* All"), (-2, "* None"), (-3, "* Yourself")] + [
-            (u.id, "%s %s (%s)" % (u.first_name, u.last_name, u.username))
-            for u in User.objects.filter(q)
-            .distinct()
-            .order_by("first_name", "last_name")
-        ]
+        userchoices = [(-1, "* All"), (-2, "* None"), (-3, "* Yourself")]
+
+        selected_user_ids = set()
+        if data and "author" in data:
+            try:
+                selected_user_ids.add(int(data["author"]))
+            except ValueError:
+                pass
+
+        if data and "reviewer" in data:
+            try:
+                selected_user_ids.add(int(data["reviewer"]))
+            except ValueError:
+                pass
+
+        if selected_user_ids:
+            userchoices.extend(
+                (u.id, f"{u.first_name} {u.last_name} ({u.username})")
+                for u in User.objects.filter(pk__in=selected_user_ids)
+            )
+
         self.fields["targetversion"] = forms.ChoiceField(
             choices=[("-1", "* All"), ("-2", "* None")]
             + [(v.id, v.version) for v in TargetVersion.objects.all()],
             required=False,
             label="Target version",
         )
-        self.fields["author"] = forms.ChoiceField(choices=userchoices, required=False)
-        self.fields["reviewer"] = forms.ChoiceField(choices=userchoices, required=False)
+        self.fields["author"].choices = userchoices
+        self.fields["reviewer"].choices = userchoices
 
         for f in (
             "status",
@@ -51,7 +69,7 @@ class CommitFestFilterForm(forms.Form):
 
 
 class PatchForm(forms.ModelForm):
-    selectize_multiple_fields = {
+    selectize_fields = {
         "authors": "/lookups/user",
         "reviewers": "/lookups/user",
     }
@@ -77,7 +95,7 @@ class PatchForm(forms.ModelForm):
         )
 
         # Selectize multiple fields -- don't pre-populate everything
-        for field, url in list(self.selectize_multiple_fields.items()):
+        for field, url in list(self.selectize_fields.items()):
             # If this is a postback of a selectize field, it may contain ids that are not currently
             # stored in the field. They must still be among the *allowed* values of course, which
             # are handled by the existing queryset on the field.
@@ -94,8 +112,8 @@ class PatchForm(forms.ModelForm):
             self.fields[field].queryset = self.fields[field].queryset.filter(
                 pk__in=set(vals)
             )
-            self.fields[field].label_from_instance = lambda u: "{} ({})".format(
-                u.username, u.get_full_name()
+            self.fields[field].label_from_instance = (
+                lambda u: f"{u.get_full_name()} ({u.username})"
             )
 
         # Only allow modifying reviewers and committers if the patch is closed.

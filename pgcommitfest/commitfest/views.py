@@ -13,6 +13,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 
+import collections
 import hmac
 import json
 import urllib
@@ -21,6 +22,7 @@ from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
 
 from pgcommitfest.mailqueue.util import send_mail, send_simple_mail
+from pgcommitfest.userprofile.models import UserProfile
 from pgcommitfest.userprofile.util import UserWrapper
 
 from .ajax import _archivesAPI, doAttachThread, refresh_single_thread
@@ -60,6 +62,60 @@ def home(request):
             "title": "Commitfests",
             "header_activity": "Activity log",
             "header_activity_link": "/activity/",
+        },
+    )
+
+
+@login_required
+def me(request):
+    cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
+    if len(cfs) == 0:
+        cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
+
+    if len(cfs) > 0:
+        cf = cfs[0]
+    else:
+        cf = None
+
+    # Generates a fairly expensive query, which we shouldn't do unless
+    # the user is logged in. XXX: Figure out how to avoid doing that..
+    form = CommitFestFilterForm(request.GET)
+
+    patch_list = patchlist(request, cf, personalized=True)
+
+    if patch_list.redirect:
+        return patch_list.redirect
+
+    return render(
+        request,
+        "me.html",
+        {
+            "form": form,
+            "title": "Personal Dashboard",
+            "patches": patch_list.patches,
+            "statussummary": "",
+            "has_filter": patch_list.has_filter,
+            "grouping": patch_list.sortkey == 0,
+            "sortkey": patch_list.sortkey,
+            "openpatchids": [p["id"] for p in patch_list.patches if p["is_open"]],
+            "header_activity": "Activity log",
+            "header_activity_link": "/activity/",
+            "userprofile": getattr(request.user, "uesrprofile", UserProfile()),
+        },
+    )
+
+
+def archive(request):
+    commitfests = list(CommitFest.objects.all())
+
+    return render(
+        request,
+        "archive.html",
+        {
+            "commitfests": commitfests,
+            "title": "Commitfests",
+            "header_activity": "Activity log",
+            "header_activity_link": "activity/",
         },
     )
 
@@ -150,13 +206,16 @@ def redir(request, what, end):
     return HttpResponseRedirect(f"/{cfs[0].id}/{end}{query_string}")
 
 
-def commitfest(request, cfid):
-    # Find ourselves
-    cf = get_object_or_404(CommitFest, pk=cfid)
+PatchList = collections.namedtuple(
+    "PatchList", ["patches", "has_filter", "sortkey", "redirect"]
+)
 
+
+def patchlist(request, cf, personalized=False):
     # Build a dynamic filter based on the filtering options entered
     whereclauses = []
     whereparams = {}
+
     if request.GET.get("status", "-1") != "-1":
         try:
             whereparams["status"] = int(request.GET["status"])
@@ -184,8 +243,13 @@ def commitfest(request, cfid):
         elif request.GET["author"] == "-3":
             # Checking for "yourself" requires the user to be logged in!
             if not request.user.is_authenticated:
-                return HttpResponseRedirect(
-                    "%s?next=%s" % (settings.LOGIN_URL, request.path)
+                return PatchList(
+                    patches=[],
+                    has_filter=False,
+                    sortkey=0,
+                    redirect=HttpResponseRedirect(
+                        "%s?next=%s" % (settings.LOGIN_URL, request.path)
+                    ),
                 )
             whereclauses.append(
                 "EXISTS (SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s)"
@@ -209,8 +273,13 @@ def commitfest(request, cfid):
         elif request.GET["reviewer"] == "-3":
             # Checking for "yourself" requires the user to be logged in!
             if not request.user.is_authenticated:
-                return HttpResponseRedirect(
-                    "%s?next=%s" % (settings.LOGIN_URL, request.path)
+                return PatchList(
+                    patches=[],
+                    has_filter=False,
+                    sortkey=0,
+                    redirect=HttpResponseRedirect(
+                        "%s?next=%s" % (settings.LOGIN_URL, request.path)
+                    ),
                 )
             whereclauses.append(
                 "EXISTS (SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(self)s)"
@@ -232,68 +301,166 @@ def commitfest(request, cfid):
 
     has_filter = len(whereclauses) > 0
 
-    # Figure out custom ordering
-    if request.GET.get("sortkey", "") != "":
-        try:
-            sortkey = int(request.GET["sortkey"])
-        except ValueError:
-            sortkey = 0
+    if personalized:
+        whereclauses.append("""
+            EXISTS (
+                SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(self)s
+            ) OR EXISTS (
+                SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s
+            ) OR p.committer_id=%(self)s""")
+        whereparams["self"] = request.user.id
 
-        if sortkey == 1:
-            orderby_str = "modified, created"
-        elif sortkey == -1:
-            orderby_str = "modified DESC, created DESC"
-        elif sortkey == 2:
-            orderby_str = "lastmail, created"
-        elif sortkey == -2:
-            orderby_str = "lastmail DESC, created DESC"
-        elif sortkey == 3:
-            orderby_str = "num_cfs DESC, modified, created"
-        elif sortkey == -3:
-            orderby_str = "num_cfs ASC, modified DESC, created DESC"
-        elif sortkey == 4:
-            orderby_str = "p.id"
-        elif sortkey == -4:
-            orderby_str = "p.id DESC"
-        elif sortkey == 5:
-            orderby_str = "p.name, created"
-        elif sortkey == -5:
-            orderby_str = "p.name DESC, created DESC"
-        elif sortkey == 6:
-            orderby_str = (
-                "branch.all_additions + branch.all_deletions NULLS LAST, created"
-            )
-        elif sortkey == -6:
-            orderby_str = "branch.all_additions + branch.all_deletions DESC NULLS LAST, created DESC"
-        else:
-            orderby_str = "p.id"
-            sortkey = 0
+        whereclauses.append("poc.status=ANY(%(openstatuses)s)")
     else:
-        orderby_str = "topic, created"
+        whereclauses.append("poc.commitfest_id=%(cid)s")
+
+    if personalized:
+        # For now we can just order by these names in descending order, because
+        # they are crafted such that they alphabetically sort in the intended
+        # order.
+        columns_str = """
+            CASE WHEN
+                EXISTS (
+                    SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s
+                ) AND (
+                    poc.commitfest_id < %(cid)s
+                )
+            THEN 'Your still open patches in a closed commitfest (you should move or close these)'
+            WHEN
+                EXISTS (
+                    SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s
+                ) AND (
+                    poc.status=%(needs_author)s
+                    OR branch.needs_rebase_since IS NOT NULL
+                    OR branch.failing_since + interval '4 days' < now()
+                    OR (%(is_committer)s AND poc.status=%(needs_committer)s)
+                )
+            THEN 'Your patches that need changes from you'
+            WHEN
+                NOT EXISTS (
+                    SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s
+                ) AND (
+                    poc.status=ANY(%(review_statuses)s)
+                )
+            THEN 'Patches that are ready for your review'
+            ELSE 'Blocked on others'
+            END AS topic,
+            cf.id AS cf_id,
+            cf.name AS cf_name,
+            cf.status AS cf_status,
+        """
+        whereparams["needs_author"] = PatchOnCommitFest.STATUS_AUTHOR
+        whereparams["needs_committer"] = PatchOnCommitFest.STATUS_COMMITTER
+        is_committer = bool(Committer.objects.filter(user=request.user, active=True))
+        whereparams["is_committer"] = is_committer
+
+        if is_committer:
+            whereparams["review_statuses"] = [
+                PatchOnCommitFest.STATUS_REVIEW,
+                PatchOnCommitFest.STATUS_COMMITTER,
+            ]
+        else:
+            whereparams["review_statuses"] = [
+                PatchOnCommitFest.STATUS_REVIEW,
+            ]
+        joins_str = "INNER JOIN commitfest_commitfest cf ON poc.commitfest_id=cf.id"
+        groupby_str = "cf.id,"
+    else:
+        columns_str = "t.topic as topic,"
+        joins_str = ""
+        groupby_str = ""
+
+    # Figure out custom ordering
+    try:
+        sortkey = int(request.GET.get("sortkey", "0"))
+    except ValueError:
+        sortkey = 0
+
+    if sortkey == 2:
+        orderby_str = "lastmail, created"
+    elif sortkey == -2:
+        orderby_str = "lastmail DESC, created DESC"
+    elif sortkey == 3:
+        orderby_str = "num_cfs DESC, modified, created"
+    elif sortkey == -3:
+        orderby_str = "num_cfs ASC, modified DESC, created DESC"
+    elif sortkey == 4:
+        orderby_str = "p.id"
+    elif sortkey == -4:
+        orderby_str = "p.id DESC"
+    elif sortkey == 5:
+        orderby_str = "p.name, created"
+    elif sortkey == -5:
+        orderby_str = "p.name DESC, created DESC"
+    elif sortkey == 6:
+        orderby_str = "branch.all_additions + branch.all_deletions NULLS LAST, created"
+    elif sortkey == -6:
+        orderby_str = (
+            "branch.all_additions + branch.all_deletions DESC NULLS LAST, created DESC"
+        )
+    elif sortkey == 7:
+        orderby_str = "branch.failing_since DESC NULLS FIRST, branch.created DESC"
+    elif sortkey == -7:
+        orderby_str = "branch.failing_since NULLS LAST, branch.created"
+    elif sortkey == 8:
+        orderby_str = "poc.commitfest_id, lastmail DESC"
+    elif sortkey == -8:
+        orderby_str = "poc.commitfest_id DESC, lastmail"
+    else:
+        if personalized:
+            # First we sort by topic, to have the grouping work.
+            # Then we show non-failing patches first, and the ones that are
+            # shortest failing we show first. We consider patches in a closed
+            # commitfest, as if they are failing since that commitfest was
+            # closed.
+            # Then we sort by start date of the CF, to show entries in the "In
+            # progress" commitfest before ones in the "Open" commitfest.
+            # And then to break ties, we put ones with the most recent email at
+            # the top.
+            orderby_str = """topic DESC,
+                COALESCE(
+                    branch.failing_since,
+                    CASE WHEN cf.status = %(cf_closed_status)s
+                    THEN enddate ELSE NULL END
+                ) DESC NULLS FIRST,
+                cf.startdate,
+                lastmail DESC"""
+            whereparams["cf_closed_status"] = CommitFest.STATUS_CLOSED
+        else:
+            orderby_str = "topic, created"
         sortkey = 0
 
     if not has_filter and sortkey == 0 and request.GET:
         # Redirect to get rid of the ugly url
-        return HttpResponseRedirect("/%s/" % cf.id)
+        return PatchList(
+            patches=[],
+            has_filter=False,
+            sortkey=0,
+            redirect=HttpResponseRedirect(request.path),
+        )
 
     if whereclauses:
-        where_str = "AND ({0})".format(" AND ".join(whereclauses))
+        where_str = "({0})".format(") AND (".join(whereclauses))
     else:
-        where_str = ""
+        where_str = "true"
     params = {
-        "cid": cf.id,
         "openstatuses": PatchOnCommitFest.OPEN_STATUSES,
+        "cid": cf.id,
     }
     params.update(whereparams)
 
     # Let's not overload the poor django ORM
     curs = connection.cursor()
     curs.execute(
-        """SELECT p.id, p.name, poc.status, v.version AS targetversion, p.created, p.modified, p.lastmail, committer.username AS committer, t.topic,
+        f"""SELECT p.id, p.name, poc.status, v.version AS targetversion, p.created, p.modified, p.lastmail, committer.first_name || ' ' || committer.last_name || ' (' || committer.username || ')' AS committer,
+        {columns_str}
 (poc.status=ANY(%(openstatuses)s)) AS is_open,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_authors cpa ON cpa.user_id=auth_user.id WHERE cpa.patch_id=p.id) AS author_names,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_reviewers cpr ON cpr.user_id=auth_user.id WHERE cpr.patch_id=p.id) AS reviewer_names,
 (SELECT count(1) FROM commitfest_patchoncommitfest pcf WHERE pcf.patch_id=p.id) AS num_cfs,
+
+branch.needs_rebase_since,
+branch.failing_since,
 (
     SELECT row_to_json(t) as cfbot_results
     from (
@@ -303,11 +470,9 @@ def commitfest(request, cfid):
             count(*) FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) failed,
             count(*) total,
             string_agg(task.task_name, ', ') FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) as failed_task_names,
-            branch.commit_id IS NULL as needs_rebase,
+            branch.status as branch_status,
             branch.apply_url,
             branch.patch_count,
-            branch.first_additions,
-            branch.first_deletions,
             branch.all_additions,
             branch.all_deletions
         FROM commitfest_cfbotbranch branch
@@ -319,17 +484,33 @@ def commitfest(request, cfid):
 FROM commitfest_patch p
 INNER JOIN commitfest_patchoncommitfest poc ON poc.patch_id=p.id
 INNER JOIN commitfest_topic t ON t.id=p.topic_id
+{joins_str}
 LEFT JOIN auth_user committer ON committer.id=p.committer_id
 LEFT JOIN commitfest_targetversion v ON p.targetversion_id=v.id
 LEFT JOIN commitfest_cfbotbranch branch ON branch.patch_id=p.id
-WHERE poc.commitfest_id=%(cid)s {0}
-GROUP BY p.id, poc.id, committer.id, t.id, v.version, branch.patch_id
-ORDER BY is_open DESC, {1}""".format(where_str, orderby_str),
+WHERE {where_str}
+GROUP BY p.id, poc.id, {groupby_str} committer.id, t.id, v.version, branch.patch_id
+ORDER BY is_open DESC, {orderby_str}""",
         params,
     )
     patches = [
         dict(zip([col[0] for col in curs.description], row)) for row in curs.fetchall()
     ]
+    return PatchList(
+        patches=patches,
+        sortkey=sortkey,
+        has_filter=has_filter,
+        redirect=False,
+    )
+
+
+def commitfest(request, cfid):
+    # Find ourselves
+    cf = get_object_or_404(CommitFest, pk=cfid)
+
+    patch_list = patchlist(request, cf)
+    if patch_list.redirect:
+        return patch_list.redirect
 
     # Generate patch status summary.
     curs = connection.cursor()
@@ -344,7 +525,7 @@ ORDER BY is_open DESC, {1}""".format(where_str, orderby_str),
 
     # Generates a fairly expensive query, which we shouldn't do unless
     # the user is logged in. XXX: Figure out how to avoid doing that..
-    form = CommitFestFilterForm(cf, request.GET)
+    form = CommitFestFilterForm(request.GET)
 
     return render(
         request,
@@ -352,15 +533,16 @@ ORDER BY is_open DESC, {1}""".format(where_str, orderby_str),
         {
             "cf": cf,
             "form": form,
-            "patches": patches,
+            "patches": patch_list.patches,
             "statussummary": statussummary,
-            "has_filter": has_filter,
+            "has_filter": patch_list.has_filter,
             "title": cf.title,
-            "grouping": sortkey == 0,
-            "sortkey": sortkey,
-            "openpatchids": [p["id"] for p in patches if p["is_open"]],
+            "grouping": patch_list.sortkey == 0,
+            "sortkey": patch_list.sortkey,
+            "openpatchids": [p["id"] for p in patch_list.patches if p["is_open"]],
             "header_activity": "Activity log",
             "header_activity_link": "activity/",
+            "userprofile": getattr(request.user, "uesrprofile", UserProfile()),
         },
     )
 
@@ -498,6 +680,7 @@ def patch(request, patchid):
             "breadcrumbs": [
                 {"title": cf.title, "href": "/%s/" % cf.pk},
             ],
+            "userprofile": getattr(request.user, "uesrprofile", UserProfile()),
         },
     )
 
@@ -547,7 +730,6 @@ def patchform(request, patchid):
             "form": form,
             "patch": patch,
             "title": "Edit patch",
-            "selectize_multiple_fields": form.selectize_multiple_fields.items(),
             "breadcrumbs": [
                 {"title": cf.title, "href": "/%s/" % cf.pk},
                 {"title": "View patch", "href": "/%s/%s/" % (cf.pk, patch.pk)},
@@ -566,11 +748,7 @@ def newpatch(request, cfid):
     if request.method == "POST":
         form = NewPatchForm(data=request.POST)
         if form.is_valid():
-            patch = Patch(
-                name=form.cleaned_data["name"], topic=form.cleaned_data["topic"]
-            )
-            patch.set_modified()
-            patch.save()
+            patch = form.save()
             poc = PatchOnCommitFest(
                 patch=patch, commitfest=cf, enterdate=datetime.now()
             )
@@ -610,7 +788,6 @@ def newpatch(request, cfid):
                 {"title": cf.title, "href": "/%s/" % cf.pk},
             ],
             "savebutton": "Create patch",
-            "selectize_multiple_fields": form.selectize_multiple_fields.items(),
             "threadbrowse": True,
         },
     )
@@ -1249,13 +1426,14 @@ def cfbot_ingest(message):
     # CONFLICT does not allow us to return that). We need to know the previous
     # state so we can skip sending notifications if the needs_rebase status did
     # not change.
+    needs_save = False
     needs_rebase = branch_status["commit_id"] is None
     if bool(branch_in_db.needs_rebase_since) is not needs_rebase:
         if needs_rebase:
             branch_in_db.needs_rebase_since = datetime.now()
         else:
             branch_in_db.needs_rebase_since = None
-        branch_in_db.save()
+        needs_save = True
 
         if needs_rebase:
             PatchHistory(
@@ -1268,6 +1446,27 @@ def cfbot_ingest(message):
                 by_cfbot=True,
                 what="Patch does not need rebase anymore",
             ).save_and_notify(authors_only=True)
+
+    # Similarly, we change the failing_since field using a separate UPDATE
+    failing = branch_status["status"] in ("failed", "timeout") or needs_rebase
+    finished = branch_status["status"] == "finished"
+
+    if "task_status" in message and message["task_status"]["status"] in (
+        "ABORTED",
+        "ERRORED",
+        "FAILED",
+    ):
+        failing = True
+
+    if (failing or finished) and bool(branch_in_db.failing_since) is not failing:
+        if failing:
+            branch_in_db.failing_since = datetime.now()
+        else:
+            branch_in_db.failing_since = None
+        needs_save = True
+
+    if needs_save:
+        branch_in_db.save()
 
 
 @csrf_exempt
