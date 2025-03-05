@@ -86,6 +86,28 @@ def me(request):
     if patch_list.redirect:
         return patch_list.redirect
 
+    # Get stats related to user for current commitfest
+    curs = connection.cursor()
+    curs.execute(
+        """SELECT
+            ps.status, ps.statusstring, count(*)
+        FROM commitfest_patchoncommitfest poc
+        INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status
+        LEFT JOIN commitfest_patch_authors pa ON pa.patch_id=poc.patch_id
+        LEFT JOIN commitfest_patch_reviewers pr ON pr.patch_id=poc.patch_id
+        LEFT JOIN commitfest_patch_subscribers psubs ON psubs.patch_id=poc.patch_id
+        WHERE commitfest_id=%(id)s 
+        AND (
+            pa.user_id=%(user_id)s 
+            OR pr.user_id=%(user_id)s
+            OR psubs.user_id=%(user_id)s
+        )
+        GROUP BY ps.status ORDER BY ps.sortkey""",
+        {"id": cf.id, "user_id": request.user.id},
+    )
+    statussummary = curs.fetchall()
+    print(statussummary)
+
     return render(
         request,
         "me.html",
@@ -93,7 +115,7 @@ def me(request):
             "form": form,
             "title": "Personal Dashboard",
             "patches": patch_list.patches,
-            "statussummary": "",
+            "statussummary": statussummary,
             "has_filter": patch_list.has_filter,
             "grouping": patch_list.sortkey == 0,
             "sortkey": patch_list.sortkey,
