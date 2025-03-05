@@ -1,6 +1,11 @@
 {%extends "base.html"%}
 {%load commitfest %}
 {%block contents%}
+ <p>
+  <br/>
+  <b>Status summary: </b>{%for id,title,num in statussummary%}<a href="?status={{id}}">{{title}}</a>: {{num}}. {%endfor%}
+ </p>
+
  <a class="btn btn-default" href="/open/new/">New patch</a>
  <a class="btn btn-default" href="/current/">Current commitfest</a></li>
  <a class="btn btn-default" href="/open/">Open commitfest</a></li>
