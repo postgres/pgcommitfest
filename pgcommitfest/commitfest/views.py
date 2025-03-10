@@ -350,7 +350,7 @@ def patchlist(request, cf, personalized=False):
                 EXISTS (
                     SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s
                 ) AND (
-                    poc.commitfest_id < %(cid)s
+                    cf.status = %(status_closed)s
                 )
             THEN 'Your still open patches in a closed commitfest (you should move or close these)'
             WHEN
@@ -376,6 +376,7 @@ def patchlist(request, cf, personalized=False):
             cf.name AS cf_name,
             cf.status AS cf_status,
         """
+        whereparams["status_closed"] = CommitFest.STATUS_CLOSED
         whereparams["needs_author"] = PatchOnCommitFest.STATUS_AUTHOR
         whereparams["needs_committer"] = PatchOnCommitFest.STATUS_COMMITTER
         is_committer = bool(Committer.objects.filter(user=request.user, active=True))
@@ -542,7 +543,13 @@ def commitfest(request, cfid):
     # Generate patch status summary.
     curs = connection.cursor()
     curs.execute(
-        "SELECT ps.status, ps.statusstring, count(*) FROM commitfest_patchoncommitfest poc INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status WHERE commitfest_id=%(id)s GROUP BY ps.status ORDER BY ps.sortkey",
+        """SELECT ps.status, ps.statusstring, count(*)
+             FROM commitfest_patchoncommitfest poc
+             INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status
+             INNER JOIN commitfest_commitfest cf ON cf.id=poc.commitfest_id
+             WHERE commitfest_id=%(id)s
+             GROUP BY ps.status
+             ORDER BY ps.sortkey""",
         {
             "id": cf.id,
         },
