@@ -38,17 +38,20 @@ class CommitFest(models.Model):
     STATUS_OPEN = 2
     STATUS_INPROGRESS = 3
     STATUS_CLOSED = 4
+    STATUS_DRAFT = 5
     _STATUS_CHOICES = (
         (STATUS_FUTURE, "Future"),
         (STATUS_OPEN, "Open"),
         (STATUS_INPROGRESS, "In Progress"),
         (STATUS_CLOSED, "Closed"),
+        (STATUS_DRAFT, "Drafts"),
     )
     _STATUS_LABELS = (
         (STATUS_FUTURE, "default"),
         (STATUS_OPEN, "info"),
         (STATUS_INPROGRESS, "success"),
         (STATUS_CLOSED, "danger"),
+        (STATUS_DRAFT, "info"),
     )
     name = models.CharField(max_length=100, blank=False, null=False, unique=True)
     status = models.IntegerField(
@@ -228,6 +231,7 @@ class PatchOnCommitFest(models.Model):
     STATUS_REJECTED = 6
     STATUS_RETURNED = 7
     STATUS_WITHDRAWN = 8
+    STATUS_DRAFT = 9
     _STATUS_CHOICES = (
         (STATUS_REVIEW, "Needs review"),
         (STATUS_AUTHOR, "Waiting on Author"),
@@ -237,6 +241,7 @@ class PatchOnCommitFest(models.Model):
         (STATUS_REJECTED, "Rejected"),
         (STATUS_RETURNED, "Returned with feedback"),
         (STATUS_WITHDRAWN, "Withdrawn"),
+        (STATUS_DRAFT, "Moved to Drafts"),
     )
     _STATUS_LABELS = (
         (STATUS_REVIEW, "default"),
@@ -247,6 +252,7 @@ class PatchOnCommitFest(models.Model):
         (STATUS_REJECTED, "danger"),
         (STATUS_RETURNED, "danger"),
         (STATUS_WITHDRAWN, "danger"),
+        (STATUS_DRAFT, "warning"),
     )
     OPEN_STATUSES = [STATUS_REVIEW, STATUS_AUTHOR, STATUS_COMMITTER]
 
