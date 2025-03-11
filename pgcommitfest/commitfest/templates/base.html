@@ -30,6 +30,11 @@
       <a href="/account/login/?next={{request.path}}">Log in</a>
      {%endif%}
     </li>
+    <li class="pull-right active">
+        <a href="https://github.com/postgres/pgcommitfest" target="_blank" style="color: white; padding: 8px 12px; background-color: #24292e; border-radius: 5px; text-decoration: none;">
+          Contribute on GitHub
+        </a>
+      </li>
     {%if header_activity%} <li class="pull-right active"><a href="{{header_activity_link}}">{{header_activity}}</a></li>{%endif%}
    </ul>
 
