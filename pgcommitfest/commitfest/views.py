@@ -92,18 +92,26 @@ def me(request):
         """SELECT
             ps.status, ps.statusstring, count(*)
         FROM commitfest_patchoncommitfest poc
+        INNER JOIN commitfest_patch p ON p.id = poc.patch_id
         INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status
-        LEFT JOIN commitfest_patch_authors pa ON pa.patch_id=poc.patch_id
-        LEFT JOIN commitfest_patch_reviewers pr ON pr.patch_id=poc.patch_id
-        WHERE commitfest_id=%(id)s
-        AND
+        WHERE
             ps.status NOT IN ( %(patch_stat_committed)s, %(patch_stat_rejected)s, %(patch_stat_withdrawn)s )
         AND (
-            pa.user_id=%(user_id)s
-            OR pr.user_id=%(user_id)s
+            EXISTS (
+                SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(user_id)s
+            )
+            OR EXISTS (
+                SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(user_id)s
+            )
         )
         GROUP BY ps.status ORDER BY ps.sortkey""",
-        {"id": cf.id, "user_id": request.user.id, "patch_stat_committed": PatchOnCommitFest.STATUS_COMMITTED, "patch_stat_rejected": PatchOnCommitFest.STATUS_REJECTED, "patch_stat_withdrawn": PatchOnCommitFest.STATUS_WITHDRAWN}
+        {
+            "user_id": request.user.id,
+            "patch_stat_committed": PatchOnCommitFest.STATUS_COMMITTED,
+            "patch_stat_rejected": PatchOnCommitFest.STATUS_REJECTED,
+            "patch_stat_withdrawn": PatchOnCommitFest.STATUS_WITHDRAWN,
+            "patch_stat_nextcf": PatchOnCommitFest.STATUS_NEXT,
+        },
     )
     statussummary = curs.fetchall()
 
