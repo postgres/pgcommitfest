@@ -95,18 +95,15 @@ def me(request):
         INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status
         LEFT JOIN commitfest_patch_authors pa ON pa.patch_id=poc.patch_id
         LEFT JOIN commitfest_patch_reviewers pr ON pr.patch_id=poc.patch_id
-        LEFT JOIN commitfest_patch_subscribers psubs ON psubs.patch_id=poc.patch_id
-        WHERE commitfest_id=%(id)s 
+        WHERE commitfest_id=%(id)s
         AND (
-            pa.user_id=%(user_id)s 
+            pa.user_id=%(user_id)s
             OR pr.user_id=%(user_id)s
-            OR psubs.user_id=%(user_id)s
         )
         GROUP BY ps.status ORDER BY ps.sortkey""",
         {"id": cf.id, "user_id": request.user.id},
     )
     statussummary = curs.fetchall()
-    print(statussummary)
 
     return render(
         request,
