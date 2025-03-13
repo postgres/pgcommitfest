@@ -96,12 +96,14 @@ def me(request):
         LEFT JOIN commitfest_patch_authors pa ON pa.patch_id=poc.patch_id
         LEFT JOIN commitfest_patch_reviewers pr ON pr.patch_id=poc.patch_id
         WHERE commitfest_id=%(id)s
+        AND
+            ps.status NOT IN ( %(patch_stat_committed)s, %(patch_stat_rejected)s, %(patch_stat_withdrawn)s )
         AND (
             pa.user_id=%(user_id)s
             OR pr.user_id=%(user_id)s
         )
         GROUP BY ps.status ORDER BY ps.sortkey""",
-        {"id": cf.id, "user_id": request.user.id},
+        {"id": cf.id, "user_id": request.user.id, "patch_stat_committed": PatchOnCommitFest.STATUS_COMMITTED, "patch_stat_rejected": PatchOnCommitFest.STATUS_REJECTED, "patch_stat_withdrawn": PatchOnCommitFest.STATUS_WITHDRAWN}
     )
     statussummary = curs.fetchall()
 
