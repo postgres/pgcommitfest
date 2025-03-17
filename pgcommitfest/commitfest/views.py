@@ -542,7 +542,7 @@ def commitfest(request, cfid):
             "openpatchids": [p["id"] for p in patch_list.patches if p["is_open"]],
             "header_activity": "Activity log",
             "header_activity_link": "activity/",
-            "userprofile": getattr(request.user, "uesrprofile", UserProfile()),
+            "userprofile": getattr(request.user, "userprofile", UserProfile()),
         },
     )
 
@@ -680,7 +680,7 @@ def patch(request, patchid):
             "breadcrumbs": [
                 {"title": cf.title, "href": "/%s/" % cf.pk},
             ],
-            "userprofile": getattr(request.user, "uesrprofile", UserProfile()),
+            "userprofile": getattr(request.user, "userprofile", UserProfile()),
         },
     )
 
