@@ -180,9 +180,9 @@ def cf_duration_partials(d):
 
     # Ignore microseconds.
     since = delta.days * 24 * 60 * 60 + delta.seconds
-    if since <= 0:
+    if since < 0:
         # d is in the future compared to now, stop processing.
-        return "in the future"
+        return None
 
     # Get years and months.
     total_months = (now.year - d.year) * 12 + (now.month - d.month)
