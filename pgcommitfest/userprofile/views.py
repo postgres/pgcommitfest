@@ -27,5 +27,6 @@ def userprofile(request):
         "userprofileform.html",
         {
             "form": form,
+            "title": "Profile",
         },
     )
