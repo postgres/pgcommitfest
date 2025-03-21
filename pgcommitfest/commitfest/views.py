@@ -95,7 +95,7 @@ def me(request):
         INNER JOIN commitfest_patch p ON p.id = poc.patch_id
         INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status
         WHERE
-            ps.status NOT IN ( %(patch_stat_committed)s, %(patch_stat_rejected)s, %(patch_stat_withdrawn)s, %(patch_stat_nextcf)s, %(patch_stat_retwfdb)s )
+            ps.statusstatus = ANY(%(openstatuses)s)
         AND (
             EXISTS (
                 SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(user_id)s
