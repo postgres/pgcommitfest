@@ -103,6 +103,7 @@ def me(request):
             OR EXISTS (
                 SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(user_id)s
             )
+            OR p.committer_id=%(user_id)s
         )
         GROUP BY ps.status ORDER BY ps.sortkey""",
         {
