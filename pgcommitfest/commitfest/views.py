@@ -95,7 +95,7 @@ def me(request):
         INNER JOIN commitfest_patch p ON p.id = poc.patch_id
         INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status
         WHERE
-            ps.statusstatus = ANY(%(openstatuses)s)
+            ps.status = ANY(%(openstatuses)s)
         AND (
             EXISTS (
                 SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(user_id)s
@@ -108,11 +108,7 @@ def me(request):
         GROUP BY ps.status ORDER BY ps.sortkey""",
         {
             "user_id": request.user.id,
-            "patch_stat_committed": PatchOnCommitFest.STATUS_COMMITTED,
-            "patch_stat_rejected": PatchOnCommitFest.STATUS_REJECTED,
-            "patch_stat_withdrawn": PatchOnCommitFest.STATUS_WITHDRAWN,
-            "patch_stat_nextcf": PatchOnCommitFest.STATUS_NEXT,
-            "patch_stat_retwfdb": PatchOnCommitFest.STATUS_RETURNED,
+            "openstatuses": PatchOnCommitFest.OPEN_STATUSES,
         },
     )
     statussummary = curs.fetchall()
