@@ -1,0 +1,195 @@
+{%load commitfest%}
+ <table id="keyvalue-table" class="table table-bordered">
+  <tbody>
+   <tr>
+    <th>ID</th>
+    <td><a href="/patch/{{patch.id}}">{{patch.id}}</a></td>
+   </tr>
+   <tr>
+    <th>Title</th>
+    <td>{{patch.name}}</td>
+   </tr>
+   <tr>
+    <th>CI (CFBot)</th>
+    <td>
+     {%if not cfbot_branch %}
+      <span class="label label-default">Not processed</span></a>
+     {%elif cfbot_branch.needs_rebase_since %}
+      <a href="{{cfbot_branch.apply_url}}">
+       <span class="label label-warning" title="View git apply logs">Needs rebase!</span></a>
+      Needs rebase {% cfsince cfbot_branch.needs_rebase_since %}. {%if cfbot_branch.failing_since and cfbot_branch.failing_since != cfbot_branch.needs_rebase_since %}Failing {% cfsince cfbot_branch.failing_since %}. {%endif%}<br>Additional links previous successfully applied patch (outdated):<br>
+      <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" title="View previous successfully applied patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
+      <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
+       <span class="label label-default">Summary</span></a>
+     {%else%}
+      <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
+      <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
+       <span class="label label-default">Summary</span></a>
+      {%for c in cfbot_tasks %}
+       {%if c.status == 'COMPLETED'%}
+        <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_success.svg"/></a>
+       {%elif c.status == 'CREATED' or c.status == 'SCHEDULED' %}
+        <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/waiting_to_start.svg"/></a>
+       {%elif c.status == 'EXECUTING' %}
+        <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/running.svg"/></a>
+       {%else %}
+        <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_failure.svg"/></a>
+       {%endif%}
+      {%endfor%}
+     {%endif%}
+     {%if cfbot_branch %}
+      <button class="btn btn-default" title="This adds the following to your clipboard (needs to be run in an existing git repo):
+                                             git remote add commitfest https://github.com/postgresql-cfbot/postgresql.git
+                                             git fetch commitfest cf/{{patch.id}}
+                                             git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{patch.id}})">Copy git checkout commands</button>
+     {%endif%}
+    </a>
+   </td>
+  </tr>
+  <tr>
+   <th>Stats (from CFBot)</th>
+   <td>
+    {%if cfbot_branch and cfbot_branch.commit_id %}
+     {%if cfbot_branch.version %}
+      Patch version: {{ cfbot_branch.version }},
+     {%endif%}
+     Patch count: {{ cfbot_branch.patch_count }},
+     First patch: <span class="additions">+{{ cfbot_branch.first_additions }}</span><span class="deletions">&#8722;{{ cfbot_branch.first_deletions }}</span>,
+     All patches: <span class="additions">+{{ cfbot_branch.all_additions }}</span><span class="deletions">&#8722;{{ cfbot_branch.all_deletions }}</span>
+    {%else%}
+     Unknown
+    {%endif%}
+   </tr>
+   <tr>
+    <th>Topic</th>
+    <td>{{patch.topic}}</td>
+   </tr>
+   <tr>
+    <th>Created</th>
+    <td>{{patch.created}}</td>
+   </tr>
+   <tr>
+    <th style="white-space: nowrap;">Last modified</th>
+    <td>{{patch.modified}} ({% cfwhen patch.modified %})</td>
+   </tr>
+   <tr>
+    <th style="white-space: nowrap;">Latest email</th>
+    <td>{%if patch.lastmail%}{{patch.lastmail}} ({% cfwhen patch.lastmail %}){%endif%}</td>
+   </tr>
+   <tr>
+    <th>Status</th>
+    <td>{%for c in patch_commitfests %}
+     <div style="margin-bottom: 3px;"><a href="/{{c.commitfest.id}}/">{{c.commitfest}}</a>: <span class="label label-{{c.status|patchstatuslabel}}">{{c.statusstring}}</span></div>
+    {%endfor%}
+    </td>
+   </tr>
+   <tr>
+    <th>Target version</th>
+    <td>{%if patch.targetversion%}<span class="label label-default">{{patch.targetversion}}</span>{%endif%}</td>
+   </tr>
+   <tr>
+    <th>Authors</th>
+    <td>{{patch.authors_string}}</td>
+   </tr>
+   <tr>
+    <th>Reviewers</th>
+    <td>{{patch.reviewers_string}}<a href="reviewer/{{is_reviewer|yesno:"remove,become"}}/" class="btn btn-default pull-right">{{is_reviewer|yesno:"Remove from reviewers,Become reviewer"}}</a></td>
+   </tr>
+   <tr>
+    <th>Committer</th>
+    <td>{%if patch.committer%}{{patch.committer.fullname}}{%endif%}
+     {%if is_committer%}<a href="committer/{{is_this_committer|yesno:"remove,become"}}/" class="btn btn-default pull-right">{{is_this_committer|yesno:"Unclaim as committer,Claim as committer"}}</a>{%endif%}
+    </td>
+   </tr>
+   <tr>
+    <th>Links</th>
+    {%if patch.wikilink%}
+     <a href="{{patch.wikilink}}">Wiki</a>{%endif%}{%if patch.gitlink%}
+      <a href="{{patch.gitlink}}">Git</a>
+     {%endif%}</td>
+  </tr>
+  <tr>
+   <th>Emails</th>
+   <td>
+    {%if user.is_authenticated%}
+     <div style="float:right"><button class="btn btn-default" onclick="attachThread({{cf.id}},{{patch.id}})">Attach thread</button></div>
+    {%else%}
+     <div style="float:right"><button class="btn btn-default" onclick="location.href='/account/login/?next=/{{cf.id}}/{{patch.id}}/%3Fattachthreadnow'">Attach thread</button></div>
+    {%endif%}
+    <dl>
+     {%for t in patch.mailthread_set.all%}
+      <dt><a href="https://www.postgresql.org/message-id/flat/{{t.messageid}}">{{t.subject}}</a> <button type="button" class="close close-nofloat" title="Detach this thread" onclick="detachThread({{cf.id}},{{patch.id}},'{{t.messageid}}')">&times;</button></dt>
+      <dd>
+       First at <a href="https://www.postgresql.org/message-id/{{t.messageid}}">{{t.firstmessage}}</a> by {{t.firstauthor|hidemail}}<br/>
+       Latest at <a href="https://www.postgresql.org/message-id/{{t.latestmsgid}}">{{t.latestmessage}}</a> by {{t.latestauthor|hidemail}}<br/>
+       {%for ta in t.mailthreadattachment_set.all%}
+        {%if forloop.first%}
+         Latest attachment (<a href="https://www.postgresql.org/message-id/attachment/{{ta.attachmentid}}/{{ta.filename}}">{{ta.filename}}</a>) at <a href="https://www.postgresql.org/message-id/{{ta.messageid}}">{{ta.date}}</a> from {{ta.author|hidemail}} <button type="button" class="btn btn-default btn-xs" data-toggle="collapse" data-target="#att{{t.pk}}" title="Show all attachments"><i class="glyphicon glyphicon-plus"></i></button>
+         <div id="att{{t.pk}}" class="collapse">
+        {%endif%}
+        &nbsp;&nbsp;&nbsp;&nbsp;Attachment (<a href="https://www.postgresql.org/message-id/attachment/{{ta.attachmentid}}/{{ta.filename}}">{{ta.filename}}</a>) at <a href="https://www.postgresql.org/message-id/{{ta.messageid}}">{{ta.date}}</a> from {{ta.author|hidemail}} (Patch: {{ta.ispatch|yesno:"Yes,No,Pending check"}})<br/>
+        {%if forloop.last%}</div>{%endif%}
+       {%endfor%}
+       <div>
+        {%for a in t.mailthreadannotation_set.all%}
+         {%if forloop.first%}
+          <h4>Annotations</h4>
+          <table class="table table-bordered table-striped table-condensed small">
+           <thead>
+            <tr>
+             <th>When</th>
+             <th>Who</th>
+             <th>Mail</th>
+             <th>Annotation</th>
+            </tr>
+           </thead>
+           <tbody>
+         {%endif%}
+         <tr>
+          <td>{{a.date}}</td>
+          <td style="white-space: nowrap">{{a.user_string}}</td>
+          <td style="white-space: nowrap">From {{a.mailauthor}}<br/>at <a href="https://www.postgresql.org/message-id/{{a.msgid}}">{{a.maildate}}</a></td>
+          <td width="99%">{{a.annotationtext}} <button type="button" class="close" title="Delete this annotation" onclick="deleteAnnotation({{a.id}})">&times;</button></td>
+         </tr>
+         {%if forloop.last%}
+          </body>
+          </table>
+         {%endif%}
+        {%endfor%}
+        {%if user.is_authenticated%}<button class="btn btn-xs btn-default" onclick="addAnnotation({{t.id}})">Add annotation</button>{%endif%}
+       </div>
+      </dd>
+     {%endfor%}
+    </dl>
+   </td>
+  </tr>
+  <tr>
+   <th>History</th>
+   <td>
+    <div style="max-height: 200px; overflow-y: scroll;">
+     <table class="table table-bordered table-striped table-condensed">
+      <thead>
+       <tr>
+        <th>When</th>
+        <th>Who</th>
+        <th>What</th>
+       </tr>
+      </thead>
+      <tbody>
+       {%for h in patch.history %}
+        <tr>
+         <td style="white-space: nowrap;">{{h.date}}</td>
+         <td style="white-space: nowrap;">{{h.by_string}}</td>
+         <td width="99%">{{h.what}}</td>
+        </tr>
+       {%endfor%}
+      </tbody>
+     </table>
+    </div>
+    {%if user.is_authenticated%}
+     <a href="{{is_subscribed|yesno:"unsubscribe,subscribe"}}/" class="btn btn-default">{{is_subscribed|yesno:"Unsubscribe from patch update emails,Subscribe to patch update emails"}}</a>
+    {%endif%}
+   </td>
+  </tr>
+ </tbody>
+ </table>

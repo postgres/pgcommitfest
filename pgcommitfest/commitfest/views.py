@@ -42,6 +42,7 @@ from .models import (
     Patch,
     PatchHistory,
     PatchOnCommitFest,
+    Workflow,
 )
 
 
@@ -668,7 +669,7 @@ def patch(request, patchid):
     patch_commitfests = (
         PatchOnCommitFest.objects.select_related("commitfest")
         .filter(patch=patch)
-        .order_by("-commitfest__startdate")
+        .order_by("-enterdate")
         .all()
     )
     cf = patch_commitfests[0].commitfest
@@ -690,11 +691,13 @@ def patch(request, patchid):
         else:
             is_committer = is_this_committer = False
 
+        is_author = request.user in patch.authors.all()
         is_reviewer = request.user in patch.reviewers.all()
         is_subscribed = patch.subscribers.filter(id=request.user.id).exists()
     else:
         is_committer = False
         is_this_committer = False
+        is_author = False
         is_reviewer = False
         is_subscribed = False
 
@@ -702,6 +705,7 @@ def patch(request, patchid):
         request,
         "patch.html",
         {
+            "poc": patch_commitfests[0],
             "cf": cf,
             "patch": patch,
             "patch_commitfests": patch_commitfests,
@@ -709,8 +713,11 @@ def patch(request, patchid):
             "cfbot_tasks": cfbot_tasks,
             "is_committer": is_committer,
             "is_this_committer": is_this_committer,
+            "is_author": is_author,
             "is_reviewer": is_reviewer,
             "is_subscribed": is_subscribed,
+            "authors": patch.authors.all(),
+            "reviewers": patch.reviewers.all(),
             "committers": committers,
             "attachnow": "attachthreadnow" in request.GET,
             "title": patch.name,
