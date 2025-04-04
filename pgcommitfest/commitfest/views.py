@@ -66,6 +66,16 @@ def home(request):
     )
 
 
+def workflow(request):
+    return render(
+        request,
+        "workflow.html",
+        {
+            "title": "Workflow Overview",
+        },
+    )
+
+
 @login_required
 def me(request):
     cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))

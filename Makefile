@@ -16,3 +16,10 @@ lint-fix-unsafe:
 	npx @biomejs/biome check --fix --unsafe
 
 fix: format lint-fix-unsafe
+
+init-dev:
+	dropdb --if-exists pgcommitfest
+	createdb pgcommitfest
+	./manage.py migrate
+	./manage.py loaddata auth_data.json
+	./manage.py loaddata commitfest_data.json

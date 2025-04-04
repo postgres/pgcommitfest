@@ -1,0 +1,234 @@
+{%extends "base.html"%}
+{%block contents%}
+<h2>Key Concepts</h2>
+<h3>The Commitfest Workflow</h3>
+<p>
+ The commitfest workflow is a model for patch writing management.
+ There are a could of ways to classify patches.  First, they can be introducing
+ new features or fixing existing bugs (type).  Second, they can be awaiting changes,
+ awaiting guidance, awaiting review, or waiting to be committed (status).
+ The workflow uses commitfests and patch status in combination to communicate
+ the overall state of the patch within these two categories.
+</p>
+<p>
+ Commitfests are just bins filled with patches.  Bins have a defined lifespan
+ after which they are "Closed" and a new bin for the same category is created.
+ Each bin serves a role in the workflow and there are 4 active categories of bins.
+ <ul>
+  <li>Open - annual, all bug reports</li>
+  <li>Parked - annual, drafts for new features</li>
+  <li>Future - scheduled, proposed new features</li>
+  <li>In Progress - scheduled, review and commit new features</li>
+ </ul>
+There are three active categories of patch status covering the four statuses.
+ <ul>
+  <li>Author - the author needs to make changes</li>
+  <li>Reviewer - the patch needs guidance or a review</li>
+  <li>Committer - the patch is ready to be committed</li>
+ </ul>
+And there are three preferred categories of patch status for when a patch has
+been resolved, either by being committed or not.
+ <ul>
+  <li>Committed - a committer has applied the patches to the git repo</li>
+  <li>Withdrawn - the author has withdrawn the patch from consideration</li>
+  <li>Rejected - a committer has decided that the patch should not be applied</li>
+ </ul>
+(See notes below for all available statuses and their intended usage.)
+</p>
+<p>
+ The patches in the open bin are all of type "bug fix".  The full lifecycle of
+ a bux fix patch lives here and there is no distinction as to the nature of the
+ reviewer category.  The remaining bins exist to help deal with the large volume
+ of new feature patches.
+</p>
+<p>
+ The parked bin is where patches waiting on significant work go.  A reviewer
+ patch status category here mainly means awaiting guidance, though that will
+ often lead to a final review, allowing the patch to be moved to the future bin
+ with the committer patch status category already set.
+</p>
+<p>
+ The future and in progress bins are the ones that strictly comprise a commitfest.
+ The future bin always exists and new features ready for review and commit go
+ here.  At scheduled points, the future bin becomes an in progress bin and a new
+ future bin is created.
+</p>
+<p>
+ The in progress bin only exists during an active commitfest period, during which
+ no new patches should be added and the community reviewers and committers are
+ encouraged to focus on reviews and commits.  At the end of the scheduled period
+ the bin is closed.  This is only bin that is not present at all times.
+</p>
+<p>
+ The workflow is also designed with the release cycle in mind, in particular
+ the start of the annual feature freeze period.  At this time both the parked
+ and open bins are closed and new ones created.  If the feature freeze is for
+ version 18 then the new parked bin is called "Drafts v19" and the new open
+ bin is named "Bugs v18".
+</p>
+<h3>Patches on Commitfests (PoC)</h3>
+<h4>Overview</h4>
+<p>
+ PoCs are the central concept of the commitfest workflow.  When you are viewing
+ a Patch you are always implicitly acting within its primary PoC.  The key
+ property of a PoC is its state, the possible values of which are: active,
+ inactive, moved, and abandoned.  Each is described in detail below.
+</p>
+<h4>Active</h4>
+<p>
+ A Patch is active if, in its primary PoC, it is in one of the following states:
+ <ul>
+  <li>Waiting on Author (Author)</li>
+  <li>Review Needed (Reviewer)</li>
+  <li>Ready for Committer (Committer)</li>
+ </ul>
+ These correspond to the three people-related fields of the patch and indicate
+ whose effort is presently needed.  Of course, a patch may be in a state for
+ which no person is assigned; in which case the patch is advertising itself as
+ needing that kind of attention.
+</p>
+<h4>Inactive</h4>
+<p>
+ A Patch is inactive if, in its primary PoC, it is in one of the following states:
+ <ul>
+  <li>Committed</li>
+  <li>Withdrawn</li>
+  <li>Rejected</li>
+  <li>Returned With Feedback*</li>
+ </ul>
+</p>
+<p>
+ A Committed patch is one whose files have been committed to the repository.
+ A Withdrawn patch is one where the author(s) have decided to no longer pursue
+ working on the patch and have proactively communicated that intent through
+ updating the PoC to this state.
+</p>
+<p>
+ A Withdrawn patch is the desired outcome if a patch is not going to be committed.
+ Only an author can withdraw a patch.  If the patch simply needs work it should
+ updated to author and placed into whichever commitfest bin is appropriate.
+</p>
+<p>
+ A Rejected patch has the same effect as Withdrawn but communicates that the
+ community, not the author, made the status change.  This should only be used
+ when it is when the author is unable or unwilling to withdraw the patch or park
+ it for future rework.
+</p>
+<p>
+ *Returned With Feedback complements rejected in that the implication of rejected
+ is that the feature the patch introduces is unwanted while, here, the implementation
+ is simply not acceptable.  The workflow takes a different approach and considers
+ both to be less desirable than withdraw.  Considering the distinction between
+ author and committer making the decision to be the key difference the workflow
+ leaves reject as the fallback non-commit option and makes returned a deprecated
+ administrator-only option.
+</p>
+<h4>Moved</h4>
+<p>
+ Moved PoCs are a side-effect of having commitfest, and volume.  Many active
+ patches cannot be gotten to within a commitfest.  In order to keep them visible
+ they must be moved to another commitfest, creating a new PoC with the same
+ state.  The PoC they were moved from is updated to "Moved" to indicate this
+ flow-of-time action.
+</p>
+<h4>Is Abandoned</h4>
+<p>
+ This check returns true if the PoC state is in the set of active states
+ but the commitfest is closed.  Conceptually, this is the same as
+ withdrawn, but through inaction.
+</p>
+<h3>Patches</h3>
+<h4>Overview</h4>
+<p>
+ Patches are the basic unit of work in the workflow.  They are moved around
+ between various commitfest bins during their lifetime to reflect how they
+ interact with the focus of the community during each time period.
+ This movement, combined with the fact that a patch may only have a single
+ status, means that only one of the patch's PoCs can have a state that isn't
+ "Moved".  While a patch's status is derived from its primary PoC, everything
+ else is attached to the patch itself.
+</p>
+<h4>Authors, Reviewers, and Committers</h4>
+<p>
+ Especially in open source projects, attribution for work is important.  Git
+ commit messages include author and reviewer attributions (among others) and
+ inherently identify the committer.  To aid the committer in properly recording
+ attributions in the commit message record authors and reviewers on the patch.
+</p>
+<p>
+ Additionally, the commitfest application uses this information to provide
+ user-specific reporting and notifications.
+</p>
+<h4>Threads</h4>
+<p>
+ The actual content of a patch does not existing within the commitfest application
+ (more-or-less); instead, the patch file submission and review process is all done
+ on the -hackers mailing list.  Threads are the means by which the commitfest
+ is made aware of these files and can incorporate information pertaining to them
+ into its reporting.
+</p>
+<h3>Commitfests</h3>
+<h4>Overview</h4>
+<p>
+ Commitfests are just a collection of patches.  The workflow described above
+ explains the purpose of these collections and defines which patches belong in
+ in which collection.  One key constraint the described workflow imposes is that
+ among the statuses listed below at most one commitfest can be in each of them
+ at any given time (except for "Closed").  This allows for implementing movement
+ of a patch to be keyed to commitfest status type without the need for further
+ disambiguation.
+</p>
+<h4>In Progress</h4>
+<p>
+ An Active (see Workflow above) period where no new features should be added
+ and the goal is to get as many review"patches committed as possible.
+</p>
+<h4>Future</h4>
+<p>
+ The next active (see workflow above) period.
+ Any patch not exempted to be added to the in progress or open commitfests
+ can always be added here.
+</p>
+<h4>Open</h4>
+<p>
+ A commitfest for high-priority and bug fix patches.  Full patch lifecycle.
+ Created as "Bugs v18" at the start of the v18 feature freeze period (closing
+ "Bugs v17").
+</p>
+<h4>Parked</h4>
+<p>
+ The commitfest setup as parked is used to hold patches that are not intended
+ to be formally reviewed and committed.  Another term is "work-in-progress" (WIP).
+ Within the Workflow, at the start of the v18 feature freeze, the existing
+ "Draft v18" commitfest is closed and a new "Draft v19" commitfest is created.
+ This allows for a fresh start coinciding with the project release cycle.
+ And while commits cannot accumulate within a parked commitfest, withdrawn and
+ rejected patches would and so having a truly never-closing commitfest is not
+ ideal.  Similarly, given the volume of patches, getting rid of abandonment
+ is counter-productive.  This workflow provides a middle-ground between
+ every-other-month and never patch moving requirements.
+</p>
+<h4>Closed</h4>
+<p>
+ Parked, open and in progress commitfests are closed (future ones
+ always go through in progress) when the period they cover has passed.
+ Closing a commitfest does not impact its related PoCs; though no new PoCs can
+ be created for a closed commitfest.
+</p>
+<h3>History</h3>
+<p>
+ Textual event log for a patch.
+</p>
+<h3>CFBot</h3>
+<p>
+ The CFBot is continuous integration (CI) infrastructure that uses threads
+ to retrieve patch files, builds and tests them, and posts the results to
+ the Patch.  Only active PoCs are tested.
+</p>
+<h3>Administrative Actions</h3>
+<p>
+ Protections put in place to guide the described workflow can be bypassed
+ by those with the appropriate permissions.  Exercising these elevated
+ permissions is called an administrative action, or administratively performed.
+</p>
+{%endblock%}
