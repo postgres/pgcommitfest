@@ -13,9 +13,15 @@
   <tr>
   <!-- Change -->
   <td>
-     <a class="btn btn-default" href="status/review/">Needs review</a>
-     <a class="btn btn-default" href="status/author/">Waiting on Author</a>
-     <a class="btn btn-default" href="status/committer/">Ready for Committer</a>
+   {%if poc.status == poc.STATUS_AUTHOR %}
+    <a class="btn btn-default" href="status/review/">Reviewer</a>
+   {%endif%}
+   {%if poc.status == poc.STATUS_REVIEW or poc.status == poc.STATUS_COMMITTER %}
+    <a class="btn btn-default" href="status/author/">Author</a>
+   {%endif%}
+   {%if poc.status == poc.STATUS_REVIEW %}
+    <a class="btn btn-default" href="status/committer/">Committer</a>
+   {%endif%}
   </td>
   <!-- Annotate -->
   <td>
@@ -24,10 +30,17 @@
   </td>
   <!-- Resolve -->
   <td>
-     <a class="btn btn-default" href="close/reject/" onclick="return verify_reject()">Rejected</a>
-     <a class="btn btn-default" href="close/withdrawn/" onclick="return verify_withdrawn()">Withdrawn</a>
-     <a class="btn btn-default" href="close/feedback/" onclick="return verify_returned()">Returned with feedback</a>
-     <a class="btn btn-default" href="close/committed/" onclick="return flagCommitted({%if patch.committer%}'{{patch.committer}}'{%elif is_committer%}'{{user.username}}'{%else%}null{%endif%})">Committed</a>
+   {%if is_committer or is_author %}
+    {%if is_committer %}
+     <a class="btn btn-default" href="close/committed/" onclick="return flagCommitted({%if patch.committer%}'{{patch.committer}}'{%elif is_committer%}'{{user.username}}'{%else%}null{%endif%})">Commit</a>
+     <a class="btn btn-default" href="close/reject/" onclick="return verify_reject()">Reject</a>
+    {%endif%}
+    {%if is_author %}
+     <a class="btn btn-default" href="close/withdrawn/" onclick="return verify_withdrawn()">Withdraw</a>
+    {%endif%}
+   {%else%}
+    <span>No Actions Available</span>
+   {%endif%}
   </td>
   <!-- Move -->
   <td>
