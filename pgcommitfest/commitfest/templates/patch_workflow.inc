@@ -27,12 +27,42 @@
      <a class="btn btn-default" href="close/reject/" onclick="return verify_reject()">Rejected</a>
      <a class="btn btn-default" href="close/withdrawn/" onclick="return verify_withdrawn()">Withdrawn</a>
      <a class="btn btn-default" href="close/feedback/" onclick="return verify_returned()">Returned with feedback</a>
-     <a class="btn btn-default" href="close/next/?cfid={{cf.id}}" onclick="return verify_next()">Move to next CF</a>
      <a class="btn btn-default" href="close/committed/" onclick="return flagCommitted({%if patch.committer%}'{{patch.committer}}'{%elif is_committer%}'{{user.username}}'{%else%}null{%endif%})">Committed</a>
   </td>
   <!-- Move -->
   <td>
-   /transition Actions Will Go Here (Deprecate Next)
+   {%if not cf.isfuture and workflow.future %}
+    {%if True %}
+     <a class="btn btn-default"
+      href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.future.id}}">
+     {{workflow.future.name}}</a>
+    {%endif%}
+   {%endif%}
+
+   {%if not cf.isopen and workflow.open %}
+    {%if is_committer %}
+     <a class="btn btn-default"
+      href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.open.id}}">
+     {{workflow.open.name}}</a>
+    {%endif%}
+   {%endif%}
+
+   {%if not cf.isinprogress and workflow.progress %}
+    {%if is_committer %}
+     <a class="btn btn-default"
+      href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.progress.id}}">
+     {{workflow.progress.name}}</a>
+    {%endif%}
+   {%endif%}
+
+   {%if not cf.isparked and workflow.parked %}
+    {%if is_author %}
+     <a class="btn btn-default"
+      href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.parked.id}}">
+     {{workflow.parked.name}}</a>
+    {%endif%}
+   {%endif%}
+
   </td>
   </tr>
   <tr>

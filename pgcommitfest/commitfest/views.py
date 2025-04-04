@@ -725,6 +725,12 @@ def patch(request, patchid):
                 {"title": cf.title, "href": "/%s/" % cf.pk},
             ],
             "userprofile": getattr(request.user, "userprofile", UserProfile()),
+            "workflow": {
+                "open": Workflow.open_cf(),
+                "future": Workflow.future_cf(),
+                "progress": Workflow.inprogress_cf(),
+                "parked": Workflow.parked_cf(),
+            }
         },
     )
 
@@ -1016,29 +1022,7 @@ def status(request, patchid, status):
 @transaction.atomic
 def close(request, patchid, status):
     patch = get_object_or_404(Patch.objects.select_related(), pk=patchid)
-    cf = patch.current_commitfest()
-
-    try:
-        request_cfid = int(request.GET.get("cfid", ""))
-    except ValueError:
-        # int() failed, ignore
-        request_cfid = None
-
-    if request_cfid is not None and request_cfid != cf.id:
-        # The cfid parameter is only added to the /next/ link. That's the only
-        # close operation where two people pressing the button at the same time
-        # can have unintended effects.
-        messages.error(
-            request,
-            "The patch was moved to a new commitfest by someone else. Please double check if you still want to retry this operation.",
-        )
-        return HttpResponseRedirect("/%s/%s/" % (cf.id, patch.id))
-
-    poc = get_object_or_404(
-        PatchOnCommitFest.objects.select_related(),
-        commitfest__id=cf.id,
-        patch__id=patchid,
-    )
+    poc = patch.current_patch_on_commitfest()
 
     poc.leavedate = datetime.now()
 
@@ -1051,86 +1035,6 @@ def close(request, patchid, status):
         poc.status = PatchOnCommitFest.STATUS_WITHDRAWN
     elif status == "feedback":
         poc.status = PatchOnCommitFest.STATUS_RETURNED
-    elif status == "next":
-        # Only some patch statuses can actually be moved.
-        if poc.status in (
-            PatchOnCommitFest.STATUS_COMMITTED,
-            PatchOnCommitFest.STATUS_NEXT,
-            PatchOnCommitFest.STATUS_RETURNED,
-            PatchOnCommitFest.STATUS_REJECTED,
-        ):
-            # Can't be moved!
-            messages.error(
-                request,
-                "A patch in status {0} cannot be moved to next commitfest.".format(
-                    poc.statusstring
-                ),
-            )
-            return HttpResponseRedirect("/%s/%s/" % (poc.commitfest.id, poc.patch.id))
-        elif poc.status in (
-            PatchOnCommitFest.STATUS_REVIEW,
-            PatchOnCommitFest.STATUS_AUTHOR,
-            PatchOnCommitFest.STATUS_COMMITTER,
-        ):
-            # This one can be moved
-            pass
-        else:
-            messages.error(request, "Invalid existing patch status")
-
-        oldstatus = poc.status
-
-        poc.status = PatchOnCommitFest.STATUS_NEXT
-        # Figure out the commitfest to actually put it on
-        newcf = CommitFest.objects.filter(status=CommitFest.STATUS_OPEN)
-        if len(newcf) == 0:
-            # Ok, there is no open CF at all. Let's see if there is a
-            # future one.
-            newcf = CommitFest.objects.filter(status=CommitFest.STATUS_FUTURE)
-            if len(newcf) == 0:
-                messages.error(request, "No open and no future commitfest exists!")
-                return HttpResponseRedirect(
-                    "/%s/%s/" % (poc.commitfest.id, poc.patch.id)
-                )
-            elif len(newcf) != 1:
-                messages.error(
-                    request, "No open and multiple future commitfests exist!"
-                )
-                return HttpResponseRedirect(
-                    "/%s/%s/" % (poc.commitfest.id, poc.patch.id)
-                )
-        elif len(newcf) != 1:
-            messages.error(request, "Multiple open commitfests exists!")
-            return HttpResponseRedirect("/%s/%s/" % (poc.commitfest.id, poc.patch.id))
-        elif newcf[0] == poc.commitfest:
-            # The current open CF is the same one that we are already on.
-            # In this case, try to see if there is a future CF we can
-            # move it to.
-            newcf = CommitFest.objects.filter(status=CommitFest.STATUS_FUTURE)
-            if len(newcf) == 0:
-                messages.error(
-                    request,
-                    "Cannot move patch to the same commitfest, and no future commitfests exist!",
-                )
-                return HttpResponseRedirect(
-                    "/%s/%s/" % (poc.commitfest.id, poc.patch.id)
-                )
-            elif len(newcf) != 1:
-                messages.error(
-                    request,
-                    "Cannot move patch to the same commitfest, and multiple future commitfests exist!",
-                )
-                return HttpResponseRedirect(
-                    "/%s/%s/" % (poc.commitfest.id, poc.patch.id)
-                )
-        # Create a mapping to the new commitfest that we are bouncing
-        # this patch to.
-        newpoc = PatchOnCommitFest(
-            patch=poc.patch,
-            commitfest=newcf[0],
-            status=oldstatus,
-            enterdate=datetime.now(),
-        )
-        newpoc.save()
     elif status == "committed":
         committer = get_object_or_404(Committer, user__username=request.GET["c"])
         if committer != poc.patch.committer:
@@ -1158,6 +1062,37 @@ def close(request, patchid, status):
     ).save_and_notify()
 
     return HttpResponseRedirect("/%s/%s/" % (poc.commitfest.id, poc.patch.id))
+
+
+@login_required
+@transaction.atomic
+def transition(request, patchid):
+    from_cf = Workflow.getCommitfest(request.GET.get("fromcfid", None))
+
+    if from_cf is None:
+        messages.error(request, "Unknown from commitfest id {}".format(request.GET.get("fromcfid", None)))
+        return HttpResponseRedirect("/patch/%s/" % (patchid))
+
+    cur_poc = get_object_or_404(Patch.objects.select_related(), pk=patchid).current_patch_on_commitfest()
+
+    if from_cf != cur_poc.commitfest:
+        messages.error(request, "Transition aborted, Redirect performed.  Commitfest for patch already changed.")
+        return HttpResponseRedirect("/patch/%s/" % (cur_poc.patch.id))
+
+    target_cf = Workflow.getCommitfest(request.GET.get("tocfid", None))
+
+    if target_cf is None:
+        messages.error(request, "Unknown destination commitfest id {}".format(request.GET.get("tocfid", None)))
+        return HttpResponseRedirect("/patch/%s/" % (cur_poc.patch.id))
+
+    try:
+        new_poc = Workflow.transitionPatch(cur_poc, target_cf, request.user)
+        messages.info(request, "Transitioned patch to commitfest %s" % new_poc.commitfest.name)
+    except Exception as e:
+        messages.error(request, "Failed to transition patch: {}".format(e))
+        return HttpResponseRedirect("/patch/%s/" % (cur_poc.patch.id))
+
+    return HttpResponseRedirect("/patch/%s/" % (new_poc.patch.id))
 
 
 @login_required

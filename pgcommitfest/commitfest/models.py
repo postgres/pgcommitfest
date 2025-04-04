@@ -180,7 +180,7 @@ class Patch(models.Model, DiffableModel):
     }
 
     def current_commitfest(self):
-        return self.commitfests.order_by("-startdate").first()
+        return self.commitfests.order_by("-patchoncommitfest__enterdate").first()
 
     def current_patch_on_commitfest(self):
         cf = self.current_commitfest()
