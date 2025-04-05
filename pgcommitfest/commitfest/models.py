@@ -179,6 +179,7 @@ class Patch(models.Model, DiffableModel):
         "authors": "authors_string",
         "reviewers": "reviewers_string",
     }
+
     # XXX probably should just encourage using PoC.commitfest since most places
     # dealing with the Patch need the PoC anyway.
     def current_commitfest(self):
@@ -559,6 +560,10 @@ class CfbotTask(models.Model):
 # the workflow this application is built for.  These elements exist
 # independent of what the user is presently seeing on their page.
 class Workflow(models.Model):
+
+    def get_poc_for_patchid_or_404(patchid):
+        return get_object_or_404(Patch.objects.select_related(), pk=patchid).current_patch_on_commitfest()
+
     # At most a single Open CommitFest is allowed and this function returns it.
     def open_cf():
         cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))

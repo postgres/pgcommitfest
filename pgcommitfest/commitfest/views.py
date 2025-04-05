@@ -674,29 +674,18 @@ def patch(request, patchid):
     )
     cf = patch_commitfests[0].commitfest
 
-    committers = Committer.objects.filter(active=True).order_by(
-        "user__last_name", "user__first_name"
-    )
-
     cfbot_branch = getattr(patch, "cfbot_branch", None)
     cfbot_tasks = patch.cfbot_tasks.order_by("position") if cfbot_branch else []
 
     # XXX: this creates a session, so find a smarter way. Probably handle
     # it in the callback and just ask the user then?
     if request.user.is_authenticated:
-        committer = [c for c in committers if c.user == request.user]
-        if len(committer) > 0:
-            is_committer = True
-            is_this_committer = committer[0] == patch.committer
-        else:
-            is_committer = is_this_committer = False
-
+        is_committer, is_this_committer, all_committers = Workflow.isCommitter(request.user, patch)
         is_author = request.user in patch.authors.all()
         is_reviewer = request.user in patch.reviewers.all()
         is_subscribed = patch.subscribers.filter(id=request.user.id).exists()
     else:
-        is_committer = False
-        is_this_committer = False
+        is_committer, is_this_committer, all_committers = Workflow.isCommitter(None, None)
         is_author = False
         is_reviewer = False
         is_subscribed = False
@@ -718,7 +707,7 @@ def patch(request, patchid):
             "is_subscribed": is_subscribed,
             "authors": patch.authors.all(),
             "reviewers": patch.reviewers.all(),
-            "committers": committers,
+            "committers": all_committers,
             "attachnow": "attachthreadnow" in request.GET,
             "title": patch.name,
             "breadcrumbs": [
@@ -987,14 +976,7 @@ def comment(request, patchid, what):
 @login_required
 @transaction.atomic
 def status(request, patchid, status):
-    patch = get_object_or_404(Patch.objects.select_related(), pk=patchid)
-    cf = patch.current_commitfest()
-    poc = get_object_or_404(
-        PatchOnCommitFest.objects.select_related(),
-        commitfest__id=cf.id,
-        patch__id=patchid,
-    )
-
+    # Active status only since those can be freely swapped between.
     if status == "review":
         newstatus = PatchOnCommitFest.STATUS_REVIEW
     elif status == "author":
@@ -1004,16 +986,13 @@ def status(request, patchid, status):
     else:
         raise Exception("Can't happen")
 
-    if newstatus != poc.status:
-        # Only save it if something actually changed
-        poc.status = newstatus
-        poc.patch.set_modified()
-        poc.patch.save()
-        poc.save()
+    poc = Workflow.get_poc_for_patchid_or_404(patchid)
 
-        PatchHistory(
-            patch=poc.patch, by=request.user, what="New status: %s" % poc.statusstring
-        ).save_and_notify()
+    try:
+        if (Workflow.updatePOCStatus(poc, newstatus, request.user)):
+            messages.info(request, "Updated status to %s" % poc.statusstring)
+    except Exception as e:
+        messages.error(request, "Failed to update status of patch: {}".format(e))
 
     return HttpResponseRedirect("/patch/%s/" % (poc.patch.id))
 
@@ -1021,47 +1000,32 @@ def status(request, patchid, status):
 @login_required
 @transaction.atomic
 def close(request, patchid, status):
-    patch = get_object_or_404(Patch.objects.select_related(), pk=patchid)
-    poc = patch.current_patch_on_commitfest()
+    poc = Workflow.get_poc_for_patchid_or_404(patchid)
+    committer = None
 
-    poc.leavedate = datetime.now()
-
-    # We know the status can't be one of the ones below, since we
-    # have checked that we're not closed yet. Therefor, we don't
-    # need to check if the individual status has changed.
+     # Inactive statuses only, except moved (next), which is handled by /transition
     if status == "reject":
-        poc.status = PatchOnCommitFest.STATUS_REJECTED
+        newstatus = PatchOnCommitFest.STATUS_REJECTED
     elif status == "withdrawn":
-        poc.status = PatchOnCommitFest.STATUS_WITHDRAWN
+        newstatus = PatchOnCommitFest.STATUS_WITHDRAWN
     elif status == "feedback":
-        poc.status = PatchOnCommitFest.STATUS_RETURNED
+        newstatus = PatchOnCommitFest.STATUS_RETURNED
     elif status == "committed":
         committer = get_object_or_404(Committer, user__username=request.GET["c"])
-        if committer != poc.patch.committer:
-            # Committer changed!
-            prevcommitter = poc.patch.committer
-            poc.patch.committer = committer
-            PatchHistory(
-                patch=poc.patch,
-                by=request.user,
-                what="Changed committer to %s" % committer,
-            ).save_and_notify(prevcommitter=prevcommitter)
-        poc.status = PatchOnCommitFest.STATUS_COMMITTED
+        newstatus = PatchOnCommitFest.STATUS_COMMITTED
     else:
         raise Exception("Can't happen")
 
-    poc.patch.set_modified()
-    poc.patch.save()
-    poc.save()
+    try:
+        if (committer):
+            Workflow.setCommitter(poc, committer, request.user)
+            messages.info(request, "Committed by %s" % committer.user)
+        if (Workflow.updatePOCStatus(poc, newstatus, request.user)):
+            messages.info(request, "Closed.  Updated status to %s" % poc.statusstring)
+    except Exception as e:
+        messages.error(request, "Failed to close patch: {}".format(e))
 
-    PatchHistory(
-        patch=poc.patch,
-        by=request.user,
-        what="Closed in commitfest %s with status: %s"
-        % (poc.commitfest, poc.statusstring),
-    ).save_and_notify()
-
-    return HttpResponseRedirect("/%s/%s/" % (poc.commitfest.id, poc.patch.id))
+    return HttpResponseRedirect("/patch/%s/" % poc.patch.id)
 
 
 @login_required
@@ -1073,7 +1037,7 @@ def transition(request, patchid):
         messages.error(request, "Unknown from commitfest id {}".format(request.GET.get("fromcfid", None)))
         return HttpResponseRedirect("/patch/%s/" % (patchid))
 
-    cur_poc = get_object_or_404(Patch.objects.select_related(), pk=patchid).current_patch_on_commitfest()
+    cur_poc = Workflow.get_poc_for_patchid_or_404(patchid)
 
     if from_cf != cur_poc.commitfest:
         messages.error(request, "Transition aborted, Redirect performed.  Commitfest for patch already changed.")
@@ -1124,33 +1088,28 @@ def reviewer(request, patchid, status):
 @login_required
 @transaction.atomic
 def committer(request, patchid, status):
-    patch = get_object_or_404(Patch, pk=patchid)
+    poc = Workflow.get_poc_for_patchid_or_404(patchid)
 
-    committer = list(Committer.objects.filter(user=request.user, active=True))
-    if len(committer) == 0:
+    find_me = list(Committer.objects.filter(user=request.user, active=True))
+    if len(find_me) == 0:
         return HttpResponseForbidden("Only committers can do that!")
-    committer = committer[0]
+    me = find_me[0]
 
-    is_committer = committer == patch.committer
+    # At this point it doesn't matter who the existing committer, if any, is.
+    # If someone else is one we are permitted to become the new one, then
+    # remove ourselves.  So removing them is acceptable, and desireable for admin.
+    # So we just need to know whether we are leaving the patch with ourselves
+    # as the commiter, or None.
+    if status == "become":
+        new_committer = me
+    elif status == "remove":
+        new_committer = None
 
-    prevcommitter = patch.committer
-    if status == "become" and not is_committer:
-        patch.committer = committer
-        patch.set_modified()
-        PatchHistory(
-            patch=patch,
-            by=request.user,
-            what="Added %s as committer" % request.user.username,
-        ).save_and_notify(prevcommitter=prevcommitter)
-    elif status == "remove" and is_committer:
-        patch.committer = None
-        patch.set_modified()
-        PatchHistory(
-            patch=patch,
-            by=request.user,
-            what="Removed %s from committers" % request.user.username,
-        ).save_and_notify(prevcommitter=prevcommitter)
-    patch.save()
+    # We could ignore a no-op become...but we expect the application to
+    # prevent such things on this particular interface.
+    if (not Workflow.setCommitter(poc, new_committer, request.user)):
+        raise Exception("Not expecting a no-op: toggling committer")
+
     return HttpResponseRedirect("../../")
 
 
