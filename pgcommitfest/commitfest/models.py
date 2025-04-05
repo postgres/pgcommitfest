@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 from datetime import datetime
@@ -178,13 +179,16 @@ class Patch(models.Model, DiffableModel):
         "authors": "authors_string",
         "reviewers": "reviewers_string",
     }
-
+    # XXX probably should just encourage using PoC.commitfest since most places
+    # dealing with the Patch need the PoC anyway.
     def current_commitfest(self):
-        return self.commitfests.order_by("-patchoncommitfest__enterdate").first()
+        return self.current_patch_on_commitfest().commitfest
 
     def current_patch_on_commitfest(self):
-        cf = self.current_commitfest()
-        return get_object_or_404(PatchOnCommitFest, patch=self, commitfest=cf)
+        # The unique partial index poc_enforce_maxoneoutcome_idx stores the PoC
+        # No caching here (inside the instance) since the caller should just need
+        # the PoC once per request.
+        return get_object_or_404(PatchOnCommitFest, Q(patch=self) & ~Q(status=PatchOnCommitFest.STATUS_NEXT))
 
     # Some accessors
     @property
