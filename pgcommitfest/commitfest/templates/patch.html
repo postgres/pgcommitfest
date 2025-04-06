@@ -1,7 +1,16 @@
 {%extends "base.html"%}
 {%load commitfest%}
 {%block contents%}
- {%include "patch_administrative.inc"%}
+ {%if user.is_staff %}
+  {%include "patch_administrative.inc"%}
+ {%endif%}
+
+ {%if not user.is_authenticated %}
+  <div>
+   Read-Only mode.  <a href="/account/login/?next={{request.path}}">Log in</a> to interact with this patch.
+  </div>
+ {%endif%}
+
  {%include "patch_workflow.inc"%}
 
  <div class="workflow">
@@ -18,7 +27,9 @@
       {%if patch.gitlink%}
        <a href="{{patch.gitlink}}">Git</a>
       {%endif%}
-      <a class="btn btn-default pull-right" href="edit/">Edit</a>
+      {%if user.is_authenticated %}
+       <a class="btn btn-default pull-right" href="edit/">Edit</a>
+      {%endif%}
      </td>
     </tr>
     <tr>
@@ -38,7 +49,9 @@
 
  <div>
   <button class="btn btn-default" data-toggle="collapse" data-target="#history-table">Toggle History Table</button>
-  <button class="btn btn-default" data-toggle="collapse" data-target="#keyvalue-table">Toggle Key-Value Table</button>
+  {%if user.is_authenticated %}
+   <button class="btn btn-default" data-toggle="collapse" data-target="#keyvalue-table">Toggle Key-Value Table</button>
+  {%endif%}
  </div>
 
  <div id="history-table" class="table table-bordered">
@@ -62,8 +75,9 @@
    </tbody>
   </table>
  </div>
-
+ {%if user.is_authenticated %}
 {%include "patch_table_keyvalue.inc"%}
+ {%endif%}
 
 {%comment%}commit dialog{%endcomment%}
  <div class="modal fade" id="commitModal" role="dialog">
