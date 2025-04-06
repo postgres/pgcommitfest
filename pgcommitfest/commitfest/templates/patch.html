@@ -21,6 +21,17 @@
       <a class="btn btn-default pull-right" href="edit/">Edit</a>
      </td>
     </tr>
+    <tr>
+     <th>Status</th>
+     <td>{%for c in patch_commitfests %}
+      <div style="margin-bottom: 3px;">
+       <a href="/{{c.commitfest.id}}/">{{c.commitfest}}</a>:
+       <span class="label label-{{c.status|patchstatuslabel}}">{{c.statusstring}}</span>
+       <span>({{c.enterdate}} to {%if c.leavedate%}{{c.leavedate}}{%else%}present{%endif%})</span>
+      </div>
+     {%endfor%}
+     </td>
+    </tr>
    </tbody>
   </table>
  </div>

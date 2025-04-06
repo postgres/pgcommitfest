@@ -3,10 +3,10 @@
  <table class="table table-bordered">
  <thead>
   <tr>
-  <th>Assign To</th>
-  <th>Annotate</th>
-  <th>Resolve</th>
-  <th>Move To</th>
+   <th>Assign To</th>
+   <th>Annotate</th>
+   <th>Resolve</th>
+   <th>Move To</th>
   </tr>
  </thead>
  <tbody>
@@ -78,12 +78,23 @@
 
   </td>
   </tr>
+
+  <tr>
+   <th>Author(s)</th>
+   <th>Reviewer(s)</th>
+   <th>Committer</th>
+   <th>Status</th>
+  </tr>
+
   <tr>
   <!-- Change -->
   <td>
    {%for author in authors %}
     <div>{{author.first_name}} {{author.last_name}}</div>
    {%endfor%}
+   {%if is_author or is_committer %}
+    <a class="btn btn-default " href="edit/">Edit Authors</a>
+   {%endif%}
   </td>
   <!-- Annotate -->
   <td>
