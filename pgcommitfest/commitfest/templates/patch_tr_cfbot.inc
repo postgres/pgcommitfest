@@ -1,6 +1,6 @@
 {%load commitfest%}
 <tr>
-<th>CFBot Status</th>
+ <th>CFBot Status</th>
  <td>
   {%if not cfbot_branch %}
    <span class="label label-default">Not processed</span></a>

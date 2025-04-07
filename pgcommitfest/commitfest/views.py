@@ -680,12 +680,16 @@ def patch(request, patchid):
     # XXX: this creates a session, so find a smarter way. Probably handle
     # it in the callback and just ask the user then?
     if request.user.is_authenticated:
-        is_committer, is_this_committer, all_committers = Workflow.isCommitter(request.user, patch)
+        is_committer, is_this_committer, all_committers = Workflow.isCommitter(
+            request.user, patch
+        )
         is_author = request.user in patch.authors.all()
         is_reviewer = request.user in patch.reviewers.all()
         is_subscribed = patch.subscribers.filter(id=request.user.id).exists()
     else:
-        is_committer, is_this_committer, all_committers = Workflow.isCommitter(None, None)
+        is_committer, is_this_committer, all_committers = Workflow.isCommitter(
+            None, None
+        )
         is_author = False
         is_reviewer = False
         is_subscribed = False
@@ -719,7 +723,7 @@ def patch(request, patchid):
                 "future": Workflow.future_cf(),
                 "progress": Workflow.inprogress_cf(),
                 "parked": Workflow.parked_cf(),
-            }
+            },
         },
     )
 
@@ -989,7 +993,7 @@ def status(request, patchid, status):
     poc = Workflow.get_poc_for_patchid_or_404(patchid)
 
     try:
-        if (Workflow.updatePOCStatus(poc, newstatus, request.user)):
+        if Workflow.updatePOCStatus(poc, newstatus, request.user):
             messages.info(request, "Updated status to %s" % poc.statusstring)
     except Exception as e:
         messages.error(request, "Failed to update status of patch: {}".format(e))
@@ -1003,7 +1007,7 @@ def close(request, patchid, status):
     poc = Workflow.get_poc_for_patchid_or_404(patchid)
     committer = None
 
-     # Inactive statuses only, except moved (next), which is handled by /transition
+    # Inactive statuses only, except moved (next), which is handled by /transition
     if status == "reject":
         newstatus = PatchOnCommitFest.STATUS_REJECTED
     elif status == "withdrawn":
@@ -1017,10 +1021,10 @@ def close(request, patchid, status):
         raise Exception("Can't happen")
 
     try:
-        if (committer):
+        if committer:
             Workflow.setCommitter(poc, committer, request.user)
             messages.info(request, "Committed by %s" % committer.user)
-        if (Workflow.updatePOCStatus(poc, newstatus, request.user)):
+        if Workflow.updatePOCStatus(poc, newstatus, request.user):
             messages.info(request, "Closed.  Updated status to %s" % poc.statusstring)
     except Exception as e:
         messages.error(request, "Failed to close patch: {}".format(e))
@@ -1034,24 +1038,37 @@ def transition(request, patchid):
     from_cf = Workflow.getCommitfest(request.GET.get("fromcfid", None))
 
     if from_cf is None:
-        messages.error(request, "Unknown from commitfest id {}".format(request.GET.get("fromcfid", None)))
+        messages.error(
+            request,
+            "Unknown from commitfest id {}".format(request.GET.get("fromcfid", None)),
+        )
         return HttpResponseRedirect("/patch/%s/" % (patchid))
 
     cur_poc = Workflow.get_poc_for_patchid_or_404(patchid)
 
     if from_cf != cur_poc.commitfest:
-        messages.error(request, "Transition aborted, Redirect performed.  Commitfest for patch already changed.")
+        messages.error(
+            request,
+            "Transition aborted, Redirect performed.  Commitfest for patch already changed.",
+        )
         return HttpResponseRedirect("/patch/%s/" % (cur_poc.patch.id))
 
     target_cf = Workflow.getCommitfest(request.GET.get("tocfid", None))
 
     if target_cf is None:
-        messages.error(request, "Unknown destination commitfest id {}".format(request.GET.get("tocfid", None)))
+        messages.error(
+            request,
+            "Unknown destination commitfest id {}".format(
+                request.GET.get("tocfid", None)
+            ),
+        )
         return HttpResponseRedirect("/patch/%s/" % (cur_poc.patch.id))
 
     try:
         new_poc = Workflow.transitionPatch(cur_poc, target_cf, request.user)
-        messages.info(request, "Transitioned patch to commitfest %s" % new_poc.commitfest.name)
+        messages.info(
+            request, "Transitioned patch to commitfest %s" % new_poc.commitfest.name
+        )
     except Exception as e:
         messages.error(request, "Failed to transition patch: {}".format(e))
         return HttpResponseRedirect("/patch/%s/" % (cur_poc.patch.id))
@@ -1107,7 +1124,7 @@ def committer(request, patchid, status):
 
     # We could ignore a no-op become...but we expect the application to
     # prevent such things on this particular interface.
-    if (not Workflow.setCommitter(poc, new_committer, request.user)):
+    if not Workflow.setCommitter(poc, new_committer, request.user):
         raise Exception("Not expecting a no-op: toggling committer")
 
     return HttpResponseRedirect("../../")

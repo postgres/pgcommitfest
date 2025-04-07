@@ -1,5 +1,6 @@
 from django.db import migrations
 
+
 class Migration(migrations.Migration):
     dependencies = [
         ("commitfest", "0010_add_failing_since_column"),
@@ -10,19 +11,16 @@ CREATE UNIQUE INDEX cf_enforce_maxoneopen_idx
 ON commitfest_commitfest (status)
 WHERE status not in (4);
 """),
-
         migrations.RunSQL("""
 CREATE UNIQUE INDEX poc_enforce_maxoneoutcome_idx
 ON commitfest_patchoncommitfest (patch_id)
 WHERE status not in (5);
 """),
-
         migrations.RunSQL("""
 ALTER TABLE commitfest_patchoncommitfest
 ADD CONSTRAINT status_and_leavedate_correlation
 CHECK ((status IN (4,5,6,7,8)) = (leavedate IS NOT NULL));
 """),
-
         migrations.RunSQL("""
 COMMENT ON COLUMN commitfest_patchoncommitfest.leavedate IS
 $$A leave date is recorded in two situations, both of which
@@ -31,7 +29,6 @@ on the corresponding date.  For status 5 the patch was moved
 to some other cf.  For 4,6,7, and 8, this was the final cf.
 $$
 """),
-
         migrations.RunSQL("""
 COMMENT ON TABLE commitfest_patchoncommitfest IS
 $$This is a re-entrant table: patches may become associated

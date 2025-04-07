@@ -189,7 +189,9 @@ class Patch(models.Model, DiffableModel):
         # The unique partial index poc_enforce_maxoneoutcome_idx stores the PoC
         # No caching here (inside the instance) since the caller should just need
         # the PoC once per request.
-        return get_object_or_404(PatchOnCommitFest, Q(patch=self) & ~Q(status=PatchOnCommitFest.STATUS_NEXT))
+        return get_object_or_404(
+            PatchOnCommitFest, Q(patch=self) & ~Q(status=PatchOnCommitFest.STATUS_NEXT)
+        )
 
     # Some accessors
     @property
@@ -560,9 +562,10 @@ class CfbotTask(models.Model):
 # the workflow this application is built for.  These elements exist
 # independent of what the user is presently seeing on their page.
 class Workflow(models.Model):
-
     def get_poc_for_patchid_or_404(patchid):
-        return get_object_or_404(Patch.objects.select_related(), pk=patchid).current_patch_on_commitfest()
+        return get_object_or_404(
+            Patch.objects.select_related(), pk=patchid
+        ).current_patch_on_commitfest()
 
     # At most a single Open CommitFest is allowed and this function returns it.
     def open_cf():
@@ -603,9 +606,8 @@ class Workflow(models.Model):
             is_committer = is_this_committer = False
         return is_committer, is_this_committer, all_committers
 
-
     def getCommitfest(cfid):
-        if (cfid is None or cfid == ""):
+        if cfid is None or cfid == "":
             return None
         try:
             int_cfid = int(cfid)
@@ -624,7 +626,7 @@ class Workflow(models.Model):
         poc, created = PatchOnCommitFest.objects.update_or_create(
             patch=patch,
             commitfest=commitfest,
-            defaults = dict(
+            defaults=dict(
                 enterdate=datetime.now(),
                 status=initial_status,
                 leavedate=None,
@@ -635,10 +637,9 @@ class Workflow(models.Model):
         poc.save()
 
         PatchHistory(
-            patch=poc.patch, by=by_user,
-            what="{} in {}".format(
-                poc.statusstring,
-                commitfest.name)
+            patch=poc.patch,
+            by=by_user,
+            what="{} in {}".format(poc.statusstring, commitfest.name),
         ).save_and_notify()
 
         return poc
@@ -659,16 +660,9 @@ class Workflow(models.Model):
         # not allowed to change non-current commitfest status
         # and once the new POC is created it becomes current.
 
-        Workflow.updatePOCStatus(
-            poc,
-            PatchOnCommitFest.STATUS_NEXT,
-            by_user)
+        Workflow.updatePOCStatus(poc, PatchOnCommitFest.STATUS_NEXT, by_user)
 
-        new_poc = Workflow.createNewPOC(
-            poc.patch,
-            target_cf,
-            existing_status,
-            by_user)
+        new_poc = Workflow.createNewPOC(poc.patch, target_cf, existing_status, by_user)
 
         return new_poc
 
@@ -702,7 +696,7 @@ class Workflow(models.Model):
         # Prevent users from moving closed patches, or moving open ones to
         # non-open, non-future commitfests.  The else clause should be a
         # can't happen.
-        if (poc.is_open and (target_cf.isopen or target_cf.isfuture)):
+        if poc.is_open and (target_cf.isopen or target_cf.isfuture):
             pass
         else:
             # Default deny policy basis
@@ -723,7 +717,10 @@ class Workflow(models.Model):
         # We want commits to happen from, usually, In Progress commitfests,
         # or Open ones for exempt patches.  We accept Future ones too just because
         # they do represent a proper, if non-current, Commitfest.
-        if poc.commitfest.id == CommitFest.STATUS_PARKED and new_status == PatchOnCommitFest.STATUS_COMMITTED:
+        if (
+            poc.commitfest.id == CommitFest.STATUS_PARKED
+            and new_status == PatchOnCommitFest.STATUS_COMMITTED
+        ):
             raise Exception("Cannot change status to committed in a parked commitfest.")
 
         # We trust privileged users to make informed choices
@@ -743,7 +740,10 @@ class Workflow(models.Model):
         if new_status == PatchOnCommitFest.STATUS_RETURNED and not is_committer:
             raise Exception("Only a committer can set status to returned.")
 
-        if new_status == PatchOnCommitFest.STATUS_WITHDRAWN and not user in poc.patch.authors.all():
+        if (
+            new_status == PatchOnCommitFest.STATUS_WITHDRAWN
+            and user not in poc.patch.authors.all()
+        ):
             raise Exception("Only the author can set status to withdrawn.")
 
         # Prevent users from modifying closed patches
@@ -753,13 +753,12 @@ class Workflow(models.Model):
         else:
             raise Exception("Cannot change status of closed patch.")
 
-
     # Update the status of a PoC
     # Returns True if the status was changed, False for a same-status no-op.
     # Creates history and notifies as a side-effect.
     def updatePOCStatus(poc, new_status, by_user):
         # XXX Workflow disallows this no-op but not quite ready to enforce it.
-        if (poc.status == new_status):
+        if poc.status == new_status:
             return False
 
         Workflow.userCanChangePOCStatus(poc, new_status, by_user)
@@ -770,11 +769,12 @@ class Workflow(models.Model):
         poc.patch.save()
         poc.save()
         PatchHistory(
-            patch=poc.patch, by=by_user,
+            patch=poc.patch,
+            by=by_user,
             what="{} in {}".format(
                 poc.statusstring,
                 poc.commitfest.name,
-                ),
+            ),
         ).save_and_notify()
 
         return True
@@ -783,7 +783,7 @@ class Workflow(models.Model):
     # Returns True if the committer was changed, False for a same-committer no-op.
     # Creates history and notifies as a side-effect.
     def setCommitter(poc, committer, by_user):
-        if (poc.patch.committer == committer):
+        if poc.patch.committer == committer:
             return False
 
         prevcommitter = poc.patch.committer
@@ -793,14 +793,21 @@ class Workflow(models.Model):
         poc.save()
 
         if committer is None:
-            msg = "Removed {} as committer in {}".format(prevcommitter.fullname, poc.commitfest.name)
+            msg = "Removed {} as committer in {}".format(
+                prevcommitter.fullname, poc.commitfest.name
+            )
         elif prevcommitter is None:
-            msg = "Set {} as committer in {}".format(poc.patch.committer.fullname, poc.commitfest.name)
+            msg = "Set {} as committer in {}".format(
+                poc.patch.committer.fullname, poc.commitfest.name
+            )
         else:
-            msg = "Changed to {} as committer in {}".format(poc.patch.committer.fullname, poc.commitfest.name)
+            msg = "Changed to {} as committer in {}".format(
+                poc.patch.committer.fullname, poc.commitfest.name
+            )
 
         PatchHistory(
-            patch=poc.patch, by=by_user,
+            patch=poc.patch,
+            by=by_user,
             what=msg,
         ).save_and_notify(prevcommitter=prevcommitter)
 

@@ -28,28 +28,28 @@
       <li role="presentation">
        <a
         href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.future.id}}">
-       {{workflow.future.name}}</a>
+        {{workflow.future.name}}</a>
       </li>
      {%endif%}
      {%if not cf.isopen and workflow.open %}
       <li role="presentation">
        <a
         href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.open.id}}">
-       {{workflow.open.name}}</a>
+        {{workflow.open.name}}</a>
       </li>
      {%endif%}
      {%if not cf.isinprogress and workflow.progress %}
       <li role="presentation">
        <a
         href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.progress.id}}">
-       {{workflow.progress.name}}</a>
+        {{workflow.progress.name}}</a>
       </li>
      {%endif%}
      {%if not cf.isparked and workflow.parked %}
       <li role="presentation">
        <a
         href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.parked.id}}">
-       {{workflow.parked.name}}</a>
+        {{workflow.parked.name}}</a>
       </li>
      {%endif%}
     </ul>
