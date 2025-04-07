@@ -42,10 +42,10 @@ class CommitFest(models.Model):
     STATUS_PARKED = 5
     _STATUS_CHOICES = (
         (STATUS_FUTURE, "Future"),
-        (STATUS_OPEN, "Open"),
-        (STATUS_INPROGRESS, "In Progress"),
+        (STATUS_OPEN, "Bugs"),
+        (STATUS_INPROGRESS, "Ongoing"),
         (STATUS_CLOSED, "Closed"),
-        (STATUS_PARKED, "Parked"),
+        (STATUS_PARKED, "Drafts"),
     )
     _STATUS_LABELS = (
         (STATUS_FUTURE, "default"),
@@ -255,13 +255,13 @@ class PatchOnCommitFest(models.Model):
     STATUS_RETURNED = 7
     STATUS_WITHDRAWN = 8
     _STATUS_CHOICES = (
-        (STATUS_REVIEW, "Needs review"),
+        (STATUS_REVIEW, "Needs Review"),
         (STATUS_AUTHOR, "Waiting on Author"),
         (STATUS_COMMITTER, "Ready for Committer"),
         (STATUS_COMMITTED, "Committed"),
-        (STATUS_NEXT, "Moved to next CF"),
+        (STATUS_NEXT, "Moved"),
         (STATUS_REJECTED, "Rejected"),
-        (STATUS_RETURNED, "Returned with feedback"),
+        (STATUS_RETURNED, "Returned with Feedback"),
         (STATUS_WITHDRAWN, "Withdrawn"),
     )
     _STATUS_LABELS = (

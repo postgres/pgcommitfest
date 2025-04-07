@@ -106,13 +106,13 @@
      <div>{{reviewer.first_name}} {{reviewer.last_name}}</div>
     {%endfor%}
     {%if user.is_authenticated %}
-     <div><a href="reviewer/{{is_reviewer|yesno:"remove,become"}}/" class="btn btn-default">{{is_reviewer|yesno:"Remove from reviewers,Become reviewer"}}</a></div>
+     <div><a href="reviewer/{{is_reviewer|yesno:"remove,become"}}/" class="btn btn-default">{{is_reviewer|yesno:"Remove Self,Become Reviewer"}}</a></div>
     {%endif%}
    </td>
    <!-- Resolve -->
    <td>
     {%if patch.committer%}<div>{{patch.committer.fullname}}</div>{%endif%}
-    {%if is_committer%}<div><a href="committer/{{is_this_committer|yesno:"remove,become"}}/" class="btn btn-default">{{is_this_committer|yesno:"Unclaim as committer,Claim as committer"}}</a></div>{%endif%}
+    {%if is_committer%}<div><a href="committer/{{is_this_committer|yesno:"remove,become"}}/" class="btn btn-default">{{is_this_committer|yesno:"Unclaim,Claim for Self"}}</a></div>{%endif%}
    </td>
    <!-- Move -->
    <td>

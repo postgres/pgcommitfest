@@ -15,10 +15,10 @@
  after which they are "Closed" and a new bin for the same category is created.
  Each bin serves a role in the workflow and there are 4 active categories of bins.
  <ul>
-  <li>Open - annual, all bug reports</li>
-  <li>Parked - annual, drafts for new features</li>
-  <li>Future - scheduled, proposed new features</li>
-  <li>In Progress - scheduled, review and commit new features</li>
+  <li>Bugs - annual, all bug reports</li>
+  <li>Drafts - annual, drafts for new features</li>
+  <li>Next - scheduled, proposed new features</li>
+  <li>Ongoing - scheduled, review and commit new features</li>
  </ul>
 There are three active categories of patch status covering the four statuses.
  <ul>
@@ -36,34 +36,34 @@ been resolved, either by being committed or not.
 (See notes below for all available statuses and their intended usage.)
 </p>
 <p>
- The patches in the open bin are all of type "bug fix".  The full lifecycle of
+ The patches in the bugs bin are all of type "bug fix".  The full lifecycle of
  a bux fix patch lives here and there is no distinction as to the nature of the
  reviewer category.  The remaining bins exist to help deal with the large volume
  of new feature patches.
 </p>
 <p>
- The parked bin is where patches waiting on significant work go.  A reviewer
+ The drafts bin is where patches waiting on significant work go.  A reviewer
  patch status category here mainly means awaiting guidance, though that will
  often lead to a final review, allowing the patch to be moved to the future bin
  with the committer patch status category already set.
 </p>
 <p>
- The future and in progress bins are the ones that strictly comprise a commitfest.
+ The future and ongoing bins are the ones that strictly comprise a commitfest.
  The future bin always exists and new features ready for review and commit go
- here.  At scheduled points, the future bin becomes an in progress bin and a new
+ here.  At scheduled points, the future bin becomes an ongoing bin and a new
  future bin is created.
 </p>
 <p>
- The in progress bin only exists during an active commitfest period, during which
+ The ongoing bin only exists during an active commitfest period, during which
  no new patches should be added and the community reviewers and committers are
  encouraged to focus on reviews and commits.  At the end of the scheduled period
  the bin is closed.  This is only bin that is not present at all times.
 </p>
 <p>
  The workflow is also designed with the release cycle in mind, in particular
- the start of the annual feature freeze period.  At this time both the parked
- and open bins are closed and new ones created.  If the feature freeze is for
- version 18 then the new parked bin is called "Drafts v19" and the new open
+ the start of the annual feature freeze period.  At this time both the drafts
+ and bugs bins are closed and new ones created.  If the feature freeze is for
+ version 18 then the new drafts bin is called "Drafts v19" and the new bugs
  bin is named "Bugs v18".
 </p>
 <h3>Patches on Commitfests (PoC)</h3>
@@ -178,7 +178,7 @@ been resolved, either by being committed or not.
  of a patch to be keyed to commitfest status type without the need for further
  disambiguation.
 </p>
-<h4>In Progress</h4>
+<h4>Ongoing</h4>
 <p>
  An Active (see Workflow above) period where no new features should be added
  and the goal is to get as many review"patches committed as possible.
@@ -186,23 +186,23 @@ been resolved, either by being committed or not.
 <h4>Future</h4>
 <p>
  The next active (see workflow above) period.
- Any patch not exempted to be added to the in progress or open commitfests
+ Any patch not exempted to be added to the ongoing or bugs commitfests
  can always be added here.
 </p>
-<h4>Open</h4>
+<h4>Bugs</h4>
 <p>
  A commitfest for high-priority and bug fix patches.  Full patch lifecycle.
  Created as "Bugs v18" at the start of the v18 feature freeze period (closing
  "Bugs v17").
 </p>
-<h4>Parked</h4>
+<h4>Drafts</h4>
 <p>
- The commitfest setup as parked is used to hold patches that are not intended
+ The commitfest setup as drafts is used to hold patches that are not intended
  to be formally reviewed and committed.  Another term is "work-in-progress" (WIP).
  Within the Workflow, at the start of the v18 feature freeze, the existing
  "Draft v18" commitfest is closed and a new "Draft v19" commitfest is created.
  This allows for a fresh start coinciding with the project release cycle.
- And while commits cannot accumulate within a parked commitfest, withdrawn and
+ And while commits cannot accumulate within a drafts commitfest, withdrawn and
  rejected patches would and so having a truly never-closing commitfest is not
  ideal.  Similarly, given the volume of patches, getting rid of abandonment
  is counter-productive.  This workflow provides a middle-ground between
@@ -210,8 +210,8 @@ been resolved, either by being committed or not.
 </p>
 <h4>Closed</h4>
 <p>
- Parked, open and in progress commitfests are closed (future ones
- always go through in progress) when the period they cover has passed.
+ Drafts, bugs and ongoing commitfests are closed (future ones
+ always go through ongoing) when the period they cover has passed.
  Closing a commitfest does not impact its related PoCs; though no new PoCs can
  be created for a closed commitfest.
 </p>
