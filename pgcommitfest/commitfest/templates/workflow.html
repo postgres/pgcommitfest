@@ -3,9 +3,14 @@
  <h2>Key Concepts</h2>
  <h3>The Commitfest Workflow</h3>
  <p>
-  The commitfest workflow is a model for patch writing management.
-  There are a could of ways to classify patches.  First, they can be introducing
-  new features or fixing existing bugs (type).  Second, they can be awaiting changes,
+  The commitfest workflow is a model for patch writing management.  The workflow
+  is designed to manage new feature patches.  Bug fixes are typically handled
+  without the overhead of creating patches in the Commitfest application.
+  Thus the worflow broadly separates patches into "drafts" and
+  "potentially committable".  The former go onto the "Drafts v19" commitfest
+  while the later are initially placed into the open commitfest, which is
+  eventually converted into the ongoing commitfest.
+  Second, they can be awaiting changes,
   awaiting guidance, awaiting review, or waiting to be committed (status).
   The workflow uses commitfests and patch status in combination to communicate
   the overall state of the patch within these two categories.
@@ -13,11 +18,10 @@
  <p>
   Commitfests are just bins filled with patches.  Bins have a defined lifespan
   after which they are "Closed" and a new bin for the same category is created.
-  Each bin serves a role in the workflow and there are 4 active categories of bins.
+  Each bin serves a role in the workflow and there are 3 active categories of bins.
   <ul>
-   <li>Bugs - annual, all bug reports</li>
    <li>Drafts - annual, drafts for new features</li>
-   <li>Next - scheduled, proposed new features</li>
+   <li>Open - scheduled, proposed new features</li>
    <li>Ongoing - scheduled, review and commit new features</li>
   </ul>
   There are three active categories of patch status covering the four statuses.
@@ -36,22 +40,16 @@
   (See notes below for all available statuses and their intended usage.)
  </p>
  <p>
-  The patches in the bugs bin are all of type "bug fix".  The full lifecycle of
-  a bux fix patch lives here and there is no distinction as to the nature of the
-  reviewer category.  The remaining bins exist to help deal with the large volume
-  of new feature patches.
- </p>
- <p>
   The drafts bin is where patches waiting on significant work go.  A reviewer
   patch status category here mainly means awaiting guidance, though that will
-  often lead to a final review, allowing the patch to be moved to the future bin
+  often lead to a final review, allowing the patch to be moved to the open bin
   with the committer patch status category already set.
  </p>
  <p>
-  The future and ongoing bins are the ones that strictly comprise a commitfest.
-  The future bin always exists and new features ready for review and commit go
-  here.  At scheduled points, the future bin becomes an ongoing bin and a new
-  future bin is created.
+  The open and ongoing bins are the ones that strictly comprise a commitfest.
+  The open bin always exists and new features ready for review and commit go
+  here.  At scheduled points, the open bin becomes an ongoing bin and a new
+  open bin is created (possibly by reclassifying an existing future bin).
  </p>
  <p>
   The ongoing bin only exists during an active commitfest period, during which
@@ -60,11 +58,10 @@
   the bin is closed.  This is only bin that is not present at all times.
  </p>
  <p>
-  The workflow is also designed with the release cycle in mind, in particular
-  the start of the annual feature freeze period.  At this time both the drafts
-  and bugs bins are closed and new ones created.  If the feature freeze is for
-  version 18 then the new drafts bin is called "Drafts v19" and the new bugs
-  bin is named "Bugs v18".
+  The workflow is designed with the release cycle in mind, in particular
+  the start of the annual feature freeze period.  At this time the drafts
+  bin is closed and a new one is created.  If the feature freeze is for
+  version 18 then the new drafts bin is called "Drafts v19".
  </p>
  <h3>Patches on Commitfests (PoC)</h3>
  <h4>Overview</h4>
@@ -112,7 +109,7 @@
   A Rejected patch has the same effect as Withdrawn but communicates that the
   community, not the author, made the status change.  This should only be used
   when it is when the author is unable or unwilling to withdraw the patch or park
-  it for future rework.
+  it for rework.
  </p>
  <p>
   *Returned With Feedback complements rejected in that the implication of rejected
@@ -123,9 +120,10 @@
   leaves reject as the fallback non-commit option and makes returned a deprecated
   administrator-only option.
  </p>
+ <h3>Special PoC Situations</h3>
  <h4>Moved</h4>
  <p>
-  Moved PoCs are a side-effect of having commitfest, and volume.  Many active
+  Moved PoCs are a side-effect of having commitfests, and volume.  Many active
   patches cannot be gotten to within a commitfest.  In order to keep them visible
   they must be moved to another commitfest, creating a new PoC with the same
   state.  The PoC they were moved from is updated to "Moved" to indicate this
@@ -136,6 +134,14 @@
   This check returns true if the PoC state is in the set of active states
   but the commitfest is closed.  Conceptually, this is the same as
   withdrawn, but through inaction.
+ </p>
+ <h3>Reverted Patches</h3>
+ <p>
+  Not every patch that is committed stays that way.  The Workflow doesn't have
+  any statuses for this, though the user interface does provide an action that
+  a committer can invoke.  Upon doing so the PoC status is updated to
+  author.  The history flow of commited followed by author indictes a probable
+  revert.
  </p>
  <h3>Patches</h3>
  <h4>Overview</h4>
@@ -183,17 +189,21 @@
   An Active (see Workflow above) period where no new features should be added
   and the goal is to get as many review"patches committed as possible.
  </p>
+ <h4>Open</h4>
+ <p>
+  Patches ready for final review and commit, according to the author, are placed
+  in the current open commitfest.  Upon the scheduled start date it is manually
+  updated to be an ongoing commitfest, at which point no new patches should be
+  added.
+ </p>
  <h4>Future</h4>
  <p>
-  The next active (see workflow above) period.
-  Any patch not exempted to be added to the ongoing or bugs commitfests
-  can always be added here.
- </p>
- <h4>Bugs</h4>
- <p>
-  A commitfest for high-priority and bug fix patches.  Full patch lifecycle.
-  Created as "Bugs v18" at the start of the v18 feature freeze period (closing
-  "Bugs v17").
+  The PostgreSQL project works on a schedule release cycle.  At the beginning
+  of each cycle the planned commitfest periods are decided and communicated to
+  the community via the creation of future commitfests.  While classified as
+  future these commitfests are not permitted to associated with any patches.
+  Their classification is changed to open as each prior ongoing commitfest
+  closes.
  </p>
  <h4>Drafts</h4>
  <p>
@@ -210,7 +220,7 @@
  </p>
  <h4>Closed</h4>
  <p>
-  Drafts, bugs and ongoing commitfests are closed (future ones
+  Drafts and ongoing commitfests are closed (open ones
   always go through ongoing) when the period they cover has passed.
   Closing a commitfest does not impact its related PoCs; though no new PoCs can
   be created for a closed commitfest.

@@ -42,7 +42,7 @@ class CommitFest(models.Model):
     STATUS_PARKED = 5
     _STATUS_CHOICES = (
         (STATUS_FUTURE, "Future"),
-        (STATUS_OPEN, "Bugs"),
+        (STATUS_OPEN, "Open"),
         (STATUS_INPROGRESS, "Ongoing"),
         (STATUS_CLOSED, "Closed"),
         (STATUS_PARKED, "Drafts"),
@@ -84,10 +84,6 @@ class CommitFest(models.Model):
     @property
     def isopen(self):
         return self.status == self.STATUS_OPEN
-
-    @property
-    def isfuture(self):
-        return self.status == self.STATUS_FUTURE
 
     @property
     def isinprogress(self):
@@ -300,6 +296,14 @@ class PatchOnCommitFest(models.Model):
     @property
     def is_open(self):
         return not self.is_closed
+
+    @property
+    def is_committed(self):
+        return self.status == self.STATUS_COMMITTED
+
+    @property
+    def is_committer(self):
+        return self.status == self.STATUS_COMMITTER
 
     @property
     def statusstring(self):
@@ -572,11 +576,6 @@ class Workflow(models.Model):
         cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
         return cfs[0] if len(cfs) == 1 else None
 
-    # At most a single Future CommitFest is allowed and this function returns it.
-    def future_cf():
-        cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_FUTURE))
-        return cfs[0] if len(cfs) == 1 else None
-
     # At most a single In Progress CommitFest is allowed and this function returns it.
     def inprogress_cf():
         cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
@@ -694,9 +693,8 @@ class Workflow(models.Model):
             raise Exception("Cannot transition to an in-progress commitfest.")
 
         # Prevent users from moving closed patches, or moving open ones to
-        # non-open, non-future commitfests.  The else clause should be a
-        # can't happen.
-        if poc.is_open and (target_cf.isopen or target_cf.isfuture):
+        # non-open commitfests.  The else clause should be a can't happen.
+        if poc.is_open and target_cf.isopen:
             pass
         else:
             # Default deny policy basis

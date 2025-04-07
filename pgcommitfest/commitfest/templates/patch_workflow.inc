@@ -32,12 +32,19 @@
     <!-- Resolve -->
      <td>
       {%if is_committer or is_author %}
-       {%if is_committer %}
-        <a class="btn btn-default" href="close/committed/" onclick="return flagCommitted({%if patch.committer%}'{{patch.committer}}'{%elif is_committer%}'{{user.username}}'{%else%}null{%endif%})">Commit</a>
+       {%if is_committer and poc.is_open %}
+        {%if not poc.isparked and poc.is_committer %}
+         <a class="btn btn-default" href="close/committed/" onclick="return flagCommitted({%if patch.committer%}'{{patch.committer}}'{%elif is_committer%}'{{user.username}}'{%else%}null{%endif%})">Commit</a>
+        {%endif%}
         <a class="btn btn-default" href="close/reject/" onclick="return verify_reject()">Reject</a>
        {%endif%}
        {%if is_author %}
         <a class="btn btn-default" href="close/withdrawn/" onclick="return verify_withdrawn()">Withdraw</a>
+       {%endif%}
+       {%if is_committer and not poc.is_open %}
+        <a class="btn btn-default" href="status/author/">
+         {{poc.is_committed|yesno:"Revert,Re-Open"}}
+        </a>
        {%endif%}
       {%else%}
        <span>No Actions Available</span>
@@ -45,38 +52,33 @@
      </td>
     <!-- Move -->
      <td>
-      {%if not cf.isfuture and workflow.future %}
-       {%if True %}
-        <a class="btn btn-default"
-           href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.future.id}}">
-         {{workflow.future.name}}</a>
+      {%if poc.is_open %}
+       {%if not cf.isopen and workflow.open %}
+        {%if is_author or is_committer %}
+         <a class="btn btn-default"
+            href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.open.id}}">
+          {{workflow.open.name}}</a>
+        {%endif%}
        {%endif%}
-      {%endif%}
 
-      {%if not cf.isopen and workflow.open %}
-       {%if is_committer %}
-        <a class="btn btn-default"
-           href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.open.id}}">
-         {{workflow.open.name}}</a>
+       {%if not cf.isinprogress and workflow.progress %}
+        {%if is_committer %}
+         <a class="btn btn-default"
+            href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.progress.id}}">
+          {{workflow.progress.name}}</a>
+        {%endif%}
        {%endif%}
-      {%endif%}
 
-      {%if not cf.isinprogress and workflow.progress %}
-       {%if is_committer %}
-        <a class="btn btn-default"
-           href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.progress.id}}">
-         {{workflow.progress.name}}</a>
+       {%if not cf.isparked and workflow.parked %}
+        {%if is_author %}
+         <a class="btn btn-default"
+            href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.parked.id}}">
+          {{workflow.parked.name}}</a>
+        {%endif%}
        {%endif%}
+      {%else%}
+       <span>Cannot move closed patches.</span>
       {%endif%}
-
-      {%if not cf.isparked and workflow.parked %}
-       {%if is_author %}
-        <a class="btn btn-default"
-           href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.parked.id}}">
-         {{workflow.parked.name}}</a>
-       {%endif%}
-      {%endif%}
-
      </td>
     </tr>
    </tbody>

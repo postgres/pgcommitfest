@@ -720,7 +720,6 @@ def patch(request, patchid):
             "userprofile": getattr(request.user, "userprofile", UserProfile()),
             "workflow": {
                 "open": Workflow.open_cf(),
-                "future": Workflow.future_cf(),
                 "progress": Workflow.inprogress_cf(),
                 "parked": Workflow.parked_cf(),
             },

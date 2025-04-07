@@ -24,13 +24,6 @@
      <li role="presentation"><a href="close/committed/" onclick="return flagCommitted({%if patch.committer%}'{{patch.committer}}'{%elif is_committer%}'{{user.username}}'{%else%}null{%endif%})">Commit</a></li>
      <li role="presentation" class="divider"></li>
      <li role="presentation" class="dropdown-header">Move To:</li>
-     {%if not cf.isfuture and workflow.future %}
-      <li role="presentation">
-       <a
-        href="transition/?fromcfid={{poc.commitfest.id}}&tocfid={{workflow.future.id}}">
-        {{workflow.future.name}}</a>
-      </li>
-     {%endif%}
      {%if not cf.isopen and workflow.open %}
       <li role="presentation">
        <a
