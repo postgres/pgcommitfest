@@ -120,20 +120,24 @@
      <span class="label label-{{poc.commitfest.status|patchstatuslabel}}">{{poc.commitfest.statusstring}}</span>
      <span class="label label-{{poc.status|patchstatuslabel}}">{{poc.statusstring}}</span>
      <span>
-      {%if user.is_authenticated%}<a href="edit/">{%endif%}
-      Version{%if user.is_authenticated%}</a>{%endif%}:
+      Version:
      </span>
      <span class="label label-default">{%if patch.targetversion%}{{patch.targetversion}}{%else%}N/A{%endif%}</span>
+     {%if user.is_authenticated %}
+      <a href="edit/" class="glyphicon glyphicon-edit"></a>
+     {%endif%}
      {%if user.is_authenticated %}
       <span class="pull-right">Updates: <a href="{{is_subscribed|yesno:"unsubscribe,subscribe"}}/" class="btn btn-default">{{is_subscribed|yesno:"Unsubscribe,Subscribe"}}</a></span>
      {%endif%}
     </div>
     <div>
      <span>
-      {%if user.is_authenticated%}<a href="edit/">{%endif%}
-      Topic{%if user.is_authenticated%}</a>{%endif%}:
+      Topic:
      </span>
      <span>{{ patch.topic }}</span>
+     {%if user.is_authenticated %}
+      <a href="edit/" class="glyphicon glyphicon-edit"></a>
+     {%endif%}
     </div>
     <div>
      <span>Last Modified:</span> <span>{{patch.modified}} ({% cfwhen patch.modified %})</span>
