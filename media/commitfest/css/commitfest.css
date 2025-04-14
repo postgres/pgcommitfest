@@ -91,3 +91,86 @@ div.form-group div.controls input.threadpick-input {
 .search-bar {
     display: inline-block;
 }
+
+/* Header styling */
+#workflow-transitions-header {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 20px;
+    color: #333;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+}
+
+/* Table styling */
+#workflow-transitions-table {
+    width: 100%;
+    max-width: 500px; /* Updated max-width */
+    border-collapse: collapse;
+    margin: 20px 0; /* Remove centering */
+    font-size: 16px;
+    text-align: left;
+}
+
+#workflow-transitions-table th,
+#workflow-transitions-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    width: 25%; /* Ensure all columns have the same width */
+    text-align: center; /* Center-align cell labels */
+}
+
+#workflow-transitions-table th {
+    background-color: #f4f4f4;
+    color: #333;
+    font-weight: bold;
+    text-align: center;
+}
+
+#workflow-transitions-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#workflow-transitions-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+#workflow-schedule-table {
+    width: 100%;
+    max-width: 800px;
+    border-collapse: collapse;
+    margin: 20px 0; /* Remove centering */
+    font-size: 16px;
+    text-align: left;
+}
+
+#workflow-schedule-table th,
+#workflow-schedule-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center; /* Center-align cell labels */
+}
+
+#workflow-schedule-table td {
+    width: 15%; /* First four columns */
+}
+
+#workflow-schedule-table td:nth-child(5),
+#workflow-schedule-table td:nth-child(6) {
+    width: 20%; /* Last two columns */
+}
+
+#workflow-schedule-table th {
+    background-color: #f4f4f4;
+    color: #333;
+    font-weight: bold;
+    text-align: center;
+}
+
+#workflow-schedule-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#workflow-schedule-table tr:hover {
+    background-color: #f1f1f1;
+}

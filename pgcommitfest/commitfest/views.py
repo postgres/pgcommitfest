@@ -66,6 +66,26 @@ def home(request):
     )
 
 
+def workflow(request):
+    return render(
+        request,
+        "workflow.html",
+        {
+            "title": "Commitfest Workflow Overview",
+        },
+    )
+
+
+def workflow_reference(request):
+    return render(
+        request,
+        "workflow-reference.html",
+        {
+            "title": "Commitfest Workflow Reference Guide",
+        },
+    )
+
+
 @login_required
 def me(request):
     cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
