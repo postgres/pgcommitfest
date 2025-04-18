@@ -379,4 +379,26 @@ $(document).ready(() => {
             return false;
         });
     });
+
+    $(".enable-selectize").selectize({
+        plugins: ["remove_button"],
+        valueField: "id",
+        labelField: "value",
+        searchField: "value",
+        onFocus: function () {
+            if (this.$input.is("[multiple]")) {
+                return;
+            }
+            this.lastValue = this.getValue();
+            this.clear(false);
+        },
+        onBlur: function () {
+            if (this.$input.is("[multiple]")) {
+                return;
+            }
+            if (this.getValue() === "") {
+                this.setValue(this.lastValue);
+            }
+        },
+    });
 });
