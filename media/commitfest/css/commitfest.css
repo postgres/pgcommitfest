@@ -91,3 +91,23 @@ div.form-group div.controls input.threadpick-input {
 .search-bar {
     display: inline-block;
 }
+
+.workflow table.table {
+    width: auto;
+}
+
+#keyvalue-table {
+    display: none;
+}
+
+#keyvalue-table.collapse.in {
+    display: table;
+}
+
+#history-table {
+    display: none;
+}
+
+#history-table.collapse.in {
+    display: table;
+}

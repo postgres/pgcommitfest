@@ -61,6 +61,16 @@
     }
 },
 {
+    "model": "commitfest.commitfest",
+    "pk": 5,
+    "fields": {
+        "name": "Drafts v18",
+        "status": 5,
+        "startdate": "2024-09-01",
+        "enddate": "2025-08-31"
+    }
+},
+{
     "model": "commitfest.topic",
     "pk": 1,
     "fields": {
@@ -238,6 +248,25 @@
     }
 },
 {
+    "model": "commitfest.patch",
+    "pk": 8,
+    "fields": {
+        "name": "Test DGJ Multi-Author and Reviewer",
+        "topic": 3,
+        "wikilink": "",
+        "gitlink": "",
+        "targetversion": 1,
+        "committer": 4,
+        "created": "2025-02-01T00:00",
+        "modified": "2025-02-01T00:00",
+        "lastmail": null,
+        "authors": [6,3],
+        "reviewers": [7,1],
+        "subscribers": [],
+        "mailthread_set": []
+    }
+},
+{
     "model": "commitfest.patchoncommitfest",
     "pk": 1,
     "fields": {
@@ -321,6 +350,17 @@
         "patch": 7,
         "commitfest": 2,
         "enterdate": "2025-03-01T22:27:53.214",
+        "leavedate": null,
+        "status": 1
+    }
+},
+{
+    "model": "commitfest.patchoncommitfest",
+    "pk": 9,
+    "fields": {
+        "patch": 8,
+        "commitfest": 5,
+        "enterdate": "2025-02-01T00:00:00",
         "leavedate": null,
         "status": 1
     }
