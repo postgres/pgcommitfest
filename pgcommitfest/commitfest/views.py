@@ -664,7 +664,7 @@ def patch(request, patchid):
     cf = patch_commitfests[0].commitfest
 
     committers = Committer.objects.filter(active=True).order_by(
-        "user__last_name", "user__first_name"
+        "user__first_name", "user__last_name"
     )
 
     cfbot_branch = getattr(patch, "cfbot_branch", None)
