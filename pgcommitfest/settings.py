@@ -19,6 +19,8 @@ DATABASES = {
     }
 }
 
+# "Static" commitfests use primary key values <= 0, so this must be an unsigned
+# field type.
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # Local time zone for this installation. Choices can be found here:

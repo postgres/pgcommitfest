@@ -16,7 +16,7 @@
     <tr>
      <td style="white-space: nowrap;">{{a.date}}</td>
      <td>{{a.by}}</td>
-     <td><a href="/{%if commitfest%}{{commitfest.id}}{%else%}{{a.cfid}}{%endif%}/{{a.patchid}}/">{{a.name}}</a></td>
+     <td><a href="/patch/{{a.patchid}}/">{{a.name}}</a></td>
      <td>{{a.what}}</td>
     </tr>
    {%endfor%}

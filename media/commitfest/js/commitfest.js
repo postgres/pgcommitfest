@@ -18,6 +18,11 @@ function verify_next() {
         'Are you sure you want to move this patch to the next commitfest?\n\nThis means the patch will be marked as closed in this commitfest, but will automatically be moved to the next one. If no further work is expected on this patch, it should be closed with "Rejected" or "Returned with Feedback" instead.\n\nSo - are you sure?',
     );
 }
+function verify_parked() {
+    return confirm(
+        'Are you sure you want to park this patch?\n\nThis means the patch will be marked as closed in this commitfest, and automatically moved to the Parking Lot. Its status will be reset to Waiting on Author, and it will remain there until it is closed or moved to the next open commitfest.\n\nSo - are you sure?',
+    );
+}
 function findLatestThreads() {
     $("#attachThreadListWrap").addClass("loading");
     $("#attachThreadSearchButton").addClass("disabled");
