@@ -1,0 +1,166 @@
+{%extends "base.html"%}
+{%block contents%}
+ <h2>Overview</h2>
+ <p>
+  This reference guide provides a quick reference to the key concepts within
+  the Commitfest Workflow.  There is also an <a href="/workflow">overview</a>
+  of the workflow built from of these concepts.
+ </p>
+ <h3>CFBot</h3>
+ <p>
+  The CFBot is continuous integration (CI) infrastructure that uses threads
+  to retrieve patch files, builds and tests them, and posts the results to
+  the Patch.  Only active patches are tested, and only if they are not in
+  a "Closed" commitfest.
+ </p>
+ <h3>Patches</h3>
+ <h4>Overview</h4>
+ <p>
+  Patches are the projects of the workflow and are linked to the mailing list
+  threads within which are messages containing versioned patch sets.  Patches
+  are classified as being either active or inactive.  They also record
+  contributors and their roles.
+ </p>
+ <h4>Authors, Reviewers, and Committers</h4>
+ <p>
+  Especially in open source projects, attribution for work is important.  Git
+  commit messages include author and reviewer attributions (among others) and
+  inherently identify the committer.  To aid the committer in properly recording
+  attributions in the commit message record authors and reviewers on the patch.
+ </p>
+ <p>
+  Additionally, the commitfest application uses this information to provide
+  user-specific reporting and notifications.
+ </p>
+ <h4>Active</h4>
+ <p>
+  A Patch is active if it is in one of the following states:
+  <ul>
+   <li>Waiting on Author (Author)</li>
+   <li>Review Needed (Reviewer)</li>
+   <li>Ready for Committer (Committer)</li>
+  </ul>
+  These correspond to the three people-related fields of the patch and indicate
+  whose effort is presently needed.  Of course, a patch may be in a state for
+  which no person is assigned; in which case the patch is advertising itself as
+  needing that kind of attention.
+ </p>
+ <h4>Inactive</h4>
+ <p>
+  A Patch is inactive if it is in one of the following states:
+  <ul>
+   <li>Committed</li>
+   <li>Withdrawn</li>
+   <li>Rejected</li>
+   <li>Returned With Feedback*</li>
+  </ul>
+ </p>
+ <p>
+  A Committed patch is one whose files have been committed to the repository.
+  A Withdrawn patch is one where the author(s) have decided to no longer pursue
+  working on the patch and have proactively communicated that intent through
+  updating the patch to this state.
+ </p>
+ <p>
+  A Withdrawn patch is the desired outcome if a patch is not going to be committed.
+  Only an author can withdraw a patch.  If the patch simply needs work it should
+  updated to author and placed into whichever commitfest bin is appropriate.
+ </p>
+ <p>
+  A Rejected patch has the same effect as Withdrawn but communicates that the
+  community, not the author, made the status change.  This should only be used
+  when it is when the author is unable or unwilling to withdraw the patch or park
+  it for rework.
+ </p>
+ <p>
+  *Returned With Feedback complements rejected in that the implication of rejected
+  is that the feature the patch introduces is unwanted while, here, the implementation
+  is simply not acceptable.  The workflow takes a different approach and considers
+  both to be less desirable than withdraw.  Considering the distinction between
+  author and committer making the decision to be the key difference the workflow
+  leaves reject as the fallback non-commit option and makes returned a deprecated
+  administrator-only option.
+ </p>
+ <h4>Threads, Messages, and Patch Sets</h4>
+ <p>
+  One or more email threads are related to a patch and found within the messages
+  on these threads are patch sets containing the actual files.  The workflow
+  tracks the metadata for the files within the patch set while the CFBot
+  uses the metadata to determine which files to retrieve and apply for its tests.
+ </p>
+ <h3>Commitfests</h3>
+ <h4>Overview</h4>
+ <p>
+  Commitfests are just a collection of patches.  The workflow described above
+  explains the purpose of these collections and defines which patches belong in
+  in which collection.  One key constraint the described workflow imposes is that
+  among the statuses listed below at most one commitfest can be in each of them
+  at any given time (except for "Closed").  This allows for implementing movement
+  of a patch to be keyed to commitfest status type without the need for further
+  disambiguation.
+ </p>
+ <h4>In Progress</h4>
+ <p>
+  An Active (see Workflow above) period where no new features should be added
+  and the goal is to get as many review"patches committed as possible.
+ </p>
+ <h4>Open</h4>
+ <p>
+  Patches ready for final review and commit, according to the author, are placed
+  in the current open commitfest.  Upon the scheduled start date it is manually
+  updated to be an in progress commitfest, at which point no new patches should be
+  added.
+ </p>
+ <h4>Future</h4>
+ <p>
+  The PostgreSQL project works on a schedule release cycle.  At the beginning
+  of each cycle the planned commitfest periods are decided and communicated to
+  the community via the creation of future commitfests.  While classified as
+  future these commitfests are not permitted to associated with any patches.
+  Their classification is changed to open as each prior in progress commitfest
+  closes.
+ </p>
+ <h4>Drafts</h4>
+ <p>
+  The commitfest setup as drafts is used to hold patches that are not intended
+  to be formally reviewed and committed.  Another term is "work-in-progress" (WIP).
+  Within the Workflow, at the start of the PG18 feature freeze, the existing
+  "Draft PG18" commitfest is closed and a new "Draft PG19" commitfest is created.
+  This allows for a fresh start coinciding with the project release cycle.
+  And while commits cannot accumulate within a drafts commitfest, withdrawn and
+  rejected patches would and so having a truly never-closing commitfest is not
+  ideal.  Similarly, given the volume of patches, getting rid of abandonment
+  is counter-productive.  This workflow provides a middle-ground between
+  every-other-month and never patch moving requirements.
+ </p>
+ <h4>Closed</h4>
+ <p>
+  Drafts and in progress commitfests are closed (open ones
+  always go through in progress) when the period they cover has passed.
+  Closing a commitfest does not impact its related patches; though no new
+  patches can be created for a closed commitfest.
+ </p>
+ <h3>Special Patch Situations</h3>
+ <h4>Moved</h4>
+ <p>
+  Patches retain a memory of which commitfests they have been in.  When relocated
+  from one commitfest to another the association with the old commitfest is
+  marked as being "Moved".  This is a special status that is neither active nor
+  inactive.
+ </p>
+ <h4>Is Ignored</h4>
+ <p>
+  This check returns true if the patch is active but exists in a closed commitfest.
+  Conceptually, this is the same as withdrawn, but through inaction.
+ </p>
+ <h3>History</h3>
+ <p>
+  Textual event log for a patch.
+ </p>
+ <h3>Administrative Actions (Admin)</h3>
+ <p>
+  Protections put in place to guide the described workflow can be bypassed
+  by those with the appropriate permissions.  Exercising these elevated
+  permissions is called an administrative action, or administratively performed.
+ </p>
+{%endblock%}

@@ -2,8 +2,15 @@
 {%load commitfest %}
 {%block contents%}
  <a class="btn btn-default" href="/open/new/">New patch</a>
- <a class="btn btn-default" href="/current/">Current commitfest</a></li>
- <a class="btn btn-default" href="/open/">Open commitfest</a></li>
+ {%if workflow.inprogress%}
+  <a class="btn btn-default" href="/{{workflow.inprogress.id}}/">In Progress commitfest</a></li>
+ {%endif%}
+ {%if workflow.open%}
+  <a class="btn btn-default" href="/{{workflow.open.id}}/">Open commitfest</a></li>
+ {%endif%}
+ {%if workflow.parked%}
+  <a class="btn btn-default" href="/{{workflow.parked.id}}/">Draft commitfest</a></li>
+ {%endif%}
  <button type="button" class="btn btn-default{%if has_filter%} active{%endif%}" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
  <form method="GET" action="/search/" class="form-inline search-bar pull-right">
   <div class="form-group">
