@@ -245,6 +245,16 @@ def patchlist(request, cf, personalized=False):
     whereclauses = []
     whereparams = {}
 
+    in_drafts = cf.status == CommitFest.STATUS_DRAFT
+    if in_drafts and not request.GET:
+        # Special case: apply the Open patch filter to Drafts by default
+        return PatchList(
+            patches=[],
+            has_filter=False,
+            sortkey=0,
+            redirect=HttpResponseRedirect("%s?status=-2" % (request.path)),
+        )
+
     if request.GET.get("status", "-1") != "-1":
         if request.GET["status"] == "-2":
             whereclauses.append("poc.status=ANY(%(openstatuses)s)")
@@ -463,7 +473,7 @@ def patchlist(request, cf, personalized=False):
             orderby_str = "topic, created"
         sortkey = 0
 
-    if not has_filter and sortkey == 0 and request.GET:
+    if not has_filter and not in_drafts and sortkey == 0 and request.GET:
         # Redirect to get rid of the ugly url
         return PatchList(
             patches=[],
