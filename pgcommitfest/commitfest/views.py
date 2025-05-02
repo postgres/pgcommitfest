@@ -246,12 +246,15 @@ def patchlist(request, cf, personalized=False):
     whereparams = {}
 
     if request.GET.get("status", "-1") != "-1":
-        try:
-            whereparams["status"] = int(request.GET["status"])
-            whereclauses.append("poc.status=%(status)s")
-        except ValueError:
-            # int() failed -- so just ignore this filter
-            pass
+        if request.GET["status"] == "-2":
+            whereclauses.append("poc.status=ANY(%(openstatuses)s)")
+        else:
+            try:
+                whereparams["status"] = int(request.GET["status"])
+                whereclauses.append("poc.status=%(status)s")
+            except ValueError:
+                # int() failed -- so just ignore this filter
+                pass
 
     if request.GET.get("targetversion", "-1") != "-1":
         if request.GET["targetversion"] == "-2":
