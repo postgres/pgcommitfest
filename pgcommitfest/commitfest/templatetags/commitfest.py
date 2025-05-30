@@ -6,6 +6,7 @@ from django.utils.timezone import is_aware
 from django.utils.translation import ngettext_lazy
 
 import datetime
+import string
 from uuid import uuid4
 
 from pgcommitfest.commitfest.models import CommitFest, PatchOnCommitFest
@@ -39,6 +40,45 @@ def patchstatusstring(value):
 def patchstatuslabel(value):
     i = int(value)
     return [v for k, v in PatchOnCommitFest._STATUS_LABELS if k == i][0]
+
+
+@register.filter(name="tagname")
+def tagname(value, arg):
+    """
+    Looks up a tag by ID and returns its name. The filter value is the map of
+    tags, and the argument is the ID. (Unlike tagcolor, there is no
+    argument-less variant; just use tag.name directly.)
+
+    Example:
+      tag_map|tagname:tag_id
+    """
+    return value[arg].name
+
+
+@register.filter(name="tagcolor")
+def tagcolor(value, key=None):
+    """
+    Returns the color code of a tag. The filter value is either a single tag, in
+    which case no argument should be given, or a map of tags with the tag ID as
+    the argument, as with the tagname filter.
+
+    Since color codes are injected into CSS, any nonconforming inputs are
+    replaced with black here. (Prefer `tag|tagcolor` over `tag.color` in
+    templates, for this reason.)
+    """
+    if key is not None:
+        code = value[key].color
+    else:
+        code = value.color
+
+    if (
+        len(code) == 7
+        and code.startswith("#")
+        and all(c in string.hexdigits for c in code[1:])
+    ):
+        return code
+
+    return "#000000"
 
 
 @register.filter(is_safe=True)

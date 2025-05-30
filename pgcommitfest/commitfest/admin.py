@@ -1,8 +1,10 @@
 from django.contrib import admin
+from django.forms import widgets
 
 from .models import (
     CfbotBranch,
     CfbotTask,
+    ColorField,
     CommitFest,
     Committer,
     MailThread,
@@ -10,6 +12,7 @@ from .models import (
     Patch,
     PatchHistory,
     PatchOnCommitFest,
+    Tag,
     TargetVersion,
     Topic,
 )
@@ -38,8 +41,24 @@ class MailThreadAttachmentAdmin(admin.ModelAdmin):
     )
 
 
+class ColorInput(widgets.Input):
+    """
+    A color picker widget.
+    TODO: this will be natively available in Django 5.2.
+    """
+
+    input_type = "color"
+
+
+class TagAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        ColorField: {"widget": ColorInput},
+    }
+
+
 admin.site.register(Committer, CommitterAdmin)
 admin.site.register(CommitFest)
+admin.site.register(Tag, TagAdmin)
 admin.site.register(Topic)
 admin.site.register(Patch, PatchAdmin)
 admin.site.register(PatchHistory)

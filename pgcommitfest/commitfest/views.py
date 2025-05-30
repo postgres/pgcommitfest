@@ -42,6 +42,7 @@ from .models import (
     Patch,
     PatchHistory,
     PatchOnCommitFest,
+    Tag,
 )
 
 
@@ -485,6 +486,7 @@ def patchlist(request, cf, personalized=False):
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_authors cpa ON cpa.user_id=auth_user.id WHERE cpa.patch_id=p.id) AS author_names,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_reviewers cpr ON cpr.user_id=auth_user.id WHERE cpr.patch_id=p.id) AS reviewer_names,
 (SELECT count(1) FROM commitfest_patchoncommitfest pcf WHERE pcf.patch_id=p.id) AS num_cfs,
+(SELECT array_agg(tag_id) FROM commitfest_patch_tags t WHERE t.patch_id=p.id) AS tag_ids,
 
 branch.needs_rebase_since,
 branch.failing_since,
@@ -531,6 +533,7 @@ ORDER BY is_open DESC, {orderby_str}""",
     )
 
 
+@transaction.atomic  # tie the patchlist() query to Tag.objects.all()
 def commitfest(request, cfid):
     # Find ourselves
     cf = get_object_or_404(CommitFest, pk=cfid)
@@ -562,6 +565,7 @@ def commitfest(request, cfid):
             "form": form,
             "patches": patch_list.patches,
             "statussummary": statussummary,
+            "all_tags": {t.id: t for t in Tag.objects.all()},
             "has_filter": patch_list.has_filter,
             "title": cf.title,
             "grouping": patch_list.sortkey == 0,

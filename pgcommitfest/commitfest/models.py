@@ -102,11 +102,37 @@ class TargetVersion(models.Model):
         return self.version
 
 
+class ColorField(models.CharField):
+    """
+    A small wrapper around a CharField that can hold a #RRGGBB color code. The
+    primary reason to have this wrapper class is so that the TagAdmin class can
+    explicitly key off of it to inject a color picker in the admin interface.
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs["max_length"] = 7  # for `#RRGGBB` format
+        super().__init__(*args, **kwargs)
+
+
+class Tag(models.Model):
+    """Represents a tag/label on a patch."""
+
+    name = models.CharField(max_length=50, unique=True)
+    color = ColorField()
+
+    class Meta:
+        ordering = ("name",)
+
+    def __str__(self):
+        return self.name
+
+
 class Patch(models.Model, DiffableModel):
     name = models.CharField(
         max_length=500, blank=False, null=False, verbose_name="Description"
     )
     topic = models.ForeignKey(Topic, blank=False, null=False, on_delete=models.CASCADE)
+    tags = models.ManyToManyField(Tag, related_name="patches", blank=True)
 
     # One patch can be in multiple commitfests, if it has history
     commitfests = models.ManyToManyField(CommitFest, through="PatchOnCommitFest")
