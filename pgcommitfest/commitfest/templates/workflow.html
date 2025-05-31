@@ -1,0 +1,222 @@
+{%extends "base.html"%}
+{%block contents%}
+ <p>
+  The first section covers the most important concepts in the Commitfest Workflow in a
+  fairly descriptive manner. A <a href="/workflow-reference">reference guide</a>
+  is also available.  The second section contains the actual schedule mentioned
+  in the first section.
+ </p>
+ <h2>Key Concepts</h2>
+ <h3>The Commitfest Workflow</h3>
+ <p>
+  The Commitfest Workflow (workflow) is a project management tool.  It provides
+  swim lanes to organize projects and places those projects into a status as to
+  whether the author is working on it, a review is needed, or committer action
+  is desired.  Projects are not directly placed into swim lanes however.
+  Instead, bins are created and bins are move about the swim lanes while
+  projects are placed into the bins.
+ </p>
+ <p>
+  As with many bespoke tools, the names given to things reflects
+  the problem domain.  As this workflow operates on the domain of software
+  development the projects are called "Patches", bins are called "Commitfests" (CF),
+  and the swim lanes are just the "CF Statuses".  A key productivity tool in software
+  development is a continuous integration (CI) service: that is named CFBot.
+ </p>
+ <p>
+  There are three active categories of patch status:
+  <ul>
+   <li>Waiting on Author - the author needs to make changes</li>
+   <li>Needs Reviewer - the patch needs guidance or a review</li>
+   <li>Ready for Committer - the patch is ready to be committed</li>
+  </ul>
+  And there are three preferred inactive categories of patch status for when
+  a patch has been resolved, either by being committed or not:
+  <ul>
+   <li>Committed - a committer has applied the patches to the git repo</li>
+   <li>Withdrawn - the author has withdrawn the patch from consideration</li>
+   <li>Rejected - a committer has decided that the patch should not be applied</li>
+  </ul>
+  There are a fixed set of CF Statuses for commitfests containing active patches.
+  <ul>
+   <li>Drafts - annual, drafts for new features, CF has active patches only</li>
+   <li>Open - scheduled, proposed new features</li>
+   <li>In Progress - scheduled, review and commit new features</li>
+   <li>Ignored<sup>1</sup> - scheduled, CFBot ignores these (mostly)</li>
+  </ul>
+  <sup>1</sup> The actual CF Status is labelled "Closed", and within that are both active
+  and inactive patches.  The inactive patches are basically done once their
+  commitfest is closed.  The active patches are not done, but the CFBot does not
+  spend compute time testing them thus ignoring them.  Hence the swim lane name.
+ </p>
+ <p>
+  In the following table, scheduled means the commitfest itself will have its
+  CF status changed.  Admin means a committer can perform a patch move that is
+  otherwise not permitted.  The policy here is that new patches should not be
+  added to an in progress commitfest.  Manual indicates the patch itself is
+  moved from one commitfest to another.
+  <h4 id="workflow-transitions-header">Commitfest Status Transitions</h4>
+  <table id="workflow-transitions-table" border="1">
+   <thead>
+    <tr>
+     <th>From / To</th>
+     <th>Draft</th>
+     <th>Open</th>
+     <th>In Progress</th>
+     <th>Ignored</th>
+    </tr>
+   </thead>
+   <tbody>
+    <tr>
+     <th>Drafts</th>
+     <td>N/A</td>
+     <td>Manual</td>
+     <td>Admin</td>
+     <td>Scheduled</td>
+    </tr>
+    <tr>
+     <th>Open</th>
+     <td>Manual</td>
+     <td>N/A</td>
+     <td>Scheduled</td>
+     <td>Not Permitted</td>
+    </tr>
+    <tr>
+     <th>In Progress</th>
+     <td>Manual</td>
+     <td>Manual</td>
+     <td>N/A</td>
+     <td>Scheduled</td>
+    </tr>
+    <tr>
+     <th>Ignored</th>
+     <td>Manual</td>
+     <td>Manual</td>
+     <td>Admin</td>
+     <td>N/A</td>
+    </tr>
+   </tbody>
+  </table>
+ </h4>
+ </p>
+ <h2>Workflow Schedule</h2>
+ <p>(See also the postgresql.org <a href="https://www.postgresql.org/support/versioning/">versioning policy</a>.)</p>
+ <p>
+  <table id="workflow-schedule-table" border="1">
+   <thead>
+    <tr>
+     <th>Month</th>
+     <th>Draft</th>
+     <th>Open</th>
+     <th>In Progress</th>
+     <th>Ignored<sup>1</sup></th>
+     <th>Releases</th>
+    </tr>
+   </thead>
+   <tbody>
+    <tr>
+     <th>January</th>
+     <td>Drafts PG18</td>
+     <td>2025-03</td>
+     <td>2025-01</td>
+     <td>&lt;=2024</td>
+     <td></td>
+    </tr>
+    <tr>
+     <th>February</th>
+     <td>"</td>
+     <td>"</td>
+     <td>None</td>
+     <td>2025-01</td>
+     <td>PG17.2</td>
+    </tr>
+    <tr>
+     <th>March<sup>2</sup></th>
+     <td>Drafts PG19</td>
+     <td>2025-07</td>
+     <td>2025-03</td>
+     <td>Drafts PG18<sup>3</sup>, 2025-01</td>
+     <td></td>
+    </tr>
+    <tr>
+     <th>April</th>
+     <td>"</td>
+     <td>"</td>
+     <td>None</td>
+     <td>2025-01, 2025-03</td>
+     <td></td>
+    </tr>
+    <tr>
+     <th>May</th>
+     <td>"</td>
+     <td>"</td>
+     <td>None</td>
+     <td>2025-03</td>
+     <td>PG17.3</td>
+    </tr>
+    <tr>
+     <th>June</th>
+     <td>"</td>
+     <td>"</td>
+     <td>None</td>
+     <td>2025-03</td>
+     <td></td>
+    </tr>
+    <tr>
+     <th>July</th>
+     <td>"</td>
+     <td>2025-09</td>
+     <td>2025-07</td>
+     <td>2025-03</td>
+     <td></td>
+    </tr>
+    <tr>
+     <th>August</th>
+     <td>"</td>
+     <td>"</td>
+     <td>None</td>
+     <td>2025-03, 2025-07</td>
+     <td>PG17.4</td>
+    </tr>
+    <tr>
+     <th>September</th>
+     <td>"</td>
+     <td>2025-11</td>
+     <td>2025-09</td>
+     <td>2025-07</td>
+     <td>PG18.0<sup>4</sup></td>
+    </tr>
+    <tr>
+     <th>October</th>
+     <td>"</td>
+     <td>"</td>
+     <td>None</td>
+     <td>2025-07, 2025-09</td>
+     <td></td>
+    </tr>
+    <tr>
+     <th>November</th>
+     <td>"</td>
+     <td>2026-01</td>
+     <td>2025-11</td>
+     <td>2025-09</td>
+     <td>PG18.1, Final PG13.23</td>
+    </tr>
+    <tr>
+     <th>December</th>
+     <td>"</td>
+     <td>"</td>
+     <td>None</td>
+     <td>2025-09, 2025-11</td>
+     <td></td>
+    </tr>
+   </tbody>
+  </table>
+  <ul>
+   <li><sup>1</sup> Illustrative, only commitfests with active patches are truly in this CF Status.</li>
+   <li><sup>2</sup> End of the March commitfest is feature freeze.</li>
+   <li><sup>3</sup> Closed drafts are also ignored until all active patches are removed.</li>
+   <li><sup>4</sup> Major version release in late September or early October.</li>
+  </ul>
+ </p>
+{%endblock%}

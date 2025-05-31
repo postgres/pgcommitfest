@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 from datetime import datetime
@@ -38,17 +39,20 @@ class CommitFest(models.Model):
     STATUS_OPEN = 2
     STATUS_INPROGRESS = 3
     STATUS_CLOSED = 4
+    STATUS_PARKED = 5
     _STATUS_CHOICES = (
         (STATUS_FUTURE, "Future"),
         (STATUS_OPEN, "Open"),
         (STATUS_INPROGRESS, "In Progress"),
         (STATUS_CLOSED, "Closed"),
+        (STATUS_PARKED, "Drafts"),
     )
     _STATUS_LABELS = (
         (STATUS_FUTURE, "default"),
         (STATUS_OPEN, "info"),
         (STATUS_INPROGRESS, "success"),
         (STATUS_CLOSED, "danger"),
+        (STATUS_PARKED, "default"),
     )
     name = models.CharField(max_length=100, blank=False, null=False, unique=True)
     status = models.IntegerField(
@@ -63,6 +67,8 @@ class CommitFest(models.Model):
 
     @property
     def periodstring(self):
+        # Current Workflow intent is to have all Committfest be time-bounded
+        # but the information is just contextual so we still permit null
         if self.startdate and self.enddate:
             return "{0} - {1}".format(self.startdate, self.enddate)
         return ""
@@ -72,8 +78,29 @@ class CommitFest(models.Model):
         return "Commitfest %s" % self.name
 
     @property
+    def isclosed(self):
+        return self.status == self.STATUS_CLOSED
+
+    @property
     def isopen(self):
         return self.status == self.STATUS_OPEN
+
+    @property
+    def isinprogress(self):
+        return self.status == self.STATUS_INPROGRESS
+
+    @property
+    def isparked(self):
+        return self.status == self.STATUS_PARKED
+
+    def json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "status": self.statusstring,
+            "startdate": self.startdate.isoformat(),
+            "enddate": self.enddate.isoformat(),
+        }
 
     def __str__(self):
         return self.name
@@ -159,11 +186,15 @@ class Patch(models.Model, DiffableModel):
     }
 
     def current_commitfest(self):
-        return self.commitfests.order_by("-startdate").first()
+        return self.current_patch_on_commitfest().commitfest
 
     def current_patch_on_commitfest(self):
-        cf = self.current_commitfest()
-        return get_object_or_404(PatchOnCommitFest, patch=self, commitfest=cf)
+        # The unique partial index poc_enforce_maxoneoutcome_idx stores the PoC
+        # No caching here (inside the instance) since the caller should just need
+        # the PoC once per request.
+        return get_object_or_404(
+            PatchOnCommitFest, Q(patch=self) & ~Q(status=PatchOnCommitFest.STATUS_NEXT)
+        )
 
     # Some accessors
     @property
@@ -272,6 +303,14 @@ class PatchOnCommitFest(models.Model):
     @property
     def is_open(self):
         return not self.is_closed
+
+    @property
+    def is_committed(self):
+        return self.status == self.STATUS_COMMITTED
+
+    @property
+    def needs_committer(self):
+        return self.status == self.STATUS_COMMITTER
 
     @property
     def statusstring(self):
@@ -528,3 +567,222 @@ class CfbotTask(models.Model):
     status = models.TextField(choices=STATUS_CHOICES, null=False)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+
+
+# Workflow provides access to the elements required to support
+# the workflow this application is built for.  These elements exist
+# independent of what the user is presently seeing on their page.
+class Workflow(models.Model):
+    def get_poc_for_patchid_or_404(patchid):
+        return get_object_or_404(
+            Patch.objects.select_related(), pk=patchid
+        ).current_patch_on_commitfest()
+
+    # At most a single Open CommitFest is allowed and this function returns it.
+    def open_cf():
+        cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
+        return cfs[0] if len(cfs) == 1 else None
+
+    # At most a single In Progress CommitFest is allowed and this function returns it.
+    def inprogress_cf():
+        cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
+        return cfs[0] if len(cfs) == 1 else None
+
+    # At most a single Parked CommitFest is allowed and this function returns it.
+    def parked_cf():
+        cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_PARKED))
+        return cfs[0] if len(cfs) == 1 else None
+
+    # Returns whether the user is a committer in general and for this patch
+    # since we retrieve all committers in order to answer these questions
+    # provide that list as a third return value.  Passing None for both user
+    # and patch still returns the list of committers.
+    def isCommitter(user, patch):
+        all_committers = Committer.objects.filter(active=True).order_by(
+            "user__last_name", "user__first_name"
+        )
+        if not user and not patch:
+            return False, False, all_committers
+
+        committer = [c for c in all_committers if c.user == user]
+        if len(committer) == 1:
+            is_committer = True
+            is_this_committer = committer[0] == patch.committer
+        else:
+            is_committer = is_this_committer = False
+        return is_committer, is_this_committer, all_committers
+
+    def getCommitfest(cfid):
+        if cfid is None or cfid == "":
+            return None
+        try:
+            int_cfid = int(cfid)
+            cfs = list(CommitFest.objects.filter(id=int_cfid))
+            if len(cfs) == 1:
+                return cfs[0]
+            else:
+                return None
+        except ValueError:
+            return None
+
+    # Implements a re-entrant Commitfest POC creation procedure.
+    # Returns the new POC object.
+    # Creates history and notifies as a side-effect.
+    def createNewPOC(patch, commitfest, initial_status, by_user):
+        poc, created = PatchOnCommitFest.objects.update_or_create(
+            patch=patch,
+            commitfest=commitfest,
+            defaults=dict(
+                enterdate=datetime.now(),
+                status=initial_status,
+                leavedate=None,
+            ),
+        )
+        poc.patch.set_modified()
+        poc.patch.save()
+        poc.save()
+
+        PatchHistory(
+            patch=poc.patch,
+            by=by_user,
+            what="{} in {}".format(poc.statusstring, commitfest.name),
+        ).save_and_notify()
+
+        return poc
+
+    # The rule surrounding patches is they may only be in one active
+    # commitfest at a time.  The transition function takes a patch
+    # open in one commitfest and associates it, with the same status,
+    # in a new commitfest; then makes it inactive in the original.
+    # Returns the new POC object.
+    # Creates history and notifies as a side-effect.
+    def transitionPatch(poc, target_cf, by_user):
+        Workflow.userCanTransitionPatch(poc, target_cf, by_user)
+
+        existing_status = poc.status
+
+        # History looks cleaner if we've left the existing
+        # commitfest entry before joining the new one.  Plus,
+        # not allowed to change non-current commitfest status
+        # and once the new POC is created it becomes current.
+
+        Workflow.updatePOCStatus(poc, PatchOnCommitFest.STATUS_NEXT, by_user)
+
+        new_poc = Workflow.createNewPOC(poc.patch, target_cf, existing_status, by_user)
+
+        return new_poc
+
+    def userCanTransitionPatch(poc, target_cf, user):
+        # Policies not allowed to be broken by anyone.
+
+        # Prevent changes to non-current commitfest for the patch
+        # Meaning, status changed to Moved before/during transitioning
+        # i.e., a concurrent action took place.
+        if poc.commitfest != poc.patch.current_commitfest():
+            raise Exception("Patch commitfest is not its current commitfest.")
+
+        # The UI should be preventing people from trying to perform no-op requests
+        if poc.commitfest.id == target_cf.id:
+            raise Exception("Cannot transition to the same commitfest.")
+
+        # This one is arguable but facilitates treating non-open status as final
+        # A determined staff member can always change the status first.
+        if poc.is_closed:
+            raise Exception("Cannot transition a closed patch.")
+
+        # We trust privileged users to make informed choices
+        if user.is_staff:
+            return
+
+        if target_cf.isclosed:
+            raise Exception("Cannot transition to a closed commitfest.")
+
+        if target_cf.isinprogress:
+            raise Exception("Cannot transition to an in-progress commitfest.")
+
+        # Prevent users from moving closed patches, or moving open ones to
+        # non-open commitfests.  The else clause should be a can't happen.
+        if poc.is_open and target_cf.isopen:
+            pass
+        else:
+            # Default deny policy basis
+            raise Exception("Transition not permitted.")
+
+    def userCanChangePOCStatus(poc, new_status, user):
+        # Policies not allowed to be broken by anyone.
+
+        # Prevent changes to non-current commitfest for the patch
+        # Meaning, change status to Moved before/during transitioning
+        if poc.commitfest != poc.patch.current_commitfest():
+            raise Exception("Patch commitfest is not its current commitfest.")
+
+        # The UI should be preventing people from trying to perform no-op requests
+        if poc.status == new_status:
+            raise Exception("Cannot change to the same status.")
+
+        # We want commits to happen from, usually, In Progress commitfests,
+        # or Open ones for exempt patches.  We accept Future ones too just because
+        # they do represent a proper, if non-current, Commitfest.
+        if (
+            poc.commitfest.id == CommitFest.STATUS_PARKED
+            and new_status == PatchOnCommitFest.STATUS_COMMITTED
+        ):
+            raise Exception("Cannot change status to committed in a parked commitfest.")
+
+        # We trust privileged users to make informed choices
+        if user.is_staff:
+            return
+
+        is_committer, is_this_committer, all_committers = Workflow.isCommitter(
+            user, poc.patch
+        )
+
+        # XXX Not sure if we want to tighten this up to is_this_committer
+        # with only the is_staff exemption
+        if new_status == PatchOnCommitFest.STATUS_COMMITTED and not is_committer:
+            raise Exception("Only a committer can set status to committed.")
+
+        if new_status == PatchOnCommitFest.STATUS_REJECTED and not is_committer:
+            raise Exception("Only a committer can set status to rejected.")
+
+        if new_status == PatchOnCommitFest.STATUS_RETURNED and not is_committer:
+            raise Exception("Only a committer can set status to returned.")
+
+        if (
+            new_status == PatchOnCommitFest.STATUS_WITHDRAWN
+            and user not in poc.patch.authors.all()
+        ):
+            raise Exception("Only the author can set status to withdrawn.")
+
+        # Prevent users from modifying closed patches
+        # The else clause should be considered a can't happen
+        if poc.is_open:
+            pass
+        else:
+            raise Exception("Cannot change status of closed patch.")
+
+    # Update the status of a PoC
+    # Returns True if the status was changed, False for a same-status no-op.
+    # Creates history and notifies as a side-effect.
+    def updatePOCStatus(poc, new_status, by_user):
+        # XXX Workflow disallows this no-op but not quite ready to enforce it.
+        if poc.status == new_status:
+            return False
+
+        Workflow.userCanChangePOCStatus(poc, new_status, by_user)
+
+        poc.status = new_status
+        poc.leavedate = datetime.now() if not poc.is_open else None
+        poc.patch.set_modified()
+        poc.patch.save()
+        poc.save()
+        PatchHistory(
+            patch=poc.patch,
+            by=by_user,
+            what="{} in {}".format(
+                poc.statusstring,
+                poc.commitfest.name,
+            ),
+        ).save_and_notify()
+
+        return True
