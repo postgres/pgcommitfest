@@ -27,7 +27,7 @@ class CommitFestFilterForm(forms.Form):
 
         self.fields["sortkey"].widget = forms.HiddenInput()
 
-        c = [(-1, "* All")] + list(PatchOnCommitFest._STATUS_CHOICES)
+        c = [(-1, "* All"), (-2, "* Open")] + list(PatchOnCommitFest._STATUS_CHOICES)
         self.fields["status"] = forms.ChoiceField(choices=c, required=False)
 
         userchoices = [(-1, "* All"), (-2, "* None"), (-3, "* Yourself")]

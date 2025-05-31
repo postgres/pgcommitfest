@@ -46,7 +46,9 @@ from .models import (
 
 
 def home(request):
-    commitfests = list(CommitFest.objects.all())
+    # Skip "special" commitfest holding areas (primary keys <= 0); they're
+    # handled separately.
+    commitfests = list(CommitFest.objects.filter(pk__gt=0))
     opencf = next((c for c in commitfests if c.status == CommitFest.STATUS_OPEN), None)
     inprogresscf = next(
         (c for c in commitfests if c.status == CommitFest.STATUS_INPROGRESS), None
@@ -168,7 +170,7 @@ def activity(request, cfid=None, rss=None):
         cf = None
         where = ""
 
-    sql = "SELECT ph.date, auth_user.username AS by, ph.what, p.id AS patchid, p.name, (SELECT max(commitfest_id) FROM commitfest_patchoncommitfest poc WHERE poc.patch_id=p.id) AS cfid FROM commitfest_patchhistory ph INNER JOIN commitfest_patch p ON ph.patch_id=p.id INNER JOIN auth_user on auth_user.id=ph.by_id {0} ORDER BY ph.date DESC LIMIT {1}".format(
+    sql = "SELECT ph.date, auth_user.username AS by, ph.what, p.id AS patchid, p.name FROM commitfest_patchhistory ph INNER JOIN commitfest_patch p ON ph.patch_id=p.id INNER JOIN auth_user on auth_user.id=ph.by_id {0} ORDER BY ph.date DESC LIMIT {1}".format(
         where, num
     )
 
@@ -243,13 +245,26 @@ def patchlist(request, cf, personalized=False):
     whereclauses = []
     whereparams = {}
 
+    in_drafts = cf.status == CommitFest.STATUS_DRAFT
+    if in_drafts and not request.GET:
+        # Special case: apply the Open patch filter to Drafts by default
+        return PatchList(
+            patches=[],
+            has_filter=False,
+            sortkey=0,
+            redirect=HttpResponseRedirect("%s?status=-2" % (request.path)),
+        )
+
     if request.GET.get("status", "-1") != "-1":
-        try:
-            whereparams["status"] = int(request.GET["status"])
-            whereclauses.append("poc.status=%(status)s")
-        except ValueError:
-            # int() failed -- so just ignore this filter
-            pass
+        if request.GET["status"] == "-2":
+            whereclauses.append("poc.status=ANY(%(openstatuses)s)")
+        else:
+            try:
+                whereparams["status"] = int(request.GET["status"])
+                whereclauses.append("poc.status=%(status)s")
+            except ValueError:
+                # int() failed -- so just ignore this filter
+                pass
 
     if request.GET.get("targetversion", "-1") != "-1":
         if request.GET["targetversion"] == "-2":
@@ -350,7 +365,7 @@ def patchlist(request, cf, personalized=False):
                 EXISTS (
                     SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s
                 ) AND (
-                    poc.commitfest_id < %(cid)s
+                    cf.status = %(status_closed)s
                 )
             THEN 'Your still open patches in a closed commitfest (you should move or close these)'
             WHEN
@@ -376,6 +391,7 @@ def patchlist(request, cf, personalized=False):
             cf.name AS cf_name,
             cf.status AS cf_status,
         """
+        whereparams["status_closed"] = CommitFest.STATUS_CLOSED
         whereparams["needs_author"] = PatchOnCommitFest.STATUS_AUTHOR
         whereparams["needs_committer"] = PatchOnCommitFest.STATUS_COMMITTER
         is_committer = bool(Committer.objects.filter(user=request.user, active=True))
@@ -457,7 +473,7 @@ def patchlist(request, cf, personalized=False):
             orderby_str = "topic, created"
         sortkey = 0
 
-    if not has_filter and sortkey == 0 and request.GET:
+    if not has_filter and not in_drafts and sortkey == 0 and request.GET:
         # Redirect to get rid of the ugly url
         return PatchList(
             patches=[],
@@ -473,6 +489,7 @@ def patchlist(request, cf, personalized=False):
     params = {
         "openstatuses": PatchOnCommitFest.OPEN_STATUSES,
         "cid": cf.id,
+        "draft": CommitFest.STATUS_DRAFT,
     }
     params.update(whereparams)
 
@@ -484,7 +501,9 @@ def patchlist(request, cf, personalized=False):
 (poc.status=ANY(%(openstatuses)s)) AS is_open,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_authors cpa ON cpa.user_id=auth_user.id WHERE cpa.patch_id=p.id) AS author_names,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_reviewers cpr ON cpr.user_id=auth_user.id WHERE cpr.patch_id=p.id) AS reviewer_names,
-(SELECT count(1) FROM commitfest_patchoncommitfest pcf WHERE pcf.patch_id=p.id) AS num_cfs,
+(SELECT count(1) FROM commitfest_patchoncommitfest pcf
+                 INNER JOIN commitfest_commitfest cf ON cf.id = pcf.commitfest_id
+                 WHERE pcf.patch_id=p.id AND cf.status != %(draft)s) AS num_cfs,
 
 branch.needs_rebase_since,
 branch.failing_since,
@@ -542,7 +561,13 @@ def commitfest(request, cfid):
     # Generate patch status summary.
     curs = connection.cursor()
     curs.execute(
-        "SELECT ps.status, ps.statusstring, count(*) FROM commitfest_patchoncommitfest poc INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status WHERE commitfest_id=%(id)s GROUP BY ps.status ORDER BY ps.sortkey",
+        """SELECT ps.status, ps.statusstring, count(*)
+             FROM commitfest_patchoncommitfest poc
+             INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status
+             INNER JOIN commitfest_commitfest cf ON cf.id=poc.commitfest_id
+             WHERE commitfest_id=%(id)s
+             GROUP BY ps.status
+             ORDER BY ps.sortkey""",
         {
             "id": cf.id,
         },
@@ -658,7 +683,7 @@ def patch(request, patchid):
     patch_commitfests = (
         PatchOnCommitFest.objects.select_related("commitfest")
         .filter(patch=patch)
-        .order_by("-commitfest__startdate")
+        .order_by("-enterdate")
         .all()
     )
     cf = patch_commitfests[0].commitfest
@@ -1054,6 +1079,7 @@ def close(request, patchid, status):
             PatchOnCommitFest.STATUS_REVIEW,
             PatchOnCommitFest.STATUS_AUTHOR,
             PatchOnCommitFest.STATUS_COMMITTER,
+            PatchOnCommitFest.STATUS_DRAFT,
         ):
             # This one can be moved
             pass
@@ -1106,14 +1132,70 @@ def close(request, patchid, status):
                     "/%s/%s/" % (poc.commitfest.id, poc.patch.id)
                 )
         # Create a mapping to the new commitfest that we are bouncing
-        # this patch to.
-        newpoc = PatchOnCommitFest(
+        # this patch to. Patches may be bounced back and forth from draft,
+        # so we have to handle a potential previous entry for this patch.
+        PatchOnCommitFest.objects.update_or_create(
             patch=poc.patch,
             commitfest=newcf[0],
-            status=oldstatus,
-            enterdate=datetime.now(),
+            defaults=dict(
+                status=oldstatus,
+                enterdate=datetime.now(),
+                leavedate=None,
+            ),
         )
-        newpoc.save()
+    elif status == "draft":
+        # The Drafts CF has similar considerations to "next", but we're more
+        # lenient about what can be moved in.
+        if poc.status in (
+            PatchOnCommitFest.STATUS_COMMITTED,
+            PatchOnCommitFest.STATUS_DRAFT,
+            PatchOnCommitFest.STATUS_NEXT,
+            PatchOnCommitFest.STATUS_REJECTED,
+        ):
+            # Can't be moved!
+            messages.error(
+                request,
+                "A patch in status {0} cannot be moved to Drafts.".format(
+                    poc.statusstring
+                ),
+            )
+            return HttpResponseRedirect("/%s/%s/" % (poc.commitfest.id, poc.patch.id))
+        elif poc.status in (
+            PatchOnCommitFest.STATUS_AUTHOR,
+            PatchOnCommitFest.STATUS_COMMITTER,
+            PatchOnCommitFest.STATUS_RETURNED,
+            PatchOnCommitFest.STATUS_REVIEW,
+            PatchOnCommitFest.STATUS_WITHDRAWN,
+        ):
+            # This one can be moved
+            pass
+        else:
+            messages.error(request, "Invalid existing patch status")
+
+        poc.status = PatchOnCommitFest.STATUS_DRAFT
+
+        # Map this patch directly to the Drafts CF.
+        try:
+            drafts = CommitFest.objects.get(pk=0)
+        except CommitFest.DoesNotExist:
+            messages.error(request, "No draft commitfest exists!")
+            return HttpResponseRedirect("/%s/%s/" % (poc.commitfest.id, poc.patch.id))
+
+        if poc.commitfest == drafts:
+            messages.error(request, "Patch is already in Drafts.")
+            return HttpResponseRedirect("/%s/%s/" % (poc.commitfest.id, poc.patch.id))
+
+        # Patches may be bounced back and forth from draft, so we have
+        # to handle a potential previous entry for this patch.
+        PatchOnCommitFest.objects.update_or_create(
+            patch=poc.patch,
+            commitfest=drafts,
+            defaults=dict(
+                status=PatchOnCommitFest.STATUS_AUTHOR,
+                enterdate=datetime.now(),
+                leavedate=None,
+            ),
+        )
     elif status == "committed":
         committer = get_object_or_404(Committer, user__username=request.GET["c"])
         if committer != poc.patch.committer:
