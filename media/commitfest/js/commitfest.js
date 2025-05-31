@@ -57,6 +57,7 @@ function browseThreads(attachfunc, closefunc) {
 
     $("#doAttachThreadButton").unbind("click");
     $("#doAttachThreadButton").click(() => {
+        let subject = "";
         msgid = $("#attachThreadMessageId").val();
         if (!msgid || msgid === "") {
             msgid = $("#attachThreadList").val();
