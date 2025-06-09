@@ -1053,6 +1053,17 @@ def close(request, patchid, status):
                 by=request.user,
                 what="Changed committer to %s" % committer,
             ).save_and_notify(prevcommitter=prevcommitter)
+
+        if poc.is_open:
+            in_progress_cf = CommitFest.get_in_progress()
+            if in_progress_cf is not None:
+                poc = patch.move(
+                    poc.commitfest,
+                    in_progress_cf,
+                    request.user,
+                    allow_move_to_in_progress=True,
+                )
+
         poc.status = PatchOnCommitFest.STATUS_COMMITTED
 
     status_mapping = {
@@ -1098,16 +1109,10 @@ def move(request, patchid):
 
     patch = get_object_or_404(Patch, pk=patchid)
     try:
-        patch.move(from_cf, to_cf)
+        patch.move(from_cf, to_cf, request.user)
     except UserInputError as e:
         messages.error(request, f"Failed to move patch: {e}")
         return HttpResponseRedirect(f"/patch/{patchid}/")
-
-    PatchHistory(
-        patch=patch,
-        by=request.user,
-        what=f"Moved from CF {from_cf} to CF {to_cf}",
-    ).save_and_notify()
 
     return HttpResponseRedirect(f"/patch/{patchid}/")
 

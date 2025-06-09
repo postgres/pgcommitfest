@@ -265,6 +265,10 @@ class CommitFest(models.Model):
             draft=True,
         )
 
+    @classmethod
+    def get_in_progress(cls):
+        return cls.objects.filter(status=CommitFest.STATUS_INPROGRESS).first()
+
     def __str__(self):
         return self.name
 
@@ -406,7 +410,9 @@ class Patch(models.Model, DiffableModel):
         else:
             self.lastmail = max(threads, key=lambda t: t.latestmessage).latestmessage
 
-    def move(self, from_cf, to_cf):
+    def move(self, from_cf, to_cf, by_user, allow_move_to_in_progress=False):
+        """Returns the new PatchOnCommitFest object, or raises UserInputError"""
+
         current_poc = self.current_patch_on_commitfest()
         if from_cf.id != current_poc.commitfest.id:
             raise UserInputError("Patch not in source commitfest.")
@@ -423,7 +429,10 @@ class Patch(models.Model, DiffableModel):
                 f"Patch in state {current_poc.statusstring} cannot be moved."
             )
 
-        if not to_cf.is_open:
+        if to_cf.is_in_progress:
+            if not allow_move_to_in_progress:
+                raise UserInputError("Patch can only be moved to an open commitfest")
+        elif not to_cf.is_open:
             raise UserInputError("Patch can only be moved to an open commitfest")
 
         old_status = current_poc.status
@@ -442,6 +451,14 @@ class Patch(models.Model, DiffableModel):
         new_poc.save()
         self.set_modified()
         self.save()
+
+        PatchHistory(
+            patch=self,
+            by=by_user,
+            what=f"Moved from CF {from_cf} to CF {to_cf}",
+        ).save_and_notify()
+
+        return new_poc
 
     def __str__(self):
         return self.name
