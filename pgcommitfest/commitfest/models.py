@@ -164,6 +164,19 @@ class CommitFest(models.Model):
 
     @classmethod
     def relevant_commitfests(cls, for_update=False, refresh=True):
+        """If refresh is True (which is the default) this will automatically
+        update the commitfests if their state is out of date. It will also
+        create a new ones automatically when needed.
+
+        The primary reason this refreshing is not done through a cron job is
+        that that requires work on the infrastructure side. Which is a huge
+        hassle to make happen in practice, due to an overloaded infrastructure
+        team.
+
+        Luckily checking if a refresh is needed is very cheap, just a few
+        comparisons (see _are_relevant_commitfests_up_to_date for details). And
+        the actual updates only happen ~once a month.
+        """
         if refresh and settings.AUTO_CREATE_COMMITFESTS:
             return cls._refresh_relevant_commitfests(for_update=for_update)
 
