@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, transaction
 from django.db.models import Q
@@ -163,7 +164,7 @@ class CommitFest(models.Model):
 
     @classmethod
     def relevant_commitfests(cls, for_update=False, refresh=True):
-        if refresh:
+        if refresh and settings.AUTO_CREATE_COMMITFESTS:
             return cls._refresh_relevant_commitfests(for_update=for_update)
 
         query_base = CommitFest.objects.order_by("-enddate")
