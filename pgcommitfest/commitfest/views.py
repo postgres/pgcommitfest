@@ -1043,6 +1043,18 @@ def close(request, patchid, status):
     )
 
     if status == "committed":
+        if poc.is_open:
+            # Needs to be done before the next if condition, so the committer
+            # that's set there is set on the correct poc.
+            in_progress_cf = CommitFest.get_in_progress()
+            if in_progress_cf is not None:
+                poc = patch.move(
+                    poc.commitfest,
+                    in_progress_cf,
+                    request.user,
+                    allow_move_to_in_progress=True,
+                )
+
         committer = get_object_or_404(Committer, user__username=request.GET["c"])
         if committer != poc.patch.committer:
             # Committer changed!
@@ -1053,16 +1065,6 @@ def close(request, patchid, status):
                 by=request.user,
                 what="Changed committer to %s" % committer,
             ).save_and_notify(prevcommitter=prevcommitter)
-
-        if poc.is_open:
-            in_progress_cf = CommitFest.get_in_progress()
-            if in_progress_cf is not None:
-                poc = patch.move(
-                    poc.commitfest,
-                    in_progress_cf,
-                    request.user,
-                    allow_move_to_in_progress=True,
-                )
 
         poc.status = PatchOnCommitFest.STATUS_COMMITTED
 
