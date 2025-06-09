@@ -1043,7 +1043,7 @@ def close(request, patchid, status):
     )
 
     if status == "committed":
-        if poc.is_open:
+        if poc.commitfest.is_open:
             # Needs to be done before the next if condition, so the committer
             # that's set there is set on the correct poc.
             in_progress_cf = CommitFest.get_in_progress()
@@ -1053,6 +1053,13 @@ def close(request, patchid, status):
                     in_progress_cf,
                     request.user,
                     allow_move_to_in_progress=True,
+                )
+            elif poc.commitfest.draft:
+                open_cf = CommitFest.get_open_regular()
+                poc = patch.move(
+                    poc.commitfest,
+                    open_cf,
+                    request.user,
                 )
 
         committer = get_object_or_404(Committer, user__username=request.GET["c"])

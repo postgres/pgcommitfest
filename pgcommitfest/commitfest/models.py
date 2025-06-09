@@ -269,6 +269,10 @@ class CommitFest(models.Model):
     def get_in_progress(cls):
         return cls.objects.filter(status=CommitFest.STATUS_INPROGRESS).first()
 
+    @classmethod
+    def get_open_regular(cls):
+        return cls.objects.filter(status=CommitFest.STATUS_OPEN, draft=False).first()
+
     def __str__(self):
         return self.name
 
