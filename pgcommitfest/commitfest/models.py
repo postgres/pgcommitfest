@@ -1,8 +1,9 @@
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import models, transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from pgcommitfest.userprofile.models import UserProfile
 
@@ -34,28 +35,26 @@ class Committer(models.Model):
 
 
 class CommitFest(models.Model):
-    STATUS_FUTURE = 1
     STATUS_OPEN = 2
     STATUS_INPROGRESS = 3
     STATUS_CLOSED = 4
     _STATUS_CHOICES = (
-        (STATUS_FUTURE, "Future"),
         (STATUS_OPEN, "Open"),
         (STATUS_INPROGRESS, "In Progress"),
         (STATUS_CLOSED, "Closed"),
     )
     _STATUS_LABELS = (
-        (STATUS_FUTURE, "default"),
         (STATUS_OPEN, "info"),
         (STATUS_INPROGRESS, "success"),
         (STATUS_CLOSED, "danger"),
     )
     name = models.CharField(max_length=100, blank=False, null=False, unique=True)
     status = models.IntegerField(
-        null=False, blank=False, default=1, choices=_STATUS_CHOICES
+        null=False, blank=False, default=2, choices=_STATUS_CHOICES
     )
-    startdate = models.DateField(blank=True, null=True)
-    enddate = models.DateField(blank=True, null=True)
+    startdate = models.DateField(blank=False, null=False)
+    enddate = models.DateField(blank=False, null=False)
+    draft = models.BooleanField(blank=False, null=False, default=False)
 
     @property
     def statusstring(self):
@@ -63,17 +62,194 @@ class CommitFest(models.Model):
 
     @property
     def periodstring(self):
-        if self.startdate and self.enddate:
-            return "{0} - {1}".format(self.startdate, self.enddate)
-        return ""
+        return "{0} - {1}".format(self.startdate, self.enddate)
+
+    @property
+    def dev_cycle(self) -> int:
+        if self.startdate.month in [1, 3]:
+            return self.startdate.year - 2007
+        else:
+            return self.startdate.year - 2006
 
     @property
     def title(self):
         return "Commitfest %s" % self.name
 
     @property
-    def isopen(self):
+    def is_closed(self):
+        return self.status == self.STATUS_CLOSED
+
+    @property
+    def is_open(self):
         return self.status == self.STATUS_OPEN
+
+    @property
+    def is_open_regular(self):
+        return self.is_open and not self.draft
+
+    @property
+    def is_open_draft(self):
+        return self.is_open and self.draft
+
+    @property
+    def is_in_progress(self):
+        return self.status == self.STATUS_INPROGRESS
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "status": self.statusstring,
+            "startdate": self.startdate.isoformat(),
+            "enddate": self.enddate.isoformat(),
+        }
+
+    @staticmethod
+    def _are_relevant_commitfests_up_to_date(cfs, current_date):
+        inprogress_cf = cfs["in_progress"]
+
+        if inprogress_cf and inprogress_cf.enddate < current_date:
+            return False
+
+        if cfs["open"].startdate <= current_date:
+            return False
+
+        if not cfs["draft"] or cfs["draft"].enddate < current_date:
+            return False
+
+        return True
+
+    @classmethod
+    def _refresh_relevant_commitfests(cls, for_update):
+        cfs = CommitFest.relevant_commitfests(for_update=for_update, refresh=False)
+        current_date = datetime.now(timezone.utc).date()
+
+        if cls._are_relevant_commitfests_up_to_date(cfs, current_date):
+            return cfs
+
+        with transaction.atomic():
+            cfs = CommitFest.relevant_commitfests(for_update=True, refresh=False)
+            if cls._are_relevant_commitfests_up_to_date(cfs, current_date):
+                # Some other request has already updated the commitfests, so we
+                # return the new version
+                return cfs
+
+            inprogress_cf = cfs["in_progress"]
+            if inprogress_cf and inprogress_cf.enddate < current_date:
+                inprogress_cf.status = CommitFest.STATUS_CLOSED
+                inprogress_cf.save()
+
+            open_cf = cfs["open"]
+
+            if open_cf.startdate <= current_date:
+                if open_cf.enddate < current_date:
+                    open_cf.status = CommitFest.STATUS_CLOSED
+                else:
+                    open_cf.status = CommitFest.STATUS_INPROGRESS
+                open_cf.save()
+
+                cls.next_open_cf(current_date).save()
+
+            draft_cf = cfs["draft"]
+            if not draft_cf:
+                cls.next_draft_cf(current_date).save()
+            elif draft_cf.enddate < current_date:
+                # If the draft commitfest has started, we need to update it
+                draft_cf.status = CommitFest.STATUS_CLOSED
+                draft_cf.save()
+                cls.next_draft_cf(current_date).save()
+
+            return cls.relevant_commitfests(for_update=for_update)
+
+    @classmethod
+    def relevant_commitfests(cls, for_update=False, refresh=True):
+        if refresh:
+            return cls._refresh_relevant_commitfests(for_update=for_update)
+
+        query_base = CommitFest.objects.order_by("-enddate")
+        if for_update:
+            query_base = query_base.select_for_update(no_key=True)
+        last_three_commitfests = query_base.filter(draft=False)[:3]
+
+        cfs = {}
+        cfs["open"] = last_three_commitfests[0]
+
+        if last_three_commitfests[1].status == CommitFest.STATUS_INPROGRESS:
+            cfs["in_progress"] = last_three_commitfests[1]
+            cfs["previous"] = last_three_commitfests[2]
+
+        else:
+            cfs["in_progress"] = None
+            cfs["previous"] = last_three_commitfests[1]
+            if cfs["open"].startdate.month == 3:
+                cfs["final"] = cfs["open"]
+
+        if cfs["in_progress"] and cfs["in_progress"].startdate.month == 3:
+            cfs["final"] = cfs["in_progress"]
+        elif cfs["open"].startdate.month == 3:
+            cfs["final"] = cfs["open"]
+        else:
+            cfs["final"] = cls.next_open_cf(
+                datetime(year=cfs["open"].dev_cycle + 2007, month=2, day=1)
+            )
+
+        cfs["draft"] = query_base.filter(draft=True).order_by("-startdate").first()
+        cfs["next_open"] = cls.next_open_cf(cfs["open"].enddate + timedelta(days=1))
+
+        return cfs
+
+    @staticmethod
+    def next_open_cf(from_date):
+        # We don't have a CF in december, so we don't need to worry about 12 mod 12 being 0
+        cf_months = [7, 9, 11, 1, 3]
+        next_open_cf_month = min(
+            (month for month in cf_months if month > from_date.month), default=1
+        )
+        next_open_cf_year = from_date.year
+        if next_open_cf_month == 1:
+            next_open_cf_year += 1
+
+        next_open_dev_cycle = next_open_cf_year - 2006
+        if next_open_cf_month in [1, 3]:
+            next_open_dev_cycle -= 1
+
+        if next_open_cf_month == 3:
+            name = f"PG{next_open_dev_cycle}-Final"
+        else:
+            cf_number = cf_months.index(next_open_cf_month) + 1
+            name = f"PG{next_open_dev_cycle}-{cf_number}"
+        start_date = datetime(
+            year=next_open_cf_year, month=next_open_cf_month, day=1
+        ).date()
+        end_date = datetime(
+            year=next_open_cf_year, month=next_open_cf_month + 1, day=1
+        ).date() - timedelta(days=1)
+
+        return CommitFest(
+            name=name,
+            status=CommitFest.STATUS_OPEN,
+            startdate=start_date,
+            enddate=end_date,
+        )
+
+    @staticmethod
+    def next_draft_cf(start_date):
+        dev_cycle = start_date.year - 2006
+        if start_date.month < 3:
+            dev_cycle -= 1
+
+        end_year = dev_cycle + 2007
+
+        name = f"PG{dev_cycle}-Drafts"
+        end_date = datetime(year=end_year, month=3, day=1).date() - timedelta(days=1)
+
+        return CommitFest(
+            name=name,
+            status=CommitFest.STATUS_OPEN,
+            startdate=start_date,
+            enddate=end_date,
+            draft=True,
+        )
 
     def __str__(self):
         return self.name
@@ -100,6 +276,10 @@ class TargetVersion(models.Model):
 
     def __str__(self):
         return self.version
+
+
+class UserInputError(ValueError):
+    pass
 
 
 class Patch(models.Model, DiffableModel):
@@ -159,11 +339,15 @@ class Patch(models.Model, DiffableModel):
     }
 
     def current_commitfest(self):
-        return self.commitfests.order_by("-startdate").first()
+        return self.current_patch_on_commitfest().commitfest
 
     def current_patch_on_commitfest(self):
-        cf = self.current_commitfest()
-        return get_object_or_404(PatchOnCommitFest, patch=self, commitfest=cf)
+        # The unique partial index poc_enforce_maxoneoutcome_idx stores the PoC
+        # No caching here (inside the instance) since the caller should just need
+        # the PoC once per request.
+        return get_object_or_404(
+            PatchOnCommitFest, Q(patch=self) & ~Q(status=PatchOnCommitFest.STATUS_MOVED)
+        )
 
     # Some accessors
     @property
@@ -208,6 +392,43 @@ class Patch(models.Model, DiffableModel):
         else:
             self.lastmail = max(threads, key=lambda t: t.latestmessage).latestmessage
 
+    def move(self, from_cf, to_cf):
+        current_poc = self.current_patch_on_commitfest()
+        if from_cf.id != current_poc.commitfest.id:
+            raise UserInputError("Patch not in source commitfest.")
+
+        if from_cf.id == to_cf.id:
+            raise UserInputError("Source and target commitfest are the same.")
+
+        if current_poc.status not in (
+            PatchOnCommitFest.STATUS_REVIEW,
+            PatchOnCommitFest.STATUS_AUTHOR,
+            PatchOnCommitFest.STATUS_COMMITTER,
+        ):
+            raise UserInputError(
+                f"Patch in state {current_poc.statusstring} cannot be moved."
+            )
+
+        if not to_cf.is_open:
+            raise UserInputError("Patch can only be moved to an open commitfest")
+
+        old_status = current_poc.status
+
+        current_poc.set_status(PatchOnCommitFest.STATUS_MOVED)
+
+        new_poc, _ = PatchOnCommitFest.objects.update_or_create(
+            patch=current_poc.patch,
+            commitfest=to_cf,
+            defaults=dict(
+                status=old_status,
+                enterdate=datetime.now(),
+                leavedate=None,
+            ),
+        )
+        new_poc.save()
+        self.set_modified()
+        self.save()
+
     def __str__(self):
         return self.name
 
@@ -224,7 +445,7 @@ class PatchOnCommitFest(models.Model):
     STATUS_AUTHOR = 2
     STATUS_COMMITTER = 3
     STATUS_COMMITTED = 4
-    STATUS_NEXT = 5
+    STATUS_MOVED = 5
     STATUS_REJECTED = 6
     STATUS_RETURNED = 7
     STATUS_WITHDRAWN = 8
@@ -233,7 +454,7 @@ class PatchOnCommitFest(models.Model):
         (STATUS_AUTHOR, "Waiting on Author"),
         (STATUS_COMMITTER, "Ready for Committer"),
         (STATUS_COMMITTED, "Committed"),
-        (STATUS_NEXT, "Moved to next CF"),
+        (STATUS_MOVED, "Moved to different CF"),
         (STATUS_REJECTED, "Rejected"),
         (STATUS_RETURNED, "Returned with feedback"),
         (STATUS_WITHDRAWN, "Withdrawn"),
@@ -243,7 +464,7 @@ class PatchOnCommitFest(models.Model):
         (STATUS_AUTHOR, "primary"),
         (STATUS_COMMITTER, "info"),
         (STATUS_COMMITTED, "success"),
-        (STATUS_NEXT, "warning"),
+        (STATUS_MOVED, "warning"),
         (STATUS_REJECTED, "danger"),
         (STATUS_RETURNED, "danger"),
         (STATUS_WITHDRAWN, "danger"),
@@ -274,8 +495,36 @@ class PatchOnCommitFest(models.Model):
         return not self.is_closed
 
     @property
+    def is_committed(self):
+        return self.status == self.STATUS_COMMITTED
+
+    @property
+    def needs_committer(self):
+        return self.status == self.STATUS_COMMITTER
+
+    @property
     def statusstring(self):
         return [v for k, v in self._STATUS_CHOICES if k == self.status][0]
+
+    @classmethod
+    def current_for_patch(cls, patch_id):
+        return get_object_or_404(
+            cls, Q(patch_id=patch_id) & ~Q(status=cls.STATUS_MOVED)
+        )
+
+    def set_status(self, status):
+        self.status = status
+        if not self.leavedate and not self.is_open:
+            # If the patch was not closed before, we need to set the leavedate
+            # now.
+            self.leavedate = datetime.now()
+        elif self.is_open:
+            self.leavedate = None
+
+        self.patch.set_modified()
+
+        self.patch.save()
+        self.save()
 
     class Meta:
         unique_together = (

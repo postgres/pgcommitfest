@@ -42,26 +42,46 @@ from .models import (
     Patch,
     PatchHistory,
     PatchOnCommitFest,
+    UserInputError,
 )
 
 
 def home(request):
-    commitfests = list(CommitFest.objects.all())
-    opencf = next((c for c in commitfests if c.status == CommitFest.STATUS_OPEN), None)
-    inprogresscf = next(
-        (c for c in commitfests if c.status == CommitFest.STATUS_INPROGRESS), None
-    )
+    cfs = CommitFest.relevant_commitfests()
 
     return render(
         request,
         "home.html",
         {
-            "commitfests": commitfests,
-            "opencf": opencf,
-            "inprogresscf": inprogresscf,
+            "cfs": cfs,
             "title": "Commitfests",
             "header_activity": "Activity log",
             "header_activity_link": "/activity/",
+        },
+    )
+
+
+def commitfest_history(request):
+    cfs = list(CommitFest.objects.order_by("-enddate"))
+
+    return render(
+        request,
+        "all_commitfests.html",
+        {
+            "commitfests": cfs,
+            "title": "Commitfest history",
+            "header_activity": "Activity log",
+            "header_activity_link": "/activity/",
+        },
+    )
+
+
+def help(request):
+    return render(
+        request,
+        "help.html",
+        {
+            "title": "What is the CommitFest app?",
         },
     )
 
@@ -128,6 +148,7 @@ def me(request):
             "header_activity": "Activity log",
             "header_activity_link": "/activity/",
             "userprofile": getattr(request.user, "userprofile", UserProfile()),
+            "cfs": CommitFest.relevant_commitfests(),
         },
     )
 
@@ -658,7 +679,7 @@ def patch(request, patchid):
     patch_commitfests = (
         PatchOnCommitFest.objects.select_related("commitfest")
         .filter(patch=patch)
-        .order_by("-commitfest__startdate")
+        .order_by("-enterdate")
         .all()
     )
     cf = patch_commitfests[0].commitfest
@@ -708,6 +729,7 @@ def patch(request, patchid):
                 {"title": cf.title, "href": "/%s/" % cf.pk},
             ],
             "userprofile": getattr(request.user, "userprofile", UserProfile()),
+            "cfs": CommitFest.relevant_commitfests(),
         },
     )
 
@@ -972,22 +994,16 @@ def status(request, patchid, status):
         patch__id=patchid,
     )
 
-    if status == "review":
-        newstatus = PatchOnCommitFest.STATUS_REVIEW
-    elif status == "author":
-        newstatus = PatchOnCommitFest.STATUS_AUTHOR
-    elif status == "committer":
-        newstatus = PatchOnCommitFest.STATUS_COMMITTER
-    else:
-        raise Exception("Can't happen")
+    status_mapping = {
+        "review": PatchOnCommitFest.STATUS_REVIEW,
+        "author": PatchOnCommitFest.STATUS_AUTHOR,
+        "committer": PatchOnCommitFest.STATUS_COMMITTER,
+    }
 
-    if newstatus != poc.status:
-        # Only save it if something actually changed
-        poc.status = newstatus
-        poc.patch.set_modified()
-        poc.patch.save()
-        poc.save()
+    new_status = status_mapping[status]
 
+    if new_status != poc.status:
+        poc.set_status(new_status)
         PatchHistory(
             patch=poc.patch, by=request.user, what="New status: %s" % poc.statusstring
         ).save_and_notify()
@@ -998,6 +1014,9 @@ def status(request, patchid, status):
 @login_required
 @transaction.atomic
 def close(request, patchid, status):
+    if status == "next":
+        raise Exception("Can't happen, use transition/ endpoint")
+
     patch = get_object_or_404(Patch.objects.select_related(), pk=patchid)
     cf = patch.current_commitfest()
 
@@ -1015,7 +1034,7 @@ def close(request, patchid, status):
             request,
             "The patch was moved to a new commitfest by someone else. Please double check if you still want to retry this operation.",
         )
-        return HttpResponseRedirect("/%s/%s/" % (cf.id, patch.id))
+        return HttpResponseRedirect(f"/patch/{patch.id}/")
 
     poc = get_object_or_404(
         PatchOnCommitFest.objects.select_related(),
@@ -1023,98 +1042,7 @@ def close(request, patchid, status):
         patch__id=patchid,
     )
 
-    poc.leavedate = datetime.now()
-
-    # We know the status can't be one of the ones below, since we
-    # have checked that we're not closed yet. Therefor, we don't
-    # need to check if the individual status has changed.
-    if status == "reject":
-        poc.status = PatchOnCommitFest.STATUS_REJECTED
-    elif status == "withdrawn":
-        poc.status = PatchOnCommitFest.STATUS_WITHDRAWN
-    elif status == "feedback":
-        poc.status = PatchOnCommitFest.STATUS_RETURNED
-    elif status == "next":
-        # Only some patch statuses can actually be moved.
-        if poc.status in (
-            PatchOnCommitFest.STATUS_COMMITTED,
-            PatchOnCommitFest.STATUS_NEXT,
-            PatchOnCommitFest.STATUS_RETURNED,
-            PatchOnCommitFest.STATUS_REJECTED,
-        ):
-            # Can't be moved!
-            messages.error(
-                request,
-                "A patch in status {0} cannot be moved to next commitfest.".format(
-                    poc.statusstring
-                ),
-            )
-            return HttpResponseRedirect("/%s/%s/" % (poc.commitfest.id, poc.patch.id))
-        elif poc.status in (
-            PatchOnCommitFest.STATUS_REVIEW,
-            PatchOnCommitFest.STATUS_AUTHOR,
-            PatchOnCommitFest.STATUS_COMMITTER,
-        ):
-            # This one can be moved
-            pass
-        else:
-            messages.error(request, "Invalid existing patch status")
-
-        oldstatus = poc.status
-
-        poc.status = PatchOnCommitFest.STATUS_NEXT
-        # Figure out the commitfest to actually put it on
-        newcf = CommitFest.objects.filter(status=CommitFest.STATUS_OPEN)
-        if len(newcf) == 0:
-            # Ok, there is no open CF at all. Let's see if there is a
-            # future one.
-            newcf = CommitFest.objects.filter(status=CommitFest.STATUS_FUTURE)
-            if len(newcf) == 0:
-                messages.error(request, "No open and no future commitfest exists!")
-                return HttpResponseRedirect(
-                    "/%s/%s/" % (poc.commitfest.id, poc.patch.id)
-                )
-            elif len(newcf) != 1:
-                messages.error(
-                    request, "No open and multiple future commitfests exist!"
-                )
-                return HttpResponseRedirect(
-                    "/%s/%s/" % (poc.commitfest.id, poc.patch.id)
-                )
-        elif len(newcf) != 1:
-            messages.error(request, "Multiple open commitfests exists!")
-            return HttpResponseRedirect("/%s/%s/" % (poc.commitfest.id, poc.patch.id))
-        elif newcf[0] == poc.commitfest:
-            # The current open CF is the same one that we are already on.
-            # In this case, try to see if there is a future CF we can
-            # move it to.
-            newcf = CommitFest.objects.filter(status=CommitFest.STATUS_FUTURE)
-            if len(newcf) == 0:
-                messages.error(
-                    request,
-                    "Cannot move patch to the same commitfest, and no future commitfests exist!",
-                )
-                return HttpResponseRedirect(
-                    "/%s/%s/" % (poc.commitfest.id, poc.patch.id)
-                )
-            elif len(newcf) != 1:
-                messages.error(
-                    request,
-                    "Cannot move patch to the same commitfest, and multiple future commitfests exist!",
-                )
-                return HttpResponseRedirect(
-                    "/%s/%s/" % (poc.commitfest.id, poc.patch.id)
-                )
-        # Create a mapping to the new commitfest that we are bouncing
-        # this patch to.
-        newpoc = PatchOnCommitFest(
-            patch=poc.patch,
-            commitfest=newcf[0],
-            status=oldstatus,
-            enterdate=datetime.now(),
-        )
-        newpoc.save()
-    elif status == "committed":
+    if status == "committed":
         committer = get_object_or_404(Committer, user__username=request.GET["c"])
         if committer != poc.patch.committer:
             # Committer changed!
@@ -1126,12 +1054,14 @@ def close(request, patchid, status):
                 what="Changed committer to %s" % committer,
             ).save_and_notify(prevcommitter=prevcommitter)
         poc.status = PatchOnCommitFest.STATUS_COMMITTED
-    else:
-        raise Exception("Can't happen")
 
-    poc.patch.set_modified()
-    poc.patch.save()
-    poc.save()
+    status_mapping = {
+        "reject": PatchOnCommitFest.STATUS_REJECTED,
+        "withdrawn": PatchOnCommitFest.STATUS_WITHDRAWN,
+        "feedback": PatchOnCommitFest.STATUS_RETURNED,
+        "committed": PatchOnCommitFest.STATUS_COMMITTED,
+    }
+    poc.set_status(status_mapping[status])
 
     PatchHistory(
         patch=poc.patch,
@@ -1140,7 +1070,46 @@ def close(request, patchid, status):
         % (poc.commitfest, poc.statusstring),
     ).save_and_notify()
 
-    return HttpResponseRedirect("/%s/%s/" % (poc.commitfest.id, poc.patch.id))
+    return HttpResponseRedirect(f"/patch/{patchid}")
+
+
+def int_param_or_none(request, param):
+    """Helper function to convert a string to an int or return None."""
+    try:
+        return int(request.GET.get(param, ""))
+    except ValueError:
+        return None
+
+
+@login_required
+@transaction.atomic
+def move(request, patchid):
+    from_cf_id = int_param_or_none(request, "from_cf_id")
+    to_cf_id = int_param_or_none(request, "to_cf_id")
+    if from_cf_id is None or to_cf_id is None:
+        messages.error(
+            request,
+            "Invalid or missing from_cf_id or to_cf_id GET parameter",
+        )
+        return HttpResponseRedirect(f"/patch/{patchid}/")
+
+    from_cf = get_object_or_404(CommitFest, pk=from_cf_id)
+    to_cf = get_object_or_404(CommitFest, pk=to_cf_id)
+
+    patch = get_object_or_404(Patch, pk=patchid)
+    try:
+        patch.move(from_cf, to_cf)
+    except UserInputError as e:
+        messages.error(request, f"Failed to move patch: {e}")
+        return HttpResponseRedirect(f"/patch/{patchid}/")
+
+    PatchHistory(
+        patch=patch,
+        by=request.user,
+        what=f"Moved from CF {from_cf} to CF {to_cf}",
+    ).save_and_notify()
+
+    return HttpResponseRedirect(f"/patch/{patchid}/")
 
 
 @login_required
