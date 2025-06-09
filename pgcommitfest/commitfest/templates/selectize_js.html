@@ -5,6 +5,7 @@
    valueField: 'id',
    labelField: 'value',
    searchField: 'value',
+  {%if url%}
    load: function(query, callback) {
     if (!query.length) return callback();
     $.ajax({
@@ -18,6 +19,7 @@
      'success': function(res) { callback(res.values);},
     });
    },
+  {%endif%}
    onFocus: function() {
     if (this.$input.is('[multiple]')) {
      return;

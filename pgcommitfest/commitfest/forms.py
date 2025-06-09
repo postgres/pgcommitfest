@@ -72,6 +72,7 @@ class PatchForm(forms.ModelForm):
     selectize_fields = {
         "authors": "/lookups/user",
         "reviewers": "/lookups/user",
+        "tags": None,
     }
 
     class Meta:
@@ -94,8 +95,14 @@ class PatchForm(forms.ModelForm):
             x.user.username,
         )
 
+        self.fields["authors"].widget.attrs["class"] = "add-user-picker"
+        self.fields["reviewers"].widget.attrs["class"] = "add-user-picker"
+
         # Selectize multiple fields -- don't pre-populate everything
         for field, url in list(self.selectize_fields.items()):
+            if url is None:
+                continue
+
             # If this is a postback of a selectize field, it may contain ids that are not currently
             # stored in the field. They must still be among the *allowed* values of course, which
             # are handled by the existing queryset on the field.
