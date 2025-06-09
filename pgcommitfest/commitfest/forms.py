@@ -5,7 +5,7 @@ from django.forms.widgets import HiddenInput
 from django.http import Http404
 
 from .ajax import _archivesAPI
-from .models import MailThread, Patch, PatchOnCommitFest, TargetVersion
+from .models import MailThread, Patch, PatchOnCommitFest, Tag, TargetVersion
 from .widgets import ThreadPickWidget
 
 
@@ -13,11 +13,13 @@ class CommitFestFilterForm(forms.Form):
     selectize_fields = {
         "author": "/lookups/user",
         "reviewer": "/lookups/user",
+        "tag": None,
     }
 
     text = forms.CharField(max_length=50, required=False)
     status = forms.ChoiceField(required=False)
     targetversion = forms.ChoiceField(required=False)
+    tag = forms.ChoiceField(required=False, label="Tag (type to search)")
     author = forms.ChoiceField(required=False, label="Author (type to search)")
     reviewer = forms.ChoiceField(required=False, label="Reviewer (type to search)")
     sortkey = forms.IntegerField(required=False)
@@ -59,6 +61,9 @@ class CommitFestFilterForm(forms.Form):
         )
         self.fields["author"].choices = userchoices
         self.fields["reviewer"].choices = userchoices
+        self.fields["tag"].choices = [(-1, "* All"), (-2, "* None")] + list(
+            Tag.objects.all().values_list("id", "name")
+        )
 
         for f in (
             "status",
