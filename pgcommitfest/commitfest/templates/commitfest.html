@@ -62,7 +62,10 @@
    <td><span class="label label-{{p.status|patchstatuslabel}}">{{p.status|patchstatusstring}}</span></td>
    <td style="width: min-content;">
     {%for t in p.tag_ids%}
-     <span class="label" style="background: {{all_tags|tagcolor:t}};">{{all_tags|tagname:t}}</span>
+
+     <a href="?tag={{t}}">
+      <span class="label" style="background: {{all_tags|tagcolor:t}};">{{all_tags|tagname:t}}</span>
+     </a>
     {%endfor%}
    </td>
    <td>{%if p.targetversion%}<span class="label label-default">{{p.targetversion}}</span>{%endif%}</td>
