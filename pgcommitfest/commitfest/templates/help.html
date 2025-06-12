@@ -1,0 +1,52 @@
+{%extends "base.html"%}
+{%block contents%}
+ <p>
+  This is the "CommitFest app", the website where the PostgreSQL community tracks proposed changes to PostgreSQL. If you're familiar with GitHub, then this website fulfills a similar purpose to the list of Pull Requests (PRs) on GitHub repo. The most important difference is that the CommitFest app is not the "source of truth", instead the PostgreSQL mailinglists are. The "CommitFest app" is simply a tool to help the communtiy keep track of changes proposed on the mailinglist in an organized manner. Below are the most important concepts that you should know about when using the CommitFest app.
+ </p>
+ <h2>CommitFest</h2>
+ <p>
+  PostgreSQL development is organized into "CommitFests" (often abbreviated to "CF"). Each CommitFest contains a list of entries called <a href="#patch">patches</a> (similar to PRs, see below for details). The main purpose of CommitFests are to make sure patches that people are interested in are not forgotten about, as well as running CI (aka CFBot) on these patches. Each CommitFest has a period where it is  "Open", in which people can add patches to the CommitFest. This "Open" period is followed by an "In Progress" period, in which the idea is that committers and reviewers focus on reviewing and committing the patches in this "In Progress" CommitFest. At the end of the month a CommitFest gets "Closed" (and stays closed forever). Any not yet committed patches can be moved to the following "Open" CommitFest by their authors, to try again in the next cycle. Having these timebound periods has several benefits:
+  <ol>
+   <li>It gives a regular cadence of development to people who like to have this.</li>
+   <li>It provides a natural age-out mechanism for patches that the submitter has lost interest in.</li>
+   <li>It provides an easy way for reviewers/committers to prioritize which patches to review.</li>
+  </ol>
+  This <b>does not</b> mean that patches are only committed during a CommitFest, nor that people will only respond on the mainlinglist to patches in the "In Progress" CommitFest.
+ </p>
+ <p>There are 5 CommitFests per year. The first one is "In Progress" in <em>July</em> and starts the nine months feature development cycle of PostgreSQL. The next three are "In Progress" in <em>September</em>, <em>November</em> and <em>January</em>. The last CommitFest of the feature development cycle is "In Progress" in <em>March</em>, and ends a when the feature freeze starts. The exact date of the feature freeze depends on the year, but it's usually in early April.</p>
+
+ <h2>Patches</h2>
+ <p>
+  A "patch" is a bit of an overloaded term in the PostgreSQL community. Email threads on the mailing list often contain "patch files" as attachments, such a file is often referred to as a "patch". A single email can even contain multiple related "patch files", which are called a "patchset". However, in the context of a CommitFest app a "patch" usually means a "patch entry" in the CommitFest app. Such a "patch entry" is a reference to a mailinglist thread on which change to PostgreSQL has been proposed, by someone sending an email that contain one or more "patch files". The CommitFest app will automatically detect new versions of the patch files and update the "patch entry" accordingly.
+ </p>
+ <p>
+  There are three "Active" categories of patch status:
+  <ul>
+   <li><b>Waiting on Author:</b> The author needs to make changes based on a review that took place on the mailinglist.</li>
+   <li><b>Needs Reviewer:</b> The patch needs guidance or a review.</li>
+   <li><b>Ready for Committer:</b> The patch has been reviewed by non-committers and is considered ready to be committed by one of those reviewers. A committer might still decide that more changes are needed.</li>
+  </ul>
+  And there are four "Closed" categories of patch status for when a patch has
+  been resolved, either by being committed or not:
+  <ul>
+   <li><b>Committed:</b> A committer has applied the patches to the git repo.</li>
+   <li><b>Withdrawn:</b> The author has withdrawn the patch from consideration.</li>
+   <li><b>Rejected:</b> A committer has decided that either the feature is not desired, or the design of the patch has severe flaws. People should look at the emails on the email thread, for details on why the patch was rejected.</li>
+   <li><b>Returned with Feedback:</b> A committer has decided that the patch needs changes, but the author has not responded for long enough that the patch is now considered inactive. The author (or someoene else) is free to re-open again when they address the required changes.</li>
+  </ul>
+ </p>
+
+ <h2>Drafts</h2>
+ <p>
+  Appart from the regular CommitFests, there is also a "Drafts" CommitFest that is used to collect patches for new features that are not yet ready for general reviewing. There are various reasons why a patch might not be ready for general reviewing but the author still wants to track it publicly in the "CommitFest app", this is usually due to the combination of one of the following reasons:
+  <ul>
+   <li>The author has temporarily lost interest, but expects to come back in the future.</li>
+   <li>The author does not want to forget abuot </li>
+   <li>The author wants feedback from a specific subset of people before requesting general feedback</li>
+   <li>The author wants to have CI run on the patch, while they are polishing it further</li>
+   <li>The author would like to be notified when the patch is in need of a rebase</li>
+  </ul>
+  Like regular CommitFests, a Draft CommitFest also has an "Open" period and a "Closed" state, but it has no "In Progress" period. The "Open" period for a Draft CommitFest last lasts a year. When the last CommitFest of the development cycle becomes "In Progress", the Draft CommitFest for that PostgreSQL version is closed, and a new one is immediately opened for the next PostgreSQL release.
+ </p>
+ <p>Another difference between Draft CommitFests and regular CommitFests is that Draft CommitFests don't list resolved patches.</p>
+{%endblock%}

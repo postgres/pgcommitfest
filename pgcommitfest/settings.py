@@ -164,6 +164,8 @@ HACKERS_EMAIL = "pgsql-hackers-testing@localhost"
 # Email address for outgoing system messages
 NOTIFICATION_FROM = "webmaster@postgresql.org"
 
+AUTO_CREATE_COMMITFESTS = True
+
 # Load local settings overrides
 try:
     from .local_settings import *  # noqa: F403

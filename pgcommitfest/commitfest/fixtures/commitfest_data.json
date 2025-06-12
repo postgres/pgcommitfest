@@ -24,40 +24,44 @@
     "model": "commitfest.commitfest",
     "pk": 1,
     "fields": {
-        "name": "Sample Old Commitfest",
+        "name": "PG18-3",
         "status": 4,
-        "startdate": "2024-05-01",
-        "enddate": "2024-05-31"
+        "startdate": "2024-11-01",
+        "enddate": "2024-11-30",
+        "draft": false
     }
 },
 {
     "model": "commitfest.commitfest",
     "pk": 2,
     "fields": {
-        "name": "Sample In Progress Commitfest",
+        "name": "PG18-4",
         "status": 3,
         "startdate": "2025-01-01",
-        "enddate": "2025-02-28"
+        "enddate": "2025-01-31",
+        "draft": false
     }
 },
 {
     "model": "commitfest.commitfest",
     "pk": 3,
     "fields": {
-        "name": "Sample Open Commitfest",
+        "name": "PG18-Final",
         "status": 2,
         "startdate": "2025-03-01",
-        "enddate": "2025-03-31"
+        "enddate": "2025-03-31",
+        "draft": false
     }
 },
 {
     "model": "commitfest.commitfest",
     "pk": 4,
     "fields": {
-        "name": "Sample Future Commitfest",
-        "status": 1,
-        "startdate": "2025-05-01",
-        "enddate": "2025-05-31"
+        "name": "PG18-Drafts",
+        "status": 2,
+        "startdate": "2024-03-01",
+        "enddate": "2025-02-28",
+        "draft": true
     }
 },
 {
@@ -238,6 +242,33 @@
     }
 },
 {
+    "model": "commitfest.patch",
+    "pk": 8,
+    "fields": {
+        "name": "Test DGJ Multi-Author and Reviewer",
+        "topic": 3,
+        "wikilink": "",
+        "gitlink": "",
+        "targetversion": 1,
+        "committer": 4,
+        "created": "2025-02-01T00:00:00",
+        "modified": "2025-02-01T00:00:00",
+        "lastmail": "2025-02-01T00:00:00",
+        "authors": [
+            3,
+            6
+        ],
+        "reviewers": [
+            1,
+            7
+        ],
+        "subscribers": [],
+        "mailthread_set": [
+            8
+        ]
+    }
+},
+{
     "model": "commitfest.patchoncommitfest",
     "pk": 1,
     "fields": {
@@ -321,6 +352,17 @@
         "patch": 7,
         "commitfest": 2,
         "enterdate": "2025-03-01T22:27:53.214",
+        "leavedate": null,
+        "status": 1
+    }
+},
+{
+    "model": "commitfest.patchoncommitfest",
+    "pk": 9,
+    "fields": {
+        "patch": 8,
+        "commitfest": 4,
+        "enterdate": "2025-02-01T00:00:00",
         "leavedate": null,
         "status": 1
     }
@@ -630,6 +672,33 @@
         "latestauthor": "test@test.com",
         "latestsubject": "Re: Old BufferDesc refcount in PrintBufferDescs and PrintPinnedBufs",
         "latestmsgid": "example@message-31"
+    }
+},
+{
+    "model": "commitfest.mailthread",
+    "pk": 8,
+    "fields": {
+        "messageid": "dgj-example@message-08",
+        "subject": "Test DGJ Multi-Author and Reviewer",
+        "firstmessage": "2025-02-01T00:00:00",
+        "firstauthor": "test@test.com",
+        "latestmessage": "2025-02-01T00:00:00",
+        "latestauthor": "test@test.com",
+        "latestsubject": "Test DGJ Multi-Author and Reviewer",
+        "latestmsgid": "dgj-example@message-08"
+    }
+},
+{
+    "model": "commitfest.mailthreadattachment",
+    "pk": 8,
+    "fields": {
+        "mailthread": 8,
+        "messageid": "dgj-example@message-08",
+        "attachmentid": 1,
+        "filename": "v1-0001-content.patch",
+        "date": "2025-02-01T00:00:00",
+        "author": "test@test.com",
+        "ispatch": true
     }
 },
 {

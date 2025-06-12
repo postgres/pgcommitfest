@@ -3,6 +3,7 @@ from django.urls import re_path
 
 import pgcommitfest.auth
 import pgcommitfest.commitfest.ajax as ajax
+import pgcommitfest.commitfest.apiv1 as apiv1
 import pgcommitfest.commitfest.lookups as lookups
 import pgcommitfest.commitfest.reports as reports
 import pgcommitfest.commitfest.views as views
@@ -15,6 +16,9 @@ admin.autodiscover()
 
 urlpatterns = [
     re_path(r"^$", views.home),
+    re_path(r"^api/v1/commitfests/needs_ci$", apiv1.commitfestst_that_need_ci),
+    re_path(r"^help/$", views.help),
+    re_path(r"^commitfest_history/$", views.commitfest_history),
     re_path(r"^me/$", views.me),
     re_path(r"^archive/$", views.archive),
     re_path(r"^activity(?P<rss>\.rss)?/", views.activity),
@@ -26,9 +30,8 @@ urlpatterns = [
     re_path(r"^patch/(\d+)/edit/$", views.patchform),
     re_path(r"^(\d+)/new/$", views.newpatch),
     re_path(r"^patch/(\d+)/status/(review|author|committer)/$", views.status),
-    re_path(
-        r"^patch/(\d+)/close/(reject|withdrawn|feedback|committed|next)/$", views.close
-    ),
+    re_path(r"^patch/(\d+)/close/(reject|withdrawn|feedback|committed)/$", views.close),
+    re_path(r"^patch/(\d+)/move/$", views.move),
     re_path(r"^patch/(\d+)/reviewer/(become|remove)/$", views.reviewer),
     re_path(r"^patch/(\d+)/committer/(become|remove)/$", views.committer),
     re_path(r"^patch/(\d+)/(un)?subscribe/$", views.subscribe),
