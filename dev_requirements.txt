@@ -1,5 +1,0 @@
--r requirements.txt
-uwsgi
-pycodestyle
-ruff
-djhtml
