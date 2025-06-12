@@ -3,7 +3,7 @@ name = "pgocmmitfest"
 description = "Commitfest app for the PostgreSQL community"
 dynamic = ["version"]
 readme = "README.md"
-licsense = "PostgreSQL"
+license = "PostgreSQL"
 dependencies = [
     "django>=4.2,<5.0",
     "psycopg2",
@@ -28,12 +28,6 @@ statistics = true
 ignore = ["E402", "E501", "W503"]
 max-line-length = 120
 
-[tool.ruff]
-line-length = 120
-
-[tool.ruff.format]
-quote-style = "preserve"
-
 [tool.ruff.lint]
 extend-select = ["I"]
 
@@ -48,4 +42,5 @@ section-order = [
 ]
 
 [tool.ruff.lint.isort.sections]
+# Group all Django imports into a separate section.
 django = ["django"]
