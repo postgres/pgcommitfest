@@ -75,7 +75,7 @@
  {%include "selectize_js.html" %}
  <script>
   {%if user.is_staff%}
-   $('.selectize-control').after(
+   $('.selectize-control.add-user-picker').after(
     $('<a href="#" class="btn btn-default btn-sm">Import user not listed</a>').click(function () {
      search_and_store_user();
     })
