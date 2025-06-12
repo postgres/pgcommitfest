@@ -25,7 +25,7 @@ Next, configure your local environment with virtualenv and install local depende
 ```bash
 python3 -m venv env
 source env/bin/activate
-pip install -r dev_requirements.txt
+pip install -e '.[dev]'
 ```
 
 Create a database for the application:
