@@ -774,10 +774,14 @@ def patchform(request, patchid):
 
             # Track all changes
             for field, values in r.diff.items():
+                if field == "tags":
+                    value = ", ".join(v.name for v in values[1])
+                else:
+                    value = values[1]
                 PatchHistory(
                     patch=patch,
                     by=request.user,
-                    what="Changed %s to %s" % (field, values[1]),
+                    what="Changed %s to %s" % (field, value),
                 ).save_and_notify(
                     prevcommitter=prevcommitter,
                     prevreviewers=prevreviewers,
