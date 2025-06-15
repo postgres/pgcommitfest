@@ -114,11 +114,15 @@
    </tr>
    <tr>
     <th>Links</th>
-    {%if patch.wikilink%}
-     <a href="{{patch.wikilink}}">Wiki</a>{%endif%}{%if patch.gitlink%}
-      <a href="{{patch.gitlink}}">Git</a>
-     {%endif%}</td>
-  </tr>
+    <td>
+     {% if patch.wikilink %}
+      <a href="{{ patch.wikilink }}">Wiki</a>
+     {% endif %}
+     {% if patch.gitlink %}
+      <a href="{{ patch.gitlink }}">Git</a>
+     {% endif %}
+    </td>
+   </tr>
   <tr>
    <th>Emails</th>
    <td>

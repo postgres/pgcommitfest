@@ -1,11 +1,82 @@
 {%extends "base.html"%}
 {%block contents%}
  <p>
-  {%if inprogresscf%}A commitfest is currently in progress: <a href="/{{inprogresscf.id}}/">{{inprogresscf}}</a>.{%endif%}
+  First time user? <a href="/help">Here is a help page</a> for you to understand how this website works.
  </p>
  <p>
-  Useful links that you can use and bookmark:
+  <table class="table" style="table-layout: auto; width: auto;">
+   <style>
+    td:first-child {
+     text-align: right;
+    }
+   </style>
+   <thead>
+    <tr>
+     <th></th>
+     <th>Details</th>
+     <th>In Progress</th>
+    </tr>
+   </thead>
+   <tbody>
+    <tr>
+     <td><strong>Open:</strong></td>
+     <td><a href="/{{cfs.open.id}}/">{{cfs.open}}</a></td>
+     <td>{{cfs.open.periodstring}}</td>
+    </tr>
+    <tr>
+     <td><strong>In Progress:</strong></td>
+     <td>
+      {%if cfs.in_progress %}
+       <a href="/{{cfs.in_progress.id}}/">{{cfs.in_progress}}</a>
+      {%else%}
+       <span class="text-muted">None in progress</span>
+      {%endif%}
+     </td>
+     <td>
+      {%if cfs.in_progress %}
+       {{cfs.in_progress.periodstring}}
+      {%endif%}
+     </td>
+    </tr>
+    <tr>
+     <td><strong>Previous:</strong></td>
+     <td><a href="/{{cfs.previous.id}}/">{{cfs.previous}}</a></td>
+     <td>{{cfs.previous.periodstring}}</td>
+    </tr>
+    <tr>
+     <td><strong>Draft:</strong></td>
+     <td><a href="/{{cfs.draft.id}}/">{{cfs.draft}}</a></td>
+     <td>{{cfs.draft.periodstring}}</td>
+    </tr>
+    <tr>
+     <td><strong>Next open:</strong></td>
+     <td>{{cfs.next_open}}</td>
+     <td>{{cfs.next_open.periodstring}}</td>
+    </tr>
+    <tr>
+     <td><strong>Final of this release:</strong></td>
+     <td>
+      {%if cfs.final.id %}
+       <a href="/{{cfs.final.id}}/">{{cfs.final}}</a>
+      {%else%}
+       {{cfs.final}}
+      {%endif%}
+     </td>
+     <td>
+      {{cfs.final.periodstring}}
+     </td>
+    </tr>
+   </tbody>
+  </table>
  </p>
+ <h3>Search</h3>
+ <form method="GET" action="/search/" class="form-inline">
+  <div class="form-group">
+   <input type="text" class="form-control" id="searchterm" name="searchterm" placeholder="Email Message-ID or keywords">
+  </div>
+  <button type="submit" class="btn btn-default">Search</button>
+ </form>
+ <h3>Useful pages (bookmarkable)</h3>
  <ul>
   <li><a href="/me/">Your personal dashboard</a></li>
   <li><a href="/current/">All patches in the current commitfest</a></li>
@@ -14,19 +85,7 @@
   <li><a href="/current/?author=-3">Your entries in the current commitfest</a></li>
   <li><a href="/open/?author=-3">Your entries in the open commitfest</a></li>
   <li><a href="/current/?reviewer=-3">Entries that you are reviewing in current commitfest</a></li>
- </ul>
- <h3>Commands</h3>
- <form method="GET" action="/search/" class="form-inline">
-  <div class="form-group">
-   <input type="text" class="form-control" id="searchterm" name="searchterm" placeholder="Global search">
-  </div>
-  <button type="submit" class="btn btn-default">Search</button>
- </form>
- <h3>List of commitfests</h3>
- <ul>
-  {%for c in commitfests%}
-   <li><a href="/{{c.id}}/">{{c}}</a> ({{c.statusstring}}{%if c.startdate%} - {{c.periodstring}}{%endif%})</li>
-  {%endfor%}
+  <li><a href="/commitfest_history/">A list of all commitfests</a></li>
  </ul>
  <br/>
 {%endblock%}
