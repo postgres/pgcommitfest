@@ -142,6 +142,7 @@ def me(request):
             "title": "Personal Dashboard",
             "patches": patch_list.patches,
             "statussummary": statussummary,
+            "all_tags": {t.id: t for t in Tag.objects.all()},
             "has_filter": patch_list.has_filter,
             "grouping": patch_list.sortkey == 0,
             "sortkey": patch_list.sortkey,
