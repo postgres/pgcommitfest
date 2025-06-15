@@ -7,7 +7,7 @@ import pgcommitfest.commitfest.models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("commitfest", "0010_add_failing_since_column"),
+        ("commitfest", "0012_add_status_related_constraints"),
     ]
 
     operations = [
