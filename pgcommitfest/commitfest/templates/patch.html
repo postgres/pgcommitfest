@@ -71,7 +71,7 @@
     <th>Tags</th>
     <td>
      {%for tag in patch.tags.all%}
-      <span class="label" style="background: {{tag|tagcolor}};">{{tag.name}}</span>
+      <span class="label" style="background: {{tag|tagcolor}};" title="{{tag.description}}">{{tag.name}}</span>
      {%endfor%}
     </td>
    </tr>
