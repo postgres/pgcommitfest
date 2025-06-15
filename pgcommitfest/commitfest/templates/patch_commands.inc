@@ -21,8 +21,28 @@
      <li role="presentation"><a href="close/reject/" onclick="return verify_reject()">Rejected</a></li>
      <li role="presentation"><a href="close/withdrawn/" onclick="return verify_withdrawn()">Withdrawn</a></li>
      <li role="presentation"><a href="close/feedback/" onclick="return verify_returned()">Returned with feedback</a></li>
-     <li role="presentation"><a href="close/next/?cfid={{cf.id}}" onclick="return verify_next()">Move to next CF</a></li>
      <li role="presentation"><a href="close/committed/" onclick="return flagCommitted({%if patch.committer%}'{{patch.committer}}'{%elif is_committer%}'{{user.username}}'{%else%}null{%endif%})">Committed</a></li>
+     <li role="presentation" class="divider"></li>
+     <li role="presentation" class="dropdown-header">Move to</li>
+     {%if not cf.is_open_regular %}
+      <li role="presentation">
+       <a
+        href="move/?from_cf_id={{cf.id}}&to_cf_id={{cfs.open.id}}">
+        Next CF: {{cfs.open.name}}</a>
+      </li>
+     {%endif%}
+     {%if not cf.is_open_draft %}
+      <li role="presentation">
+       <a
+        href="move/?from_cf_id={{cf.id}}&to_cf_id={{cfs.draft.id}}">
+        {%if cf.draft %}
+         Next Drafts:
+        {%else%}
+         Draft:
+        {%endif%}
+        {{cfs.draft.name}}</a>
+      </li>
+     {%endif%}
     </ul>
    </div>
 
