@@ -1,8 +1,10 @@
 from django.contrib import admin
+from django.forms import widgets
 
 from .models import (
     CfbotBranch,
     CfbotTask,
+    ColorField,
     CommitFest,
     Committer,
     MailThread,
@@ -10,6 +12,7 @@ from .models import (
     Patch,
     PatchHistory,
     PatchOnCommitFest,
+    Tag,
     TargetVersion,
     Topic,
 )
@@ -38,8 +41,26 @@ class MailThreadAttachmentAdmin(admin.ModelAdmin):
     )
 
 
+class ColorInput(widgets.Input):
+    """
+    A color picker widget.
+    """
+
+    input_type = "color"
+    template_name = "color_input.html"
+
+
+class TagAdmin(admin.ModelAdmin):
+    # Customize the Tag form with a color picker and soft validation.
+    change_form_template = "change_tag_form.html"
+    formfield_overrides = {
+        ColorField: {"widget": ColorInput},
+    }
+
+
 admin.site.register(Committer, CommitterAdmin)
 admin.site.register(CommitFest)
+admin.site.register(Tag, TagAdmin)
 admin.site.register(Topic)
 admin.site.register(Patch, PatchAdmin)
 admin.site.register(PatchHistory)

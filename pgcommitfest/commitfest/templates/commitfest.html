@@ -34,6 +34,7 @@
       <th><a href="#" style="color:#333333;" onclick="return sortpatches(5);">Patch</a>{%if sortkey == 5%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -5%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
       <th><a href="#" style="color:#333333;" onclick="return sortpatches(4);">ID</a>{%if sortkey == 4%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -4%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
       <th>Status</th>
+      <th>Tags</th>
       <th>Ver</th>
       <th><a href="#" style="color:#333333;" onclick="return sortpatches(7);">CI status</a>{%if sortkey == 7%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -7%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
       <th><a href="#" style="color:#333333;" onclick="return sortpatches(6);">Stats</a>{%if sortkey == 6%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-down"></i></div>{%elif sortkey == -6%}<div style="float:right;"><i class="glyphicon glyphicon-arrow-up"></i></div>{%endif%}</th>
@@ -59,6 +60,13 @@
    <td><a href="/patch/{{p.id}}/">{{p.name}}</a></td>
    <td>{{p.id}}</td>
    <td><span class="label label-{{p.status|patchstatuslabel}}">{{p.status|patchstatusstring}}</span></td>
+   <td style="width: min-content;">
+    {%for t in p.tag_ids%}
+     <a href="?tag={{t}}">
+      <span class="label" style="background: {{all_tags|tagcolor:t}};" title="{{all_tags|tagdescription:t}}">{{all_tags|tagname:t}}</span>
+     </a>
+    {%endfor%}
+   </td>
    <td>{%if p.targetversion%}<span class="label label-default">{{p.targetversion}}</span>{%endif%}</td>
    <td class="cfbot-summary">
     {%with p.cfbot_results as cfb%}
