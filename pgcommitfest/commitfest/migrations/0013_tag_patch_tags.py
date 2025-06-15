@@ -5,6 +5,60 @@ from django.db import migrations, models
 import pgcommitfest.commitfest.models
 
 
+def add_initial_tags(apps, schema_editor):
+    Tag = apps.get_model("commitfest", "Tag")
+    Tag.objects.bulk_create(
+        [
+            Tag(name="bugfix", color="#a51d2d", description="Fixes a bug"),
+            Tag(
+                name="backport",
+                color="#1a5fb4",
+                description="Once merged should be backported to old branches",
+            ),
+            Tag(
+                name="missing-tests",
+                color="#c66424",
+                description="Author should add tests",
+            ),
+            Tag(
+                name="missing-docs",
+                color="#c66424",
+                description="Author should add documentation",
+            ),
+            Tag(
+                name="missing-benchmarks",
+                color="#c66424",
+                description="Author should do additional benchmarks",
+            ),
+            Tag(
+                name="help-user-testing",
+                color="#07732e",
+                description="Reviewers are requested to try out the patch and provide user feedback on behaviour UX/UI",
+            ),
+            Tag(
+                name="help-bikeshedding",
+                color="#07732e",
+                description="Reviewers are requested to propose or vote on stylistic changes like a user facing function name",
+            ),
+            Tag(
+                name="help-docs",
+                color="#07732e",
+                description="Reviewers are requested to help review or write documentation",
+            ),
+            Tag(
+                name="help-benchmarks",
+                color="#07732e",
+                description="Reviewers are requested to help discuss or do benchmarks and discuss performance impact",
+            ),
+            Tag(
+                name="good-first-review",
+                color="#613583",
+                description="An easy to review patch for a new reviewer",
+            ),
+        ]
+    )
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("commitfest", "0012_add_status_related_constraints"),
@@ -25,6 +79,7 @@ class Migration(migrations.Migration):
                 ),
                 ("name", models.CharField(max_length=50, unique=True)),
                 ("color", pgcommitfest.commitfest.models.ColorField(max_length=7)),
+                ("description", models.CharField(max_length=500)),
             ],
             options={
                 "ordering": ("name",),
@@ -37,4 +92,5 @@ class Migration(migrations.Migration):
                 blank=True, related_name="patches", to="commitfest.tag"
             ),
         ),
+        migrations.RunPython(add_initial_tags, migrations.RunPython.noop),
     ]

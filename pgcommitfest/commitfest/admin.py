@@ -44,10 +44,10 @@ class MailThreadAttachmentAdmin(admin.ModelAdmin):
 class ColorInput(widgets.Input):
     """
     A color picker widget.
-    TODO: this will be natively available in Django 5.2.
     """
 
     input_type = "color"
+    template_name = "color_input.html"
 
 
 class TagAdmin(admin.ModelAdmin):
