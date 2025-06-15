@@ -56,6 +56,19 @@ def tagname(value, arg):
     return value[arg].name
 
 
+@register.filter(name="tagdescription")
+def tagdescription(value, arg):
+    """
+    Looks up a tag by ID and returns its name. The filter value is the map of
+    tags, and the argument is the ID. (Unlike tagcolor, there is no
+    argument-less variant; just use tag.name directly.)
+
+    Example:
+      tag_map|tagname:tag_id
+    """
+    return value[arg].description
+
+
 @register.filter(name="tagcolor")
 def tagcolor(value, key=None):
     """
