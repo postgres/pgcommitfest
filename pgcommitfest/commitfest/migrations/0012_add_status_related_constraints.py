@@ -18,6 +18,26 @@ DROP INDEX IF EXISTS cf_enforce_maxoneopen_idx;
         ),
         migrations.RunSQL(
             """
+WITH cte AS (
+    SELECT * FROM (
+        SELECT
+            id,
+            patch_id,
+            status,
+            ROW_NUMBER() OVER (PARTITION BY patch_id ORDER BY commitfest_id DESC) AS rn
+        FROM
+            commitfest_patchoncommitfest
+        WHERE
+            status NOT IN (5)
+    ) q
+    WHERE rn > 1
+)
+UPDATE commitfest_patchoncommitfest
+SET status = 5
+WHERE id IN (
+    SELECT id
+    FROM cte
+);
 CREATE UNIQUE INDEX poc_enforce_maxoneoutcome_idx
 ON commitfest_patchoncommitfest (patch_id)
 WHERE status not in (5);
@@ -28,6 +48,15 @@ DROP INDEX IF EXISTS poc_enforce_maxoneoutcome_idx;
         ),
         migrations.RunSQL(
             """
+UPDATE commitfest_patchoncommitfest
+SET leavedate =
+    CASE
+        WHEN status IN (4,5,6,7,8) THEN NOW()
+        ELSE NULL
+    END
+WHERE
+    (status IN (4,5,6,7,8) AND leavedate IS NULL)
+    OR (status NOT IN (4,5,6,7,8) AND leavedate IS NOT NULL);
 ALTER TABLE commitfest_patchoncommitfest
 ADD CONSTRAINT status_and_leavedate_correlation
 CHECK ((status IN (4,5,6,7,8)) = (leavedate IS NOT NULL));
