@@ -10,6 +10,7 @@
         "ignore": [],
         "include": [
             "media/commitfest/js/commitfest.js",
+            "media/commitfest/js/change_tag.js",
             "media/commitfest/css/commitfest.css",
             "biome.json"
         ]
