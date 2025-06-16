@@ -106,7 +106,7 @@
     "pk": 2,
     "fields": {
         "name": "Backport",
-        "color": "#1a5fb4",
+        "color": "#3d3846",
         "description": "Once merged should be backported to old branches"
     }
 },
@@ -180,6 +180,177 @@
         "name": "Good First Review",
         "color": "#613583",
         "description": "An easy to review patch for a new reviewer"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 11,
+    "fields": {
+        "name": "libpq",
+        "color": "#1a5fb4",
+        "description": "Makes significant libpq changes"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 12,
+    "fields": {
+        "name": "psql",
+        "color": "#1a5fb4",
+        "description": "Makes significant psql changes"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 13,
+    "fields": {
+        "name": "Performance",
+        "color": "#1a5fb4",
+        "description": "Improves performance"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 14,
+    "fields": {
+        "name": "Logical Replication",
+        "color": "#1a5fb4",
+        "description": "Makes significant logical replication changes"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 15,
+    "fields": {
+        "name": "Physical Replication",
+        "color": "#1a5fb4",
+        "description": "Makes significant physical replication changes"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 16,
+    "fields": {
+        "name": "Refactoring Only",
+        "color": "#1a5fb4",
+        "description": "Only refactores code without changing functionality"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 17,
+    "fields": {
+        "name": "Comments Only",
+        "color": "#1a5fb4",
+        "description": "Only updates code comments"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 18,
+    "fields": {
+        "name": "Docs Only",
+        "color": "#1a5fb4",
+        "description": "Only updates user facing documentation"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 19,
+    "fields": {
+        "name": "CI",
+        "color": "#1a5fb4",
+        "description": "Makes changes to the CI configuration or scripts"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 20,
+    "fields": {
+        "name": "Testing",
+        "color": "#1a5fb4",
+        "description": "Adds/modifies tests or improves our testing frameworks"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 21,
+    "fields": {
+        "name": "Monitoring",
+        "color": "#1a5fb4",
+        "description": "Adds new monitoring features or improves existing ones"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 22,
+    "fields": {
+        "name": "GUC",
+        "color": "#1a5fb4",
+        "description": "Adds/modifies configuration parameters (GUCs)"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 23,
+    "fields": {
+        "name": "PL/pgSQL",
+        "color": "#1a5fb4",
+        "description": "Involves changes to PL/pgSQL"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 24,
+    "fields": {
+        "name": "PL/Python",
+        "color": "#1a5fb4",
+        "description": "Involves changes to PL/Python"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 25,
+    "fields": {
+        "name": "PL/Perl",
+        "color": "#1a5fb4",
+        "description": "Involves changes to PL/Perl"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 26,
+    "fields": {
+        "name": "PL/Tcl",
+        "color": "#1a5fb4",
+        "description": "Involves changes to PL/Perl"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 27,
+    "fields": {
+        "name": "dblink",
+        "color": "#1a5fb4",
+        "description": "Involves changes to dblink"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 28,
+    "fields": {
+        "name": "postgres_fdw",
+        "color": "#1a5fb4",
+        "description": "Involves changes to postgres_fdw"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 29,
+    "fields": {
+        "name": "Security",
+        "color": "#a51d2d",
+        "description": "Improves security"
     }
 },
 {
