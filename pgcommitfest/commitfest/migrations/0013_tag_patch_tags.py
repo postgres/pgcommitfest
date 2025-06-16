@@ -12,7 +12,7 @@ def add_initial_tags(apps, schema_editor):
             Tag(name="Bugfix", color="#a51d2d", description="Fixes a bug"),
             Tag(
                 name="Backport",
-                color="#1a5fb4",
+                color="#3d3846",
                 description="Once merged should be backported to old branches",
             ),
             Tag(
@@ -55,6 +55,97 @@ def add_initial_tags(apps, schema_editor):
                 color="#613583",
                 description="An easy to review patch for a new reviewer",
             ),
+            Tag(
+                name="libpq",
+                color="#1a5fb4",
+                description="Makes significant libpq changes",
+            ),
+            Tag(
+                name="psql",
+                color="#1a5fb4",
+                description="Makes significant psql changes",
+            ),
+            Tag(
+                name="Performance",
+                color="#1a5fb4",
+                description="Improves performance",
+            ),
+            Tag(
+                name="Logical Replication",
+                color="#1a5fb4",
+                description="Makes significant logical replication changes",
+            ),
+            Tag(
+                name="Physical Replication",
+                color="#1a5fb4",
+                description="Makes significant physical replication changes",
+            ),
+            Tag(
+                name="Refactoring Only",
+                color="#1a5fb4",
+                description="Only refactores code without changing functionality",
+            ),
+            Tag(
+                name="Comments Only",
+                color="#1a5fb4",
+                description="Only updates code comments",
+            ),
+            Tag(
+                name="Docs Only",
+                color="#1a5fb4",
+                description="Only updates user facing documentation",
+            ),
+            Tag(
+                name="CI",
+                color="#1a5fb4",
+                description="Makes changes to the CI configuration or scripts",
+            ),
+            Tag(
+                name="Testing",
+                color="#1a5fb4",
+                description="Adds/modifies tests or improves our testing frameworks",
+            ),
+            Tag(
+                name="Monitoring",
+                color="#1a5fb4",
+                description="Adds new monitoring features or improves existing ones",
+            ),
+            Tag(
+                name="GUC",
+                color="#1a5fb4",
+                description="Adds/modifies configuration parameters (GUCs)",
+            ),
+            Tag(
+                name="PL/pgSQL",
+                color="#1a5fb4",
+                description="Involves changes to PL/pgSQL",
+            ),
+            Tag(
+                name="PL/Python",
+                color="#1a5fb4",
+                description="Involves changes to PL/Python",
+            ),
+            Tag(
+                name="PL/Perl",
+                color="#1a5fb4",
+                description="Involves changes to PL/Perl",
+            ),
+            Tag(
+                name="PL/Tcl",
+                color="#1a5fb4",
+                description="Involves changes to PL/Perl",
+            ),
+            Tag(
+                name="dblink",
+                color="#1a5fb4",
+                description="Involves changes to dblink",
+            ),
+            Tag(
+                name="postgres_fdw",
+                color="#1a5fb4",
+                description="Involves changes to postgres_fdw",
+            ),
+            Tag(name="Security", color="#a51d2d", description="Improves security"),
         ]
     )
 
