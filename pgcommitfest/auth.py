@@ -24,27 +24,27 @@
 #   directory that's processed before the default django.contrib.admin)
 #
 
-from django.conf import settings
-from django.contrib.auth import login as django_login
-from django.contrib.auth import logout as django_logout
-from django.contrib.auth.backends import ModelBackend
-from django.contrib.auth.models import User
-from django.db import transaction
-from django.dispatch import Signal
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
+from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth import login as django_login
+from django.contrib.auth import logout as django_logout
+from django.dispatch import Signal
+from django.db import transaction
+from django.conf import settings
 
 import base64
-import hmac
 import json
 import socket
-import time
-from urllib.parse import parse_qs, urlencode
-
+import hmac
+from urllib.parse import urlencode, parse_qs
 import requests
-from Cryptodome import Random
 from Cryptodome.Cipher import AES
 from Cryptodome.Hash import SHA
+from Cryptodome import Random
+import time
+
 
 # This signal fires when a user is created based on data from upstream.
 auth_user_created_from_upstream = Signal()
@@ -66,32 +66,24 @@ class AuthBackend(ModelBackend):
 # Two regular django views to interact with the login system
 ####
 
-
 # Handle login requests by sending them off to the main site
 def login(request):
-    if "next" in request.GET:
+    if 'next' in request.GET:
         # Put together an url-encoded dict of parameters we're getting back,
         # including a small nonce at the beginning to make sure it doesn't
         # encrypt the same way every time.
-        s = "t=%s&%s" % (int(time.time()), urlencode({"r": request.GET["next"]}))
+        s = "t=%s&%s" % (int(time.time()), urlencode({'r': request.GET['next']}))
         # Now encrypt it
         r = Random.new()
         iv = r.read(16)
-        encryptor = AES.new(
-            SHA.new(settings.SECRET_KEY.encode("ascii")).digest()[:16], AES.MODE_CBC, iv
-        )
-        cipher = encryptor.encrypt(
-            s.encode("ascii") + b" " * (16 - (len(s) % 16))
-        )  # pad to 16 bytes
+        encryptor = AES.new(SHA.new(settings.SECRET_KEY.encode('ascii')).digest()[:16], AES.MODE_CBC, iv)
+        cipher = encryptor.encrypt(s.encode('ascii') + b' ' * (16 - (len(s) % 16)))  # pad to 16 bytes
 
-        return HttpResponseRedirect(
-            "%s?d=%s$%s"
-            % (
-                settings.PGAUTH_REDIRECT,
-                base64.b64encode(iv, b"-_").decode("utf8"),
-                base64.b64encode(cipher, b"-_").decode("utf8"),
-            )
-        )
+        return HttpResponseRedirect("%s?d=%s$%s" % (
+            settings.PGAUTH_REDIRECT,
+            base64.b64encode(iv, b"-_").decode('utf8'),
+            base64.b64encode(cipher, b"-_").decode('utf8'),
+        ))
     else:
         return HttpResponseRedirect(settings.PGAUTH_REDIRECT)
 
@@ -107,27 +99,21 @@ def logout(request):
 # Receive an authentication response from the main website and try
 # to log the user in.
 def auth_receive(request):
-    if "s" in request.GET and request.GET["s"] == "logout":
+    if 's' in request.GET and request.GET['s'] == "logout":
         # This was a logout request
-        return HttpResponseRedirect("/")
+        return HttpResponseRedirect('/')
 
-    if "i" not in request.GET:
+    if 'i' not in request.GET:
         return HttpResponse("Missing IV in url!", status=400)
-    if "d" not in request.GET:
+    if 'd' not in request.GET:
         return HttpResponse("Missing data in url!", status=400)
 
     # Set up an AES object and decrypt the data we received
     try:
-        decryptor = AES.new(
-            base64.b64decode(settings.PGAUTH_KEY),
-            AES.MODE_CBC,
-            base64.b64decode(str(request.GET["i"]), "-_"),
-        )
-        s = (
-            decryptor.decrypt(base64.b64decode(str(request.GET["d"]), "-_"))
-            .rstrip(b" ")
-            .decode("utf8")
-        )
+        decryptor = AES.new(base64.b64decode(settings.PGAUTH_KEY),
+                            AES.MODE_CBC,
+                            base64.b64decode(str(request.GET['i']), "-_"))
+        s = decryptor.decrypt(base64.b64decode(str(request.GET['d']), "-_")).rstrip(b' ').decode('utf8')
     except UnicodeDecodeError:
         return HttpResponse("Badly encoded data found", 400)
     except Exception:
@@ -140,23 +126,23 @@ def auth_receive(request):
         return HttpResponse("Invalid encrypted data received.", status=400)
 
     # Check the timestamp in the authentication
-    if int(data["t"][0]) < time.time() - 10:
+    if (int(data['t'][0]) < time.time() - 10):
         return HttpResponse("Authentication token too old.", status=400)
 
     # Update the user record (if any)
     try:
-        user = User.objects.get(username=data["u"][0])
+        user = User.objects.get(username=data['u'][0])
         # User found, let's see if any important fields have changed
         changed = []
-        if user.first_name != data["f"][0]:
-            user.first_name = data["f"][0]
-            changed.append("first_name")
-        if user.last_name != data["l"][0]:
-            user.last_name = data["l"][0]
-            changed.append("last_name")
-        if user.email != data["e"][0]:
-            user.email = data["e"][0]
-            changed.append("email")
+        if user.first_name != data['f'][0]:
+            user.first_name = data['f'][0]
+            changed.append('first_name')
+        if user.last_name != data['l'][0]:
+            user.last_name = data['l'][0]
+            changed.append('last_name')
+        if user.email != data['e'][0]:
+            user.email = data['e'][0]
+            changed.append('email')
         if changed:
             user.save(update_fields=changed)
     except User.DoesNotExist:
@@ -166,9 +152,8 @@ def auth_receive(request):
         # the database with a different userid. Instead of trying to
         # somehow fix that live, give a proper error message and
         # have somebody look at it manually.
-        if User.objects.filter(email=data["e"][0]).exists():
-            return HttpResponse(
-                """A user with email %s already exists, but with
+        if User.objects.filter(email=data['e'][0]).exists():
+            return HttpResponse("""A user with email %s already exists, but with
 a different username than %s.
 
 This is almost certainly caused by some legacy data in our database.
@@ -177,30 +162,26 @@ and email address from above, and we'll manually merge the two accounts
 for you.
 
 We apologize for the inconvenience.
-"""
-                % (data["e"][0], data["u"][0]),
-                content_type="text/plain",
-            )
+""" % (data['e'][0], data['u'][0]), content_type='text/plain')
 
-        if getattr(settings, "PGAUTH_CREATEUSER_CALLBACK", None):
-            res = getattr(settings, "PGAUTH_CREATEUSER_CALLBACK")(
-                data["u"][0],
-                data["e"][0],
-                ["f"][0],
-                data["l"][0],
+        if getattr(settings, 'PGAUTH_CREATEUSER_CALLBACK', None):
+            res = getattr(settings, 'PGAUTH_CREATEUSER_CALLBACK')(
+                data['u'][0],
+                data['e'][0],
+                ['f'][0],
+                data['l'][0],
             )
             # If anything is returned, we'll return that as our result.
             # If None is returned, it means go ahead and create the user.
             if res:
                 return res
 
-        user = User(
-            username=data["u"][0],
-            first_name=data["f"][0],
-            last_name=data["l"][0],
-            email=data["e"][0],
-            password="setbypluginnotasha1",
-        )
+        user = User(username=data['u'][0],
+                    first_name=data['f'][0],
+                    last_name=data['l'][0],
+                    email=data['e'][0],
+                    password='setbypluginnotasha1',
+                    )
         user.save()
 
         auth_user_created_from_upstream.send(sender=auth_receive, user=user)
@@ -212,45 +193,39 @@ We apologize for the inconvenience.
     django_login(request, user)
 
     # Signal that we have information about this user
-    auth_user_data_received.send(
-        sender=auth_receive,
-        user=user,
-        userdata={"secondaryemails": data["se"][0].split(",") if "se" in data else []},
-    )
+    auth_user_data_received.send(sender=auth_receive, user=user, userdata={
+        'secondaryemails': data['se'][0].split(',') if 'se' in data else []
+    })
 
     # Finally, check of we have a data package that tells us where to
     # redirect the user.
-    if "d" in data:
-        (ivs, datas) = data["d"][0].split("$")
-        decryptor = AES.new(
-            SHA.new(settings.SECRET_KEY.encode("ascii")).digest()[:16],
-            AES.MODE_CBC,
-            base64.b64decode(ivs, b"-_"),
-        )
-        s = decryptor.decrypt(base64.b64decode(datas, "-_")).rstrip(b" ").decode("utf8")
+    if 'd' in data:
+        (ivs, datas) = data['d'][0].split('$')
+        decryptor = AES.new(SHA.new(settings.SECRET_KEY.encode('ascii')).digest()[:16],
+                            AES.MODE_CBC,
+                            base64.b64decode(ivs, b"-_"))
+        s = decryptor.decrypt(base64.b64decode(datas, "-_")).rstrip(b' ').decode('utf8')
         try:
             rdata = parse_qs(s, strict_parsing=True)
         except ValueError:
             return HttpResponse("Invalid encrypted data received.", status=400)
-        if "r" in rdata:
+        if 'r' in rdata:
             # Redirect address
-            return HttpResponseRedirect(rdata["r"][0])
+            return HttpResponseRedirect(rdata['r'][0])
     # No redirect specified, see if we have it in our settings
-    if hasattr(settings, "PGAUTH_REDIRECT_SUCCESS"):
+    if hasattr(settings, 'PGAUTH_REDIRECT_SUCCESS'):
         return HttpResponseRedirect(settings.PGAUTH_REDIRECT_SUCCESS)
-    return HttpResponse(
-        "Authentication successful, but don't know where to redirect!", status=500
-    )
+    return HttpResponse("Authentication successful, but don't know where to redirect!", status=500)
 
 
 # Receive API calls from upstream, such as push changes to users
 @csrf_exempt
 def auth_api(request):
-    if "X-pgauth-sig" not in request.headers:
+    if 'X-pgauth-sig' not in request.headers:
         return HttpResponse("Missing signature header!", status=400)
 
     try:
-        sig = base64.b64decode(request.headers["X-pgauth-sig"])
+        sig = base64.b64decode(request.headers['X-pgauth-sig'])
     except Exception:
         return HttpResponse("Invalid signature header!", status=400)
 
@@ -258,7 +233,7 @@ def auth_api(request):
         h = hmac.digest(
             base64.b64decode(settings.PGAUTH_KEY),
             msg=request.body,
-            digest="sha512",
+            digest='sha512',
         )
         if not hmac.compare_digest(h, sig):
             return HttpResponse("Invalid signature!", status=401)
@@ -286,38 +261,26 @@ def auth_api(request):
             return None
 
     # Process the received structure
-    if pushstruct.get("type", None) == "update":
+    if pushstruct.get('type', None) == 'update':
         # Process updates!
         with transaction.atomic():
-            for u in pushstruct.get("users", []):
+            for u in pushstruct.get('users', []):
                 user = _conditionally_update_record(
                     User,
-                    "username",
-                    "username",
+                    'username', 'username',
                     {
-                        "firstname": "first_name",
-                        "lastname": "last_name",
-                        "email": "email",
+                        'firstname': 'first_name',
+                        'lastname': 'last_name',
+                        'email': 'email',
                     },
                     u,
                 )
 
                 # Signal that we have information about this user (only if it exists)
                 if user:
-                    auth_user_data_received.send(
-                        sender=auth_api,
-                        user=user,
-                        userdata={
-                            k: u[k]
-                            for k in u.keys()
-                            if k
-                            not in [
-                                "firstname",
-                                "lastname",
-                                "email",
-                            ]
-                        },
-                    )
+                    auth_user_data_received.send(sender=auth_api, user=user, userdata={
+                        k: u[k] for k in u.keys() if k not in ['firstname', 'lastname', 'email', ]
+                    })
 
     return HttpResponse("OK", status=200)
 
@@ -334,24 +297,24 @@ def user_search(searchterm=None, userid=None):
     # 10 seconds is already quite long.
     socket.setdefaulttimeout(10)
     if userid:
-        q = {"u": userid}
+        q = {'u': userid}
     else:
-        q = {"s": searchterm}
+        q = {'s': searchterm}
 
     r = requests.get(
-        "{0}search/".format(settings.PGAUTH_REDIRECT),
+        '{0}search/'.format(settings.PGAUTH_REDIRECT),
         params=q,
     )
     if r.status_code != 200:
         return []
 
-    (ivs, datas) = r.text.encode("utf8").split(b"&")
+    (ivs, datas) = r.text.encode('utf8').split(b'&')
 
     # Decryption time
-    decryptor = AES.new(
-        base64.b64decode(settings.PGAUTH_KEY), AES.MODE_CBC, base64.b64decode(ivs, "-_")
-    )
-    s = decryptor.decrypt(base64.b64decode(datas, "-_")).rstrip(b" ").decode("utf8")
+    decryptor = AES.new(base64.b64decode(settings.PGAUTH_KEY),
+                        AES.MODE_CBC,
+                        base64.b64decode(ivs, "-_"))
+    s = decryptor.decrypt(base64.b64decode(datas, "-_")).rstrip(b' ').decode('utf8')
     j = json.loads(s)
 
     return j
@@ -361,24 +324,22 @@ def user_search(searchterm=None, userid=None):
 def subscribe_to_user_changes(userid):
     socket.setdefaulttimeout(10)
 
-    body = json.dumps(
-        {
-            "u": userid,
-        }
-    )
+    body = json.dumps({
+        'u': userid,
+    })
 
     h = hmac.digest(
         base64.b64decode(settings.PGAUTH_KEY),
-        msg=bytes(body, "utf-8"),
-        digest="sha512",
+        msg=bytes(body, 'utf-8'),
+        digest='sha512',
     )
 
     # Ignore the result code, just post it
     requests.post(
-        "{0}subscribe/".format(settings.PGAUTH_REDIRECT),
+        '{0}subscribe/'.format(settings.PGAUTH_REDIRECT),
         data=body,
         headers={
-            "X-pgauth-sig": base64.b64encode(h),
+            'X-pgauth-sig': base64.b64encode(h),
         },
     )
 
@@ -398,15 +359,15 @@ def user_import(uid):
 
     u = u[0]
 
-    if User.objects.filter(username=u["u"]).exists():
+    if User.objects.filter(username=u['u']).exists():
         raise Exception("User already exists")
 
     u = User(
-        username=u["u"],
-        first_name=u["f"],
-        last_name=u["l"],
-        email=u["e"],
-        password="setbypluginnotsha1",
+        username=u['u'],
+        first_name=u['f'],
+        last_name=u['l'],
+        email=u['e'],
+        password='setbypluginnotsha1',
     )
     u.save()
 
