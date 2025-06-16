@@ -865,7 +865,7 @@
         "date": "2025-06-15T21:26:10.546",
         "by": 1,
         "by_cfbot": false,
-        "what": "Changed tags to backport, bugfix, help-benchmarks, help-user-testing, missing-docs"
+        "what": "Changed tags to Backport, Bugfix, Help - Benchmarks, Help - User Testing, Missing Docs"
     }
 },
 {
@@ -876,7 +876,7 @@
         "date": "2025-06-15T21:26:24.282",
         "by": 1,
         "by_cfbot": false,
-        "what": "Changed tags to good-first-review, help-bikeshedding, help-user-testing"
+        "what": "Changed tags to Good First Review, Help Bikeshedding, Help - User Testing"
     }
 },
 {
@@ -887,7 +887,7 @@
         "date": "2025-06-15T21:27:56.664",
         "by": 1,
         "by_cfbot": false,
-        "what": "Changed tags to bugfix"
+        "what": "Changed tags to Bugfix"
     }
 },
 {
