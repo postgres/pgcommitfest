@@ -1,0 +1,2 @@
+<input type="color" class="color-picker" name="{{ widget.name }}" onchange="this.nextElementSibling.value = this.value" {% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %} >
+<input type="text" class="color-picker" minlength="7" maxlength="7" onchange="this.previousElementSibling.value = this.value" {% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}>

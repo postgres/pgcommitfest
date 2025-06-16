@@ -93,6 +93,267 @@
     }
 },
 {
+    "model": "commitfest.tag",
+    "pk": 1,
+    "fields": {
+        "name": "Bugfix",
+        "color": "#a51d2d",
+        "description": "Fixes a bug"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 2,
+    "fields": {
+        "name": "Backport",
+        "color": "#3d3846",
+        "description": "Once merged should be backported to old branches"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 3,
+    "fields": {
+        "name": "Missing Tests",
+        "color": "#c66424",
+        "description": "Author should add tests"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 4,
+    "fields": {
+        "name": "Missing Docs",
+        "color": "#c66424",
+        "description": "Author should add documentation"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 5,
+    "fields": {
+        "name": "Missing Benchmarks",
+        "color": "#c66424",
+        "description": "Author should do additional benchmarks"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 6,
+    "fields": {
+        "name": "Help - User Testing",
+        "color": "#07732e",
+        "description": "Reviewers are requested to try out the patch and provide user feedback on UX/UI"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 7,
+    "fields": {
+        "name": "Help - Bikeshedding",
+        "color": "#07732e",
+        "description": "Reviewers are requested to propose or vote on stylistic changes like a user facing function name"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 8,
+    "fields": {
+        "name": "Help - Docs",
+        "color": "#07732e",
+        "description": "Reviewers are requested to help review or write documentation"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 9,
+    "fields": {
+        "name": "Help - Benchmarks",
+        "color": "#07732e",
+        "description": "Reviewers are requested to help discuss or do benchmarks and discuss performance impact"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 10,
+    "fields": {
+        "name": "Good First Review",
+        "color": "#613583",
+        "description": "An easy to review patch for a new reviewer"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 11,
+    "fields": {
+        "name": "libpq",
+        "color": "#1a5fb4",
+        "description": "Makes significant libpq changes"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 12,
+    "fields": {
+        "name": "psql",
+        "color": "#1a5fb4",
+        "description": "Makes significant psql changes"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 13,
+    "fields": {
+        "name": "Performance",
+        "color": "#1a5fb4",
+        "description": "Improves performance"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 14,
+    "fields": {
+        "name": "Logical Replication",
+        "color": "#1a5fb4",
+        "description": "Makes significant logical replication changes"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 15,
+    "fields": {
+        "name": "Physical Replication",
+        "color": "#1a5fb4",
+        "description": "Makes significant physical replication changes"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 16,
+    "fields": {
+        "name": "Refactoring Only",
+        "color": "#1a5fb4",
+        "description": "Only refactores code without changing functionality"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 17,
+    "fields": {
+        "name": "Comments Only",
+        "color": "#1a5fb4",
+        "description": "Only updates code comments"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 18,
+    "fields": {
+        "name": "Docs Only",
+        "color": "#1a5fb4",
+        "description": "Only updates user facing documentation"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 19,
+    "fields": {
+        "name": "CI",
+        "color": "#1a5fb4",
+        "description": "Makes changes to the CI configuration or scripts"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 20,
+    "fields": {
+        "name": "Testing",
+        "color": "#1a5fb4",
+        "description": "Adds/modifies tests or improves our testing frameworks"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 21,
+    "fields": {
+        "name": "Monitoring",
+        "color": "#1a5fb4",
+        "description": "Adds new monitoring features or improves existing ones"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 22,
+    "fields": {
+        "name": "GUC",
+        "color": "#1a5fb4",
+        "description": "Adds/modifies configuration parameters (GUCs)"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 23,
+    "fields": {
+        "name": "PL/pgSQL",
+        "color": "#1a5fb4",
+        "description": "Involves changes to PL/pgSQL"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 24,
+    "fields": {
+        "name": "PL/Python",
+        "color": "#1a5fb4",
+        "description": "Involves changes to PL/Python"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 25,
+    "fields": {
+        "name": "PL/Perl",
+        "color": "#1a5fb4",
+        "description": "Involves changes to PL/Perl"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 26,
+    "fields": {
+        "name": "PL/Tcl",
+        "color": "#1a5fb4",
+        "description": "Involves changes to PL/Perl"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 27,
+    "fields": {
+        "name": "dblink",
+        "color": "#1a5fb4",
+        "description": "Involves changes to dblink"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 28,
+    "fields": {
+        "name": "postgres_fdw",
+        "color": "#1a5fb4",
+        "description": "Involves changes to postgres_fdw"
+    }
+},
+{
+    "model": "commitfest.tag",
+    "pk": 29,
+    "fields": {
+        "name": "Security",
+        "color": "#a51d2d",
+        "description": "Improves security"
+    }
+},
+{
     "model": "commitfest.patch",
     "pk": 1,
     "fields": {
@@ -103,8 +364,15 @@
         "targetversion": null,
         "committer": null,
         "created": "2025-01-26T10:48:31.579",
-        "modified": "2025-01-26T10:53:20.498",
+        "modified": "2025-06-15T21:26:10.549",
         "lastmail": "2025-01-20T06:53:39",
+        "tags": [
+            2,
+            1,
+            9,
+            6,
+            4
+        ],
         "authors": [
             1
         ],
@@ -126,8 +394,13 @@
         "targetversion": null,
         "committer": null,
         "created": "2025-01-26T10:51:17.305",
-        "modified": "2025-01-26T10:51:19.631",
+        "modified": "2025-06-15T21:26:24.284",
         "lastmail": "2025-01-20T14:20:10",
+        "tags": [
+            10,
+            7,
+            6
+        ],
         "authors": [],
         "reviewers": [],
         "subscribers": [],
@@ -149,6 +422,7 @@
         "created": "2025-01-26T11:02:07.467",
         "modified": "2025-01-26T11:02:10.911",
         "lastmail": "2025-01-20T13:26:55",
+        "tags": [],
         "authors": [],
         "reviewers": [],
         "subscribers": [],
@@ -168,8 +442,11 @@
         "targetversion": null,
         "committer": null,
         "created": "2025-01-31T13:30:19.744",
-        "modified": "2025-01-31T13:30:21.305",
+        "modified": "2025-06-15T21:27:56.667",
         "lastmail": "2025-01-20T12:44:40",
+        "tags": [
+            1
+        ],
         "authors": [],
         "reviewers": [],
         "subscribers": [],
@@ -191,6 +468,7 @@
         "created": "2025-02-16T21:59:04.131",
         "modified": "2025-02-16T22:03:24.902",
         "lastmail": "2025-01-20T14:01:53",
+        "tags": [],
         "authors": [],
         "reviewers": [],
         "subscribers": [],
@@ -212,6 +490,7 @@
         "created": "2025-02-16T22:03:58.476",
         "modified": "2025-02-16T22:04:23.180",
         "lastmail": "2025-01-19T23:55:17",
+        "tags": [],
         "authors": [],
         "reviewers": [],
         "subscribers": [],
@@ -233,6 +512,7 @@
         "created": "2025-03-01T22:27:53.214",
         "modified": "2025-03-01T22:27:53.221",
         "lastmail": "2025-01-18T07:14:02",
+        "tags": [],
         "authors": [],
         "reviewers": [],
         "subscribers": [],
@@ -254,6 +534,7 @@
         "created": "2025-02-01T00:00:00",
         "modified": "2025-02-01T00:00:00",
         "lastmail": "2025-02-01T00:00:00",
+        "tags": [],
         "authors": [
             3,
             6
@@ -574,6 +855,39 @@
         "by": 1,
         "by_cfbot": false,
         "what": "Attached mail thread example@message-31"
+    }
+},
+{
+    "model": "commitfest.patchhistory",
+    "pk": 20,
+    "fields": {
+        "patch": 1,
+        "date": "2025-06-15T21:26:10.546",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Changed tags to Backport, Bugfix, Help - Benchmarks, Help - User Testing, Missing Docs"
+    }
+},
+{
+    "model": "commitfest.patchhistory",
+    "pk": 21,
+    "fields": {
+        "patch": 2,
+        "date": "2025-06-15T21:26:24.282",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Changed tags to Good First Review, Help Bikeshedding, Help - User Testing"
+    }
+},
+{
+    "model": "commitfest.patchhistory",
+    "pk": 22,
+    "fields": {
+        "patch": 4,
+        "date": "2025-06-15T21:27:56.664",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Changed tags to Bugfix"
     }
 },
 {

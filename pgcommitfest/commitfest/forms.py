@@ -5,7 +5,7 @@ from django.forms.widgets import HiddenInput
 from django.http import Http404
 
 from .ajax import _archivesAPI
-from .models import MailThread, Patch, PatchOnCommitFest, TargetVersion
+from .models import MailThread, Patch, PatchOnCommitFest, Tag, TargetVersion
 from .widgets import ThreadPickWidget
 
 
@@ -13,11 +13,13 @@ class CommitFestFilterForm(forms.Form):
     selectize_fields = {
         "author": "/lookups/user",
         "reviewer": "/lookups/user",
+        "tag": None,
     }
 
     text = forms.CharField(max_length=50, required=False)
     status = forms.ChoiceField(required=False)
     targetversion = forms.ChoiceField(required=False)
+    tag = forms.MultipleChoiceField(required=False, label="Tag (type to search)")
     author = forms.ChoiceField(required=False, label="Author (type to search)")
     reviewer = forms.ChoiceField(required=False, label="Reviewer (type to search)")
     sortkey = forms.IntegerField(required=False)
@@ -59,6 +61,7 @@ class CommitFestFilterForm(forms.Form):
         )
         self.fields["author"].choices = userchoices
         self.fields["reviewer"].choices = userchoices
+        self.fields["tag"].choices = list(Tag.objects.all().values_list("id", "name"))
 
         for f in (
             "status",
@@ -72,6 +75,7 @@ class PatchForm(forms.ModelForm):
     selectize_fields = {
         "authors": "/lookups/user",
         "reviewers": "/lookups/user",
+        "tags": None,
     }
 
     class Meta:
@@ -94,8 +98,14 @@ class PatchForm(forms.ModelForm):
             x.user.username,
         )
 
+        self.fields["authors"].widget.attrs["class"] = "add-user-picker"
+        self.fields["reviewers"].widget.attrs["class"] = "add-user-picker"
+
         # Selectize multiple fields -- don't pre-populate everything
         for field, url in list(self.selectize_fields.items()):
+            if url is None:
+                continue
+
             # If this is a postback of a selectize field, it may contain ids that are not currently
             # stored in the field. They must still be among the *allowed* values of course, which
             # are handled by the existing queryset on the field.

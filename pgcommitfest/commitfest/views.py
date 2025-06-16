@@ -42,6 +42,7 @@ from .models import (
     Patch,
     PatchHistory,
     PatchOnCommitFest,
+    Tag,
     UserInputError,
 )
 
@@ -87,7 +88,13 @@ def help(request):
 
 
 @login_required
+@transaction.atomic
 def me(request):
+    curs = connection.cursor()
+    # Make sure the patchlist() query, the stats query and, Tag.objects.all()
+    # all work on the same snapshot. Needs to be first in the
+    # transaction.atomic decorator.
+    curs.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
     cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
     if len(cfs) == 0:
         cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
@@ -107,7 +114,6 @@ def me(request):
         return patch_list.redirect
 
     # Get stats related to user for current commitfest
-    curs = connection.cursor()
     curs.execute(
         """SELECT
             ps.status, ps.statusstring, count(*)
@@ -141,6 +147,7 @@ def me(request):
             "title": "Personal Dashboard",
             "patches": patch_list.patches,
             "statussummary": statussummary,
+            "all_tags": {t.id: t for t in Tag.objects.all()},
             "has_filter": patch_list.has_filter,
             "grouping": patch_list.sortkey == 0,
             "sortkey": patch_list.sortkey,
@@ -282,6 +289,21 @@ def patchlist(request, cf, personalized=False):
             except ValueError:
                 # int() failed, ignore
                 pass
+
+    if request.GET.getlist("tag") != []:
+        try:
+            tag_ids = [int(t) for t in request.GET.getlist("tag")]
+            for tag_id in tag_ids:
+                # Instead of using parameters, we just inline the tag_id. This
+                # is easier because we have can have multiple tags, and since
+                # tag_id is always an int it's safe with respect to SQL
+                # injection.
+                whereclauses.append(
+                    f"EXISTS (SELECT 1 FROM commitfest_patch_tags tags WHERE tags.patch_id=p.id AND tags.tag_id={tag_id})"
+                )
+        except ValueError:
+            # int() failed -- so just ignore this filter
+            pass
 
     if request.GET.get("author", "-1") != "-1":
         if request.GET["author"] == "-2":
@@ -506,6 +528,7 @@ def patchlist(request, cf, personalized=False):
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_authors cpa ON cpa.user_id=auth_user.id WHERE cpa.patch_id=p.id) AS author_names,
 (SELECT string_agg(first_name || ' ' || last_name || ' (' || username || ')', ', ') FROM auth_user INNER JOIN commitfest_patch_reviewers cpr ON cpr.user_id=auth_user.id WHERE cpr.patch_id=p.id) AS reviewer_names,
 (SELECT count(1) FROM commitfest_patchoncommitfest pcf WHERE pcf.patch_id=p.id) AS num_cfs,
+(SELECT array_agg(tag_id) FROM commitfest_patch_tags t WHERE t.patch_id=p.id) AS tag_ids,
 
 branch.needs_rebase_since,
 branch.failing_since,
@@ -552,7 +575,13 @@ ORDER BY is_open DESC, {orderby_str}""",
     )
 
 
+@transaction.atomic
 def commitfest(request, cfid):
+    curs = connection.cursor()
+    # Make sure the patchlist() query, the stats query and, Tag.objects.all()
+    # all work on the same snapshot. Needs to be first in the
+    # transaction.atomic decorator.
+    curs.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
     # Find ourselves
     cf = get_object_or_404(CommitFest, pk=cfid)
 
@@ -561,7 +590,6 @@ def commitfest(request, cfid):
         return patch_list.redirect
 
     # Generate patch status summary.
-    curs = connection.cursor()
     curs.execute(
         "SELECT ps.status, ps.statusstring, count(*) FROM commitfest_patchoncommitfest poc INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status WHERE commitfest_id=%(id)s GROUP BY ps.status ORDER BY ps.sortkey",
         {
@@ -583,6 +611,7 @@ def commitfest(request, cfid):
             "form": form,
             "patches": patch_list.patches,
             "statussummary": statussummary,
+            "all_tags": {t.id: t for t in Tag.objects.all()},
             "has_filter": patch_list.has_filter,
             "title": cf.title,
             "grouping": patch_list.sortkey == 0,
@@ -755,10 +784,14 @@ def patchform(request, patchid):
 
             # Track all changes
             for field, values in r.diff.items():
+                if field == "tags":
+                    value = ", ".join(v.name for v in values[1])
+                else:
+                    value = values[1]
                 PatchHistory(
                     patch=patch,
                     by=request.user,
-                    what="Changed %s to %s" % (field, values[1]),
+                    what="Changed %s to %s" % (field, value),
                 ).save_and_notify(
                     prevcommitter=prevcommitter,
                     prevreviewers=prevreviewers,
