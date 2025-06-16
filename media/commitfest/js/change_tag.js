@@ -11,7 +11,7 @@ for (let i = 0; i < inputs.length; i++) {
         }
 
         // Break the #rrggbb color code into RGB components.
-        color = parseInt(element.value.substr(1), 16);
+        color = Number.parseInt(element.value.substr(1), 16);
         red = ((color & 0xff0000) >> 16) / 255;
         green = ((color & 0x00ff00) >> 8) / 255;
         blue = (color & 0x0000ff) / 255;
@@ -34,11 +34,7 @@ for (let i = 0; i < inputs.length; i++) {
         // Complain if we're below WCAG 2.2 recommendations.
         if (contrast < 4.5) {
             element.setCustomValidity(
-                "Consider choosing a darker color. " +
-                    "(Tag text is small and white.)\n\n" +
-                    "Contrast ratio: " +
-                    Math.trunc(contrast * 10) / 10 +
-                    " (< 4.5)",
+                `Consider choosing a darker color. (Tag text is small and white.)\n\nContrast ratio: ${Math.trunc(contrast * 10) / 10} (< 4.5)`,
             );
 
             // The admin form uses novalidate, so manually display the browser's
