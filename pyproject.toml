@@ -28,6 +28,9 @@ statistics = true
 ignore = ["E402", "E501", "W503"]
 max-line-length = 120
 
+[tool.ruff]
+extend-exclude = ['pgcommitfest/auth.py']
+
 [tool.ruff.lint]
 extend-select = ["I"]
 
