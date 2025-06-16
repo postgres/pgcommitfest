@@ -24,7 +24,6 @@ def commitfeststatusstring(value):
 @stringfilter
 def commitfeststatuslabel(value):
     i = int(value)
-    print(i, CommitFest._STATUS_LABELS)
     return [v for k, v in CommitFest._STATUS_LABELS if k == i][0]
 
 
