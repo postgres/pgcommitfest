@@ -289,6 +289,9 @@ def patchlist(request, cf, personalized=False):
         try:
             tag_ids = [int(t) for t in request.GET.getlist("tag")]
             for tag_id in tag_ids:
+                # Instead of using parameters, we just inline the tag_id. This
+                # is easier, and since tag_id is always an int it's safe with
+                # respect to SQL injection.
                 whereclauses.append(
                     f"EXISTS (SELECT 1 FROM commitfest_patch_tags tags WHERE tags.patch_id=p.id AND tags.tag_id={tag_id})"
                 )
