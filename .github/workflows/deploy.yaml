@@ -13,4 +13,4 @@ jobs:
     steps:
       - name: Trigger deploy
         run: |
-          curl -fsS -X POST ${{ secrets.HOOKURL }} -H "X-Key: ${{ secrets.HOOKSECRET }}"
+          curl --fail-with-body -X POST ${{ secrets.HOOKURL }} -H "X-Key: ${{ secrets.HOOKSECRET }}"
