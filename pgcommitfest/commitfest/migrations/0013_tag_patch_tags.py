@@ -9,49 +9,49 @@ def add_initial_tags(apps, schema_editor):
     Tag = apps.get_model("commitfest", "Tag")
     Tag.objects.bulk_create(
         [
-            Tag(name="bugfix", color="#a51d2d", description="Fixes a bug"),
+            Tag(name="Bugfix", color="#a51d2d", description="Fixes a bug"),
             Tag(
-                name="backport",
+                name="Backport",
                 color="#1a5fb4",
                 description="Once merged should be backported to old branches",
             ),
             Tag(
-                name="missing-tests",
+                name="Missing Tests",
                 color="#c66424",
                 description="Author should add tests",
             ),
             Tag(
-                name="missing-docs",
+                name="Missing Docs",
                 color="#c66424",
                 description="Author should add documentation",
             ),
             Tag(
-                name="missing-benchmarks",
+                name="Missing Benchmarks",
                 color="#c66424",
                 description="Author should do additional benchmarks",
             ),
             Tag(
-                name="help-user-testing",
+                name="Help - User Testing",
                 color="#07732e",
-                description="Reviewers are requested to try out the patch and provide user feedback on behaviour UX/UI",
+                description="Reviewers are requested to try out the patch and provide user feedback on UX/UI",
             ),
             Tag(
-                name="help-bikeshedding",
+                name="Help - Bikeshedding",
                 color="#07732e",
                 description="Reviewers are requested to propose or vote on stylistic changes like a user facing function name",
             ),
             Tag(
-                name="help-docs",
+                name="Help - Docs",
                 color="#07732e",
                 description="Reviewers are requested to help review or write documentation",
             ),
             Tag(
-                name="help-benchmarks",
+                name="Help - Benchmarks",
                 color="#07732e",
                 description="Reviewers are requested to help discuss or do benchmarks and discuss performance impact",
             ),
             Tag(
-                name="good-first-review",
+                name="Good First Review",
                 color="#613583",
                 description="An easy to review patch for a new reviewer",
             ),

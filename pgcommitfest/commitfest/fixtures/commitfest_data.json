@@ -96,7 +96,7 @@
     "model": "commitfest.tag",
     "pk": 1,
     "fields": {
-        "name": "bugfix",
+        "name": "Bugfix",
         "color": "#a51d2d",
         "description": "Fixes a bug"
     }
@@ -105,7 +105,7 @@
     "model": "commitfest.tag",
     "pk": 2,
     "fields": {
-        "name": "backport",
+        "name": "Backport",
         "color": "#1a5fb4",
         "description": "Once merged should be backported to old branches"
     }
@@ -114,7 +114,7 @@
     "model": "commitfest.tag",
     "pk": 3,
     "fields": {
-        "name": "missing-tests",
+        "name": "Missing Tests",
         "color": "#c66424",
         "description": "Author should add tests"
     }
@@ -123,7 +123,7 @@
     "model": "commitfest.tag",
     "pk": 4,
     "fields": {
-        "name": "missing-docs",
+        "name": "Missing Docs",
         "color": "#c66424",
         "description": "Author should add documentation"
     }
@@ -132,7 +132,7 @@
     "model": "commitfest.tag",
     "pk": 5,
     "fields": {
-        "name": "missing-benchmarks",
+        "name": "Missing Benchmarks",
         "color": "#c66424",
         "description": "Author should do additional benchmarks"
     }
@@ -141,16 +141,16 @@
     "model": "commitfest.tag",
     "pk": 6,
     "fields": {
-        "name": "help-user-testing",
+        "name": "Help - User Testing",
         "color": "#07732e",
-        "description": "Reviewers are requested to try out the patch and provide user feedback on behaviour UX/UI"
+        "description": "Reviewers are requested to try out the patch and provide user feedback on UX/UI"
     }
 },
 {
     "model": "commitfest.tag",
     "pk": 7,
     "fields": {
-        "name": "help-bikeshedding",
+        "name": "Help - Bikeshedding",
         "color": "#07732e",
         "description": "Reviewers are requested to propose or vote on stylistic changes like a user facing function name"
     }
@@ -159,7 +159,7 @@
     "model": "commitfest.tag",
     "pk": 8,
     "fields": {
-        "name": "help-docs",
+        "name": "Help - Docs",
         "color": "#07732e",
         "description": "Reviewers are requested to help review or write documentation"
     }
@@ -168,7 +168,7 @@
     "model": "commitfest.tag",
     "pk": 9,
     "fields": {
-        "name": "help-benchmarks",
+        "name": "Help - Benchmarks",
         "color": "#07732e",
         "description": "Reviewers are requested to help discuss or do benchmarks and discuss performance impact"
     }
@@ -177,7 +177,7 @@
     "model": "commitfest.tag",
     "pk": 10,
     "fields": {
-        "name": "good-first-review",
+        "name": "Good First Review",
         "color": "#613583",
         "description": "An easy to review patch for a new reviewer"
     }
