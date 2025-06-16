@@ -285,20 +285,16 @@ def patchlist(request, cf, personalized=False):
                 # int() failed, ignore
                 pass
 
-    if request.GET.get("tag", "-1") != "-1":
-        if request.GET["tag"] == "-2":
-            whereclauses.append(
-                "NOT EXISTS (SELECT 1 FROM commitfest_patch_tags tags WHERE tags.patch_id=p.id)"
-            )
-        else:
-            try:
-                whereparams["tag"] = int(request.GET["tag"])
+    if request.GET.getlist("tag") != []:
+        try:
+            tag_ids = [int(t) for t in request.GET.getlist("tag")]
+            for tag_id in tag_ids:
                 whereclauses.append(
-                    "EXISTS (SELECT 1 FROM commitfest_patch_tags tags WHERE tags.patch_id=p.id AND tags.tag_id=%(tag)s)"
+                    f"EXISTS (SELECT 1 FROM commitfest_patch_tags tags WHERE tags.patch_id=p.id AND tags.tag_id={tag_id})"
                 )
-            except ValueError:
-                # int() failed -- so just ignore this filter
-                pass
+        except ValueError:
+            # int() failed -- so just ignore this filter
+            pass
 
     if request.GET.get("author", "-1") != "-1":
         if request.GET["author"] == "-2":
