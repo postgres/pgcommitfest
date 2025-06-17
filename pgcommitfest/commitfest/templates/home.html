@@ -14,13 +14,15 @@
     <tr>
      <th></th>
      <th>Details</th>
-     <th>In Progress</th>
+     <th>When Open</th>
+     <th>When In Progress</th>
     </tr>
    </thead>
    <tbody>
     <tr>
      <td><strong>Open:</strong></td>
      <td><a href="/{{cfs.open.id}}/">{{cfs.open}}</a></td>
+     <td>Now - {{cfs.open.last_open_date}}</td>
      <td>{{cfs.open.periodstring}}</td>
     </tr>
     <tr>
@@ -34,23 +36,31 @@
      </td>
      <td>
       {%if cfs.in_progress %}
-       {{cfs.in_progress.periodstring}}
+       <span class="text-muted">Not open anymore</span>
+      {%endif%}
+     </td>
+     <td>
+      {%if cfs.in_progress %}
+       Now - {{cfs.in_progress.enddate}}
       {%endif%}
      </td>
     </tr>
     <tr>
      <td><strong>Previous:</strong></td>
      <td><a href="/{{cfs.previous.id}}/">{{cfs.previous}}</a></td>
-     <td>{{cfs.previous.periodstring}}</td>
+     <td><span class="text-muted">Not open anymore</span></td>
+     <td><span class="text-muted">{{cfs.previous.periodstring}}</span></td>
     </tr>
     <tr>
      <td><strong>Draft:</strong></td>
      <td><a href="/{{cfs.draft.id}}/">{{cfs.draft}}</a></td>
-     <td>{{cfs.draft.periodstring}}</td>
+     <td>Now - {{cfs.draft.enddate}}</td>
+     <td><span class="text-muted">N/A</span></td>
     </tr>
     <tr>
      <td><strong>Next open:</strong></td>
      <td>{{cfs.next_open}}</td>
+     <td>{{cfs.open.startdate}}- {{cfs.next_open.last_open_date}}</td>
      <td>{{cfs.next_open.periodstring}}</td>
     </tr>
     <tr>
@@ -60,6 +70,15 @@
        <a href="/{{cfs.final.id}}/">{{cfs.final}}</a>
       {%else%}
        {{cfs.final}}
+      {%endif%}
+     </td>
+     <td>
+      {%if cfs.final.status == 2 %}
+       Now - {{cfs.final.last_open_date}}
+      {%elif cfs.final.status == 3 %}
+       <span class="text-muted">Not open anymore</span>
+      {%else%}
+      {{cfs.final.startdate.year}}-01-01 - {{cfs.final.last_open_date}}
       {%endif%}
      </td>
      <td>
