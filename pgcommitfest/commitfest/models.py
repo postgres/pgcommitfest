@@ -66,6 +66,10 @@ class CommitFest(models.Model):
         return "{0} - {1}".format(self.startdate, self.enddate)
 
     @property
+    def last_open_date(self):
+        return self.startdate - timedelta(days=1)
+
+    @property
     def dev_cycle(self) -> int:
         if self.startdate.month in [1, 3]:
             return self.startdate.year - 2007
