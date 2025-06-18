@@ -613,7 +613,7 @@ def commitfest(request, cfid):
             "statussummary": statussummary,
             "all_tags": {t.id: t for t in Tag.objects.all()},
             "has_filter": patch_list.has_filter,
-            "title": cf.title,
+            "title": f"{cf.title} ({cf.periodstring})",
             "grouping": patch_list.sortkey == 0,
             "sortkey": patch_list.sortkey,
             "openpatchids": [p["id"] for p in patch_list.patches if p["is_open"]],
