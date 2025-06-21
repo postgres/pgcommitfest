@@ -225,7 +225,7 @@
      <form class="form" style="margin-bottom: 5px;">
       <div class="form-group">
        <label for="committerlist">Committer</label>
-       <select id="committerSelect" class="enable-selectize">
+       <select id="committerSelect" class="form-control">
         <option value="" style="display:none;"></option>
         {%for c in committers%}
          <option value="{{c.user.username}}">{{c.user.first_name}} {{c.user.last_name}}</option>
