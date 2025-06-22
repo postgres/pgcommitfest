@@ -231,13 +231,17 @@ def activity(request, cfid=None, rss=None):
 
 def redir(request, what, end):
     if what == "open":
-        cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
+        cfs = list(
+            CommitFest.objects.filter(status=CommitFest.STATUS_OPEN, draft=False)
+        )
     elif what == "inprogress":
         cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
     elif what == "current":
         cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
         if len(cfs) == 0:
-            cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
+            cfs = list(
+                CommitFest.objects.filter(status=CommitFest.STATUS_OPEN, draft=False)
+            )
     else:
         raise Http404()
 
