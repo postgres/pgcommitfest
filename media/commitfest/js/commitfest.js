@@ -242,7 +242,7 @@ function deleteAnnotation(annid) {
 
 function flagCommitted(committer) {
     $("#commitModal").modal();
-    $("#committerSelect").val(committer);
+    $("#committerSelect")[0].selectize.setValue(committer);
     $("#doCommitButton").unbind("click");
     $("#doCommitButton").click(() => {
         const c = $("#committerSelect").val();
