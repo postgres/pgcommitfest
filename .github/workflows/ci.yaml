@@ -21,9 +21,9 @@ jobs:
           args: "format --check"
 
       - name: Setup Biome
-        uses: biomejs/setup-biome@v1.9.4
+        uses: biomejs/setup-biome@v2
         with:
-          version: latest
+          version: 1.9.4
 
       - name: Run Biome
         run: biome ci .
