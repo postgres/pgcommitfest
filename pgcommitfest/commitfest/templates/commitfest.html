@@ -11,7 +11,7 @@
    <li><a href="?reviewer=-3">Patches where you are reviewer</a></li>
   </ul>
  </div>
- {%if cf.isopen or user.is_staff %}
+ {%if cf.is_open or user.is_staff %}
   <a class="btn btn-default" href="new/">New patch</a>
  {%endif%}
  {%include "filter_form.html" %}
@@ -115,7 +115,7 @@
  {%endfor%}
 
  <div>
-  {%if cf.isopen or user.is_staff %}
+  {%if cf.is_open or user.is_staff %}
    <a class="btn btn-default" href="new/">New patch</a>
   {%endif%}
   {%if user.is_staff%}
