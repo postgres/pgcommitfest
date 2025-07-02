@@ -36,6 +36,7 @@ from .forms import (
 )
 from .models import (
     CfbotBranch,
+    CfbotTask,
     CommitFest,
     Committer,
     MailThread,
@@ -1434,26 +1435,27 @@ def cfbot_ingest(message):
     # UPDATE.
     if "task_status" in message:
         task_status = message["task_status"]
-        cursor.execute(
-            """INSERT INTO commitfest_cfbottask (task_id, task_name, patch_id, branch_id,
-                                               position, status,
-                                               created, modified)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                       ON CONFLICT (task_id) DO UPDATE
-                         SET status = EXCLUDED.status,
-                             modified = EXCLUDED.modified
-                       WHERE commitfest_cfbottask.modified < EXCLUDED.modified""",
-            (
-                task_status["task_id"],
-                task_status["task_name"],
-                patch_id,
-                branch_id,
-                task_status["position"],
-                task_status["status"],
-                task_status["created"],
-                task_status["modified"],
-            ),
-        )
+        if task_status["status"] in [x[0] for x in CfbotTask.STATUS_CHOICES]:
+            cursor.execute(
+                """INSERT INTO commitfest_cfbottask (task_id, task_name, patch_id, branch_id,
+                                                position, status,
+                                                created, modified)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (task_id) DO UPDATE
+                            SET status = EXCLUDED.status,
+                                modified = EXCLUDED.modified
+                        WHERE commitfest_cfbottask.modified < EXCLUDED.modified""",
+                (
+                    task_status["task_id"],
+                    task_status["task_name"],
+                    patch_id,
+                    branch_id,
+                    task_status["position"],
+                    task_status["status"],
+                    task_status["created"],
+                    task_status["modified"],
+                ),
+            )
 
     # Remove any old tasks that are not related to this branch. These should
     # only be left over when we just updated the branch_id. Knowing if we just
