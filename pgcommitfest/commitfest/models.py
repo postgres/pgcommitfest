@@ -814,6 +814,7 @@ class CfbotBranch(models.Model):
 class CfbotTask(models.Model):
     STATUS_CHOICES = [
         ("CREATED", "Created"),
+        ("PAUSED", "Paused"),
         ("NEEDS_APPROVAL", "Needs Approval"),
         ("TRIGGERED", "Triggered"),
         ("EXECUTING", "Executing"),
