@@ -1281,5 +1281,19 @@
         "created": "2025-01-26T22:30:03.199",
         "modified": "2025-01-26T22:30:03.199"
     }
+},
+{
+    "model": "commitfest.cfbottask",
+    "pk": 8,
+    "fields": {
+        "task_id": "4566",
+        "task_name": "OpenBSD",
+        "patch": 3,
+        "branch_id": 567,
+        "position": 6,
+        "status": "PAUSED",
+        "created": "2025-07-03T06:29:25.086",
+        "modified": "2025-07-03T06:29:25.086"
+    }
 }
 ]
