@@ -541,7 +541,7 @@ branch.failing_since,
     SELECT row_to_json(t) as cfbot_results
     from (
         SELECT
-            count(*) FILTER (WHERE task.status = 'COMPLETED') as completed,
+            count(*) FILTER (WHERE task.status in ('COMPLETED', 'PAUSED')) as completed,
             count(*) FILTER (WHERE task.status in ('CREATED', 'SCHEDULED', 'EXECUTING')) running,
             count(*) FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) failed,
             count(*) total,
