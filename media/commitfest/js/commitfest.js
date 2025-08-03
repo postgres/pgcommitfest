@@ -272,13 +272,23 @@ function sortpatches(sortby) {
 }
 
 function toggleButtonCollapse(buttonId, collapseId) {
-    $(`#${buttonId}`).button("toggle");
-    $(`#${collapseId}`).toggleClass("in");
+    const button = document.getElementById(buttonId);
+    const collapse = document.getElementById(collapseId);
+
+    // Toggle button active state
+    button.classList.toggle("active");
+
+    // Use Bootstrap 5 Collapse API
+    const bsCollapse = new bootstrap.Collapse(collapse, {
+        toggle: true,
+    });
 }
 
 function togglePatchFilterButton(buttonId, collapseId) {
+    const collapse = document.getElementById(collapseId);
+
     /* Figure out if we are collapsing it */
-    if ($(`#${collapseId}`).hasClass("in")) {
+    if (collapse.classList.contains("show")) {
         /* Go back to ourselves without a querystring to reset the form, unless it's already empty */
         if (document.location.href.indexOf("?") > -1) {
             document.location.href = ".";

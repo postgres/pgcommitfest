@@ -2,9 +2,20 @@
  * commitfest.postgresql.org specific styles
  */
 
-/* For close button with float disabled */
-.close-nofloat {
-    float: none !important;
+/* Bootstrap 5 inline delete/close buttons */
+.btn-outline-danger.btn-sm {
+    font-size: 0.75rem;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+    border-color: #dc3545;
+    color: #dc3545;
+    background-color: transparent;
+}
+
+.btn-outline-danger.btn-sm:hover {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+    color: #721c24;
 }
 
 /* General form styling */
@@ -90,4 +101,43 @@ div.form-group div.controls input.threadpick-input {
 
 .search-bar {
     display: inline-block;
+}
+
+/* Navigation improvements for Bootstrap 5 */
+nav[aria-label="breadcrumb"] {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+nav[aria-label="breadcrumb"] .breadcrumb {
+    margin-bottom: 0;
+}
+
+nav[aria-label="breadcrumb"] .float-end {
+    font-size: 0.875rem;
+}
+
+/* Override Bootstrap warning color to be less harsh */
+.badge.bg-warning {
+    background-color: #cc8500 !important; /* Muted amber/gold instead of bright yellow */
+    color: white !important;
+}
+
+/* Remove underlines from tag links */
+a:has(.badge) {
+    text-decoration: none !important;
+}
+
+a:has(.badge):hover {
+    text-decoration: none !important;
+}
+
+a .badge {
+    text-decoration: none !important;
+}
+
+a:hover .badge {
+    text-decoration: none !important;
 }

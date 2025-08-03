@@ -5,7 +5,6 @@
   <title>{{title|default:'Commitfest' }}</title>
   <link rel="stylesheet" href="/media/commitfest/css/jquery-ui.css" type="text/css">
   <link rel="stylesheet" href="/media/commitfest/css/bootstrap.css" />
-  <link rel="stylesheet" href="/media/commitfest/css/bootstrap-theme.min.css" />
   <link rel="stylesheet" href="/media/commitfest/css/selectize.css" />
   <link rel="stylesheet" href="/media/commitfest/css/selectize.default.css" />
   <link rel="stylesheet" href="/media/commitfest/css/commitfest.css?{% static_file_param %}" />
@@ -14,26 +13,60 @@
   {%if rss_alternate%}  <link rel="alternate" type="application/rss+xml" title="{{rss_alternate_title}}" href="{{rss_alternate}}" />{%endif%}
  </head>
  <body>
+  <!-- Main Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
+   <div class="container-fluid">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+     <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNavbar">
+     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      <li class="nav-item">
+       <a class="nav-link" href="/me/">Dashboard</a>
+      </li>
+      <li class="nav-item">
+       <a class="nav-link" href="/current/">Current CF</a>
+      </li>
+      <li class="nav-item">
+       <a class="nav-link" href="/open/">Open CF</a>
+      </li>
+      <li class="nav-item">
+       <a class="nav-link" href="/activity/">Activity Log</a>
+      </li>
+      <li class="nav-item">
+       <a class="nav-link" href="/commitfest_history/">All CommitFests</a>
+      </li>
+      <li class="nav-item">
+       <a class="nav-link" href="/help/">Help</a>
+      </li>
+     </ul>
+    </div>
+   </div>
+  </nav>
+
   <div class="container-fluid">
-   <ul class="breadcrumb">
-    {%if title %}
-     <li><a href="/">Home</a></li>
-     {%for c in breadcrumbs%}
-      <li><a href="{{c.href}}">{{c.title}}</a></li>
-     {%endfor%}
-     <li class="active">{{title}}</li>
-    {%else%}
-     <li class="active">Home</li>
-    {%endif%}
-    <li class="pull-right active">
+
+   <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+     {%if title %}
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      {%for c in breadcrumbs%}
+       <li class="breadcrumb-item"><a href="{{c.href}}">{{c.title}}</a></li>
+      {%endfor%}
+      <li class="breadcrumb-item active" aria-current="page">{{title}}</li>
+     {%else%}
+      <li class="breadcrumb-item active" aria-current="page">Home</li>
+     {%endif%}
+    </ol>
+    <div class="float-end">
      {%if user.is_authenticated%}
       Logged in as {{user}} (<a href="/account/profile/">edit profile</a> | <a href="/account/logout/">log out</a>{%if user.is_staff%} | <a href="/admin/">administration</a>{%endif%})
      {%else%}
       <a href="/account/login/?next={{request.path}}">Log in</a>
      {%endif%}
-    </li>
-    {%if header_activity%} <li class="pull-right active"><a href="{{header_activity_link}}">{{header_activity}}</a></li>{%endif%}
-   </ul>
+     {%if header_activity%} | <a href="{{header_activity_link}}">{{header_activity}}</a>{%endif%}
+    </div>
+   </nav>
 
    {%if title %}
     <h1>{{title}}</h1>

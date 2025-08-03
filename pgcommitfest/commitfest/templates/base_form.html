@@ -31,7 +31,7 @@
   {%endfor%}
   <div class="form-group">
    <div class="col-lg-12">
-    <div class="control"><input type="submit" class="btn btn-default" value="{{savebutton|default:"Save"}}"></div>
+    <div class="control"><input type="submit" class="btn btn-outline-secondary" value="{{savebutton|default:"Save"}}"></div>
    </div>
   </div>
  </form>
@@ -45,14 +45,14 @@
    <div class="modal-dialog modal-lg">
     <div class="modal-content">
      <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       <h3>Search user</h3>
      </div>
      <div class="modal-body">
-      <form class="form-inline" style="margin-bottom: 5px;">
-       <div class="input-append">
-        <input id="searchUserSearchField" type="text" class="span2 search-query" autocomplete="off">
-        <button id="searchUserSearchButton" onclick="return findUsers()" class="btn btn-default">Search</button>
+      <form class="d-flex gap-2" style="margin-bottom: 5px;">
+       <div class="input-group">
+        <input id="searchUserSearchField" type="text" class="form-control" autocomplete="off">
+        <button id="searchUserSearchButton" onclick="return findUsers()" class="btn btn-outline-secondary">Search</button>
        </div>
       </form>
       <div>Search for users above and then pick one in the list below:</div>
@@ -61,8 +61,8 @@
       </div>
      </div>
      <div class="modal-footer">
-      <a href="#" class="btn btn-default" data-dismiss="modal">Close</a>
-      <a href="#" id="doSelectUserButton" class="btn btn-default btn-primary disabled">Add user to system</a>
+      <a href="#" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</a>
+      <a href="#" id="doSelectUserButton" class="btn btn-primary disabled">Add user to system</a>
      </div>
     </div>
    </div>
@@ -76,7 +76,7 @@
  <script>
   {%if user.is_staff%}
    $('.selectize-control.add-user-picker').after(
-    $('<a href="#" class="btn btn-default btn-sm">Import user not listed</a>').click(function () {
+    $('<a href="#" class="btn btn-outline-secondary btn-sm">Import user not listed</a>').click(function () {
      search_and_store_user();
     })
    );
