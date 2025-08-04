@@ -49,7 +49,13 @@ from .models import (
 )
 
 
+@transaction.atomic
 def home(request):
+    curs = connection.cursor()
+    # Make sure the that all the queries work on the same snapshot. Needs to be
+    # first in the transaction.atomic decorator.
+    curs.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+
     cfs = CommitFest.relevant_commitfests()
 
     context = {
@@ -58,7 +64,7 @@ def home(request):
         "header_activity_link": "/activity/",
     }
 
-    # Add dashboard content for logged-in users (same as me() view)
+    # Add dashboard content for logged-in users
     if request.user.is_authenticated:
         # Check if user is experienced (has been active for a while)
 
@@ -66,8 +72,6 @@ def home(request):
         is_experienced_user = request.user.date_joined < timezone.now() - timedelta(
             days=30
         )
-
-        # Exact same logic as me() view
 
         curs = connection.cursor()
         curs.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
