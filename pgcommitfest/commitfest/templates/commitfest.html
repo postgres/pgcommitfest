@@ -3,9 +3,9 @@
 {%block contents%}
 
  <button type="button" class="btn btn-outline-secondary active" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
- <a class="btn btn-outline-secondary" href="?reviewer=-2">No reviewers</a>
- <a class="btn btn-outline-secondary" href="?author=-3">My patches</a>
- <a class="btn btn-outline-secondary" href="?reviewer=-3">My reviews</a>
+ <a class="btn btn-outline-secondary{% if request.GET.reviewer == '-2' %} active{% endif %}" href="?reviewer=-2">No reviewers</a>
+ <a class="btn btn-outline-secondary{% if request.GET.author == '-3' %} active{% endif %}" href="?author=-3">My patches</a>
+ <a class="btn btn-outline-secondary{% if request.GET.reviewer == '-3' %} active{% endif %}" href="?reviewer=-3">My reviews</a>
  {%if cf.is_open or user.is_staff %}
   <a class="btn btn-outline-secondary" href="new/">New patch</a>
  {%endif%}
