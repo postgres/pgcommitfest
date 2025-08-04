@@ -52,7 +52,10 @@ function browseThreads(attachfunc, closefunc) {
     $("#attachModal").on("hidden.bs.modal", (e) => {
         if (closefunc) closefunc();
     });
-    $("#attachModal").modal();
+    const attachModal = new bootstrap.Modal(
+        document.getElementById("attachModal"),
+    );
+    attachModal.show();
     findLatestThreads();
 
     $("#doAttachThreadButton").unbind("click");
@@ -74,7 +77,10 @@ function browseThreads(attachfunc, closefunc) {
         $("#attachThreadSearchButton").addClass("disabled");
         $("#attachThreadButton").addClass("disabled");
         if (attachfunc(msgid, subject)) {
-            $("#attachModal").modal("hide");
+            const attachModal = bootstrap.Modal.getInstance(
+                document.getElementById("attachModal"),
+            );
+            attachModal.hide();
         }
         $("#attachThreadListWrap").removeClass("loading");
         $("#attachThreadSearchButton").removeClass("disabled");
