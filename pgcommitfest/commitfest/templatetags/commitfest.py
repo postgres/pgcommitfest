@@ -25,17 +25,7 @@ def commitfeststatusstring(value):
 @stringfilter
 def commitfeststatuslabel(value):
     i = int(value)
-    bootstrap3_class = [v for k, v in CommitFest._STATUS_LABELS if k == i][0]
-    # Map Bootstrap 3 label classes to Bootstrap 5 badge classes
-    mapping = {
-        "default": "secondary",
-        "primary": "primary",
-        "info": "info",
-        "success": "success",
-        "warning": "warning",
-        "danger": "danger",
-    }
-    return mapping.get(bootstrap3_class, "secondary")
+    return [v for k, v in CommitFest._STATUS_LABELS if k == i][0]
 
 
 @register.filter(name="patchstatusstring")
@@ -49,17 +39,7 @@ def patchstatusstring(value):
 @stringfilter
 def patchstatuslabel(value):
     i = int(value)
-    bootstrap3_class = [v for k, v in PatchOnCommitFest._STATUS_LABELS if k == i][0]
-    # Map Bootstrap 3 label classes to Bootstrap 5 badge classes
-    mapping = {
-        "default": "secondary",
-        "primary": "primary",
-        "info": "info",
-        "success": "success",
-        "warning": "warning",  # Keep warning but we'll override the color in CSS
-        "danger": "danger",
-    }
-    return mapping.get(bootstrap3_class, "secondary")
+    return [v for k, v in PatchOnCommitFest._STATUS_LABELS if k == i][0]
 
 
 @register.filter(name="tagname")

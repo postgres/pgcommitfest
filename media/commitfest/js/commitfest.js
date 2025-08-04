@@ -280,11 +280,7 @@ function sortpatches(sortby) {
 function toggleButtonCollapse(buttonId, collapseId) {
     const button = document.getElementById(buttonId);
     const collapse = document.getElementById(collapseId);
-
-    // Toggle button active state
     button.classList.toggle("active");
-
-    // Use Bootstrap 5 Collapse API
     const bsCollapse = new bootstrap.Collapse(collapse, {
         toggle: true,
     });

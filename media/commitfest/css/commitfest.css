@@ -146,3 +146,9 @@ a:hover .badge {
 .navbar-dark .github-logo {
     filter: brightness(0) invert(1);
 }
+
+/* Simple close button without float */
+.btn-close-nofloat {
+    float: none;
+    margin-left: 0.5rem;
+}

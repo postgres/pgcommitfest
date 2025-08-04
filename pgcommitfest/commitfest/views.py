@@ -11,13 +11,14 @@ from django.http import (
     HttpResponseRedirect,
 )
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 import collections
 import hmac
 import json
 import urllib
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
 
@@ -60,10 +61,6 @@ def home(request):
     # Add dashboard content for logged-in users (same as me() view)
     if request.user.is_authenticated:
         # Check if user is experienced (has been active for a while)
-        from django.db import connection
-        from django.utils import timezone
-
-        from datetime import timedelta
 
         # Consider user experienced if they joined more than 30 days ago
         is_experienced_user = request.user.date_joined < timezone.now() - timedelta(
@@ -74,16 +71,9 @@ def home(request):
 
         curs = connection.cursor()
         curs.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
-        current_cfs = list(
-            CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS)
-        )
-        if len(current_cfs) == 0:
-            current_cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
 
-        if len(current_cfs) > 0:
-            cf = current_cfs[0]
-        else:
-            cf = None
+        # Use existing cfs data instead of querying again
+        cf = cfs.get("in_progress") or cfs.get("open")
 
         form = CommitFestFilterForm(request.GET)
         patch_list = patchlist(request, cf, personalized=True)

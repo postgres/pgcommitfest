@@ -3,7 +3,8 @@ from .models import CommitFest
 
 def global_context(request):
     """Add global context variables available in all templates."""
+    cfs = CommitFest.relevant_commitfests()
     return {
-        "current_cf": CommitFest.get_current(),
-        "open_cf": CommitFest.get_open_regular(),
+        "current_cf": cfs.get("in_progress") or cfs.get("open"),
+        "open_cf": cfs.get("open"),
     }
