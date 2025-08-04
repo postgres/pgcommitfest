@@ -105,15 +105,14 @@
 
  {% if show_dashboard %}
 
-  <button type="button" class="btn btn-outline-secondary{%if has_filter%} active{%endif%}" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
+  <button type="button" class="btn btn-outline-secondary active" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
+
+  {%include "filter_form.html" %}
 
   <p>
    <br/>
    <b>Status summary: </b>{%for id,title,num in statussummary%}<a href="?status={{id}}">{{title}}</a>: {{num}}. {%endfor%}
   </p>
-
-
-  {%include "filter_form.html" %}
   {%for p in patches %}
    {%ifchanged p.is_open%}
     {%if not forloop.first%}
