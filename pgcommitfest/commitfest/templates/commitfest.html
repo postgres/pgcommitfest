@@ -3,14 +3,9 @@
 {%block contents%}
 
  <button type="button" class="btn btn-outline-secondary active" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
- <div class="btn-group">
-  <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Shortcuts</button>
-  <ul class="dropdown-menu">
-   <li><a class="dropdown-item" href="?reviewer=-2">Patches with no reviewers</a></li>
-   <li><a class="dropdown-item" href="?author=-3">Patches where you are author</a></li>
-   <li><a class="dropdown-item" href="?reviewer=-3">Patches where you are reviewer</a></li>
-  </ul>
- </div>
+ <a class="btn btn-outline-secondary" href="?reviewer=-2">No reviewers</a>
+ <a class="btn btn-outline-secondary" href="?author=-3">My patches</a>
+ <a class="btn btn-outline-secondary" href="?reviewer=-3">My reviews</a>
  {%if cf.is_open or user.is_staff %}
   <a class="btn btn-outline-secondary" href="new/">New patch</a>
  {%endif%}
