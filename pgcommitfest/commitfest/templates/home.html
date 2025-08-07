@@ -126,7 +126,11 @@
        <th><a href="#" style="color:#333333;" onclick="return sortpatches(5);">Patch</a>{%if sortkey == 5%}<div style="float:right;">↓</div>{%elif sortkey == -5%}<div style="float:right;">↑</div>{%endif%}</th>
        <th><a href="#" style="color:#333333;" onclick="return sortpatches(4);">ID</a>{%if sortkey == 4%}<div style="float:right;">↓</div>{%elif sortkey == -4%}<div style="float:right;">↑</div>{%endif%}</th>
        {%if user.is_authenticated %}
-        <th><a href="#" style="color:#333333;" onclick="return sortpatches(8);">CF</a>{%if sortkey == 8%}<div style="float:right;">↓</div>{%elif sortkey == -8%}<div style="float:right;">↑</div>{%endif%}</th>
+        <th>
+          <a href="#" style="color:#333333;" onclick="return sortpatches(8);">CF</a>
+          <i class="bi bi-question-circle text-muted" style="font-size: 0.8em; margin-left: 3px;" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" title="Color coding:<br>Green = In Progress<br>Blue = Open<br>Red = Closed"></i>
+          {%if sortkey == 8%}<div style="float:right;">↓</div>{%elif sortkey == -8%}<div style="float:right;">↑</div>{%endif%}
+        </th>
        {%endif%}
        <th>Status</th>
        <th>Tags</th>

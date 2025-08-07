@@ -278,13 +278,6 @@
 
 {%block morescript%}
  <script>
-  $(document).ready(function() {
-   // Initialize Bootstrap 5 tooltips instead of jQuery UI
-   var tooltipTriggerList = [].slice.call(document.querySelectorAll('button[title="Detach this thread"], button[title="Delete this annotation"]'));
-   var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl);
-   });
-  });
   {%if attachnow%}
    $(document).ready(function() {
     attachThread({{cf.id}},{{patch.id}}, function() {
