@@ -15,14 +15,21 @@
   {%for field in form%}
    {%if not field.is_hidden%}
     <div class="form-group">
-     {{field|label_class:"control-label col-lg-1"}}
-     <div class="col-lg-11 controls">
+     {{field|label_class:"control-label"}}
+     <div class="col-lg-12 controls">
       {%if field.errors %}
        {%for e in field.errors%}
         <div class="alert alert-danger">{{e}}</div>
        {%endfor%}
       {%endif%}
-      {%if not field.name in form.selectize_fields%}{{field|field_class:"form-control"}}{%else%}{{field}}{%endif%}
+      {%if field.name|slice:":7" == 'review_' %}
+       {%for choice in field %}
+        <div class="form-check form-check-inline">
+         <input type="checkbox" class="form-check-input" name="{{field.name}}" value="{{choice.data.value}}" id="{{choice.id_for_label}}" {% if choice.data.selected %}checked{% endif %}>
+         <label class="form-check-label" for="{{choice.id_for_label}}">{{choice.choice_label}}</label>
+        </div>
+       {%endfor%}
+      {%elif not field.name in form.selectize_fields%}{{field|field_class:"form-control"}}{%else%}{{field}}{%endif%}
       {%if field.help_text%}<br/>{{field.help_text|safe}}{%endif%}</div>
     </div>
    {%else%}
@@ -31,7 +38,7 @@
   {%endfor%}
   <div class="form-group">
    <div class="col-lg-12">
-    <div class="control"><input type="submit" class="btn btn-primary" value="{{savebutton|default:"Save"}}"></div>
+    <input type="submit" class="btn btn-primary" value="{{savebutton|default:"Save"}}">
    </div>
   </div>
  </form>
