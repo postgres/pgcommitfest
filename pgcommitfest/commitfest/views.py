@@ -437,7 +437,7 @@ def patchlist(request, cf, personalized=False):
         joins_str = "INNER JOIN commitfest_commitfest cf ON poc.commitfest_id=cf.id"
         groupby_str = "cf.id,"
     else:
-        columns_str = "t.topic as topic,"
+        columns_str = ""
         joins_str = ""
         groupby_str = ""
 
@@ -498,7 +498,7 @@ def patchlist(request, cf, personalized=False):
                 lastmail DESC"""
             whereparams["cf_closed_status"] = CommitFest.STATUS_CLOSED
         else:
-            orderby_str = "topic, created"
+            orderby_str = "created"
         sortkey = 0
 
     if not has_filter and sortkey == 0 and request.GET:
@@ -555,13 +555,12 @@ branch.failing_since,
 )
 FROM commitfest_patch p
 INNER JOIN commitfest_patchoncommitfest poc ON poc.patch_id=p.id
-INNER JOIN commitfest_topic t ON t.id=p.topic_id
 {joins_str}
 LEFT JOIN auth_user committer ON committer.id=p.committer_id
 LEFT JOIN commitfest_targetversion v ON p.targetversion_id=v.id
 LEFT JOIN commitfest_cfbotbranch branch ON branch.patch_id=p.id
 WHERE {where_str}
-GROUP BY p.id, poc.id, {groupby_str} committer.id, t.id, v.version, branch.patch_id
+GROUP BY p.id, poc.id, {groupby_str} committer.id, v.version, branch.patch_id
 ORDER BY is_open DESC, {orderby_str}""",
         params,
     )
@@ -631,7 +630,6 @@ def commitfest(request, cfid):
             "all_tags": {t.id: t for t in Tag.objects.all()},
             "has_filter": patch_list.has_filter,
             "title": f"{cf.title} ({cf.periodstring})",
-            "grouping": patch_list.sortkey == 0,
             "sortkey": patch_list.sortkey,
             "openpatchids": [p["id"] for p in patch_list.patches if p["is_open"]],
             "header_activity": "Activity log",
