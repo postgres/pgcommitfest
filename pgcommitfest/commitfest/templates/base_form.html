@@ -15,8 +15,8 @@
   {%for field in form%}
    {%if not field.is_hidden%}
     <div class="form-group">
-     {{field|label_class:"control-label col-lg-1"}}
-     <div class="col-lg-11 controls">
+     {{field|label_class:"control-label"}}
+     <div class="col-lg-12 controls">
       {%if field.errors %}
        {%for e in field.errors%}
         <div class="alert alert-danger">{{e}}</div>
@@ -38,7 +38,7 @@
   {%endfor%}
   <div class="form-group">
    <div class="col-lg-12">
-    <div class="control"><input type="submit" class="btn btn-primary" value="{{savebutton|default:"Save"}}"></div>
+    <input type="submit" class="btn btn-primary" value="{{savebutton|default:"Save"}}">
    </div>
   </div>
  </form>
