@@ -16,18 +16,18 @@
     <th>CI (CFBot)</th>
     <td>
      {%if not cfbot_branch %}
-      <span class="label label-default">Not processed</span></a>
+      <span class="badge bg-secondary">Not processed</span></a>
      {%elif cfbot_branch.needs_rebase_since %}
       <a href="{{cfbot_branch.apply_url}}">
-       <span class="label label-warning" title="View git apply logs">Needs rebase!</span></a>
+       <span class="badge bg-warning" title="View git apply logs">Needs rebase!</span></a>
       Needs rebase {% cfsince cfbot_branch.needs_rebase_since %}. {%if cfbot_branch.failing_since and cfbot_branch.failing_since != cfbot_branch.needs_rebase_since %}Failing {% cfsince cfbot_branch.failing_since %}. {%endif%}<br>Additional links previous successfully applied patch (outdated):<br>
       <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" title="View previous successfully applied patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
       <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
-       <span class="label label-default">Summary</span></a>
+       <span class="badge bg-secondary">Summary</span></a>
      {%else%}
       <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
       <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
-       <span class="label label-default">Summary</span></a>
+       <span class="badge bg-secondary">Summary</span></a>
       {%for c in cfbot_tasks %}
        {%if c.status == 'COMPLETED'%}
         <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_success.svg"/></a>
@@ -43,10 +43,10 @@
       {%endfor%}
      {%endif%}
      {%if cfbot_branch %}
-      <button class="btn btn-default" title="This adds the following to your clipboard (needs to be run in an existing git repo):
-                                             git remote add commitfest https://github.com/postgresql-cfbot/postgresql.git
-                                             git fetch commitfest cf/{{patch.id}}
-                                             git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{patch.id}})">Copy git checkout commands</button>
+      <button class="btn btn-outline-secondary" title="This adds the following to your clipboard (needs to be run in an existing git repo):
+                                                       git remote add commitfest https://github.com/postgresql-cfbot/postgresql.git
+                                                       git fetch commitfest cf/{{patch.id}}
+                                                       git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{patch.id}})">Copy git checkout commands</button>
      {%endif%}
     </a>
    </td>
@@ -73,7 +73,7 @@
     <th>Tags</th>
     <td>
      {%for tag in patch.tags.all%}
-      <span class="label" style="background: {{tag|tagcolor}};" title="{{tag.description}}">{{tag.name}}</span>
+      <span class="badge" style="background-color: {{tag|tagcolor}};" title="{{tag.description}}">{{tag.name}}</span>
      {%endfor%}
     </td>
    </tr>
@@ -92,13 +92,13 @@
    <tr>
     <th>Status</th>
     <td>{%for c in patch_commitfests %}
-     <div style="margin-bottom: 3px;"><a href="/{{c.commitfest.id}}/">{{c.commitfest}}</a> ({{c.commitfest.periodstring}}): <span class="label label-{{c.status|patchstatuslabel}}">{{c.statusstring}}</span></div>
+     <div style="margin-bottom: 3px;"><a href="/{{c.commitfest.id}}/">{{c.commitfest}}</a> ({{c.commitfest.periodstring}}): <span class="badge bg-{{c.status|patchstatuslabel}}">{{c.statusstring}}</span></div>
     {%endfor%}
     </td>
    </tr>
    <tr>
     <th>Target version</th>
-    <td>{%if patch.targetversion%}<span class="label label-default">{{patch.targetversion}}</span>{%endif%}</td>
+    <td>{%if patch.targetversion%}<span class="badge bg-secondary">{{patch.targetversion}}</span>{%endif%}</td>
    </tr>
    <tr>
     <th>Authors</th>
@@ -106,12 +106,12 @@
    </tr>
    <tr>
     <th>Reviewers</th>
-    <td>{{patch.reviewers_string}}<a href="reviewer/{{is_reviewer|yesno:"remove,become"}}/" class="btn btn-default pull-right">{{is_reviewer|yesno:"Remove from reviewers,Become reviewer"}}</a></td>
+    <td>{{patch.reviewers_string}}<a href="reviewer/{{is_reviewer|yesno:"remove,become"}}/" class="btn btn-outline-secondary float-end">{{is_reviewer|yesno:"Remove from reviewers,Become reviewer"}}</a></td>
    </tr>
    <tr>
     <th>Committer</th>
     <td>{%if patch.committer%}{{patch.committer.fullname}}{%endif%}
-     {%if is_committer%}<a href="committer/{{is_this_committer|yesno:"remove,become"}}/" class="btn btn-default pull-right">{{is_this_committer|yesno:"Unclaim as committer,Claim as committer"}}</a>{%endif%}
+     {%if is_committer%}<a href="committer/{{is_this_committer|yesno:"remove,become"}}/" class="btn btn-outline-secondary float-end">{{is_this_committer|yesno:"Unclaim as committer,Claim as committer"}}</a>{%endif%}
     </td>
    </tr>
    <tr>
@@ -129,19 +129,19 @@
     <th>Emails</th>
     <td>
      {%if user.is_authenticated%}
-      <div style="float:right"><button class="btn btn-default" onclick="attachThread({{cf.id}},{{patch.id}})">Attach thread</button></div>
+      <div style="float:right"><button class="btn btn-outline-secondary" onclick="attachThread({{cf.id}},{{patch.id}})">Attach thread</button></div>
      {%else%}
-      <div style="float:right"><button class="btn btn-default" onclick="location.href='/account/login/?next=/{{cf.id}}/{{patch.id}}/%3Fattachthreadnow'">Attach thread</button></div>
+      <div style="float:right"><button class="btn btn-outline-secondary" onclick="location.href='/account/login/?next=/{{cf.id}}/{{patch.id}}/%3Fattachthreadnow'">Attach thread</button></div>
      {%endif%}
      <dl>
       {%for t in patch.mailthread_set.all%}
-       <dt><a href="https://www.postgresql.org/message-id/flat/{{t.messageid}}">{{t.subject}}</a> <button type="button" class="close close-nofloat" title="Detach this thread" onclick="detachThread({{cf.id}},{{patch.id}},'{{t.messageid}}')">&times;</button></dt>
+       <dt><a href="https://www.postgresql.org/message-id/flat/{{t.messageid}}">{{t.subject}}</a> <button type="button" class="btn-close btn-close-nofloat" title="Detach this thread" onclick="detachThread({{cf.id}},{{patch.id}},'{{t.messageid}}')"></button></dt>
        <dd>
         First at <a href="https://www.postgresql.org/message-id/{{t.messageid}}">{{t.firstmessage}}</a> by {{t.firstauthor|hidemail}}<br/>
         Latest at <a href="https://www.postgresql.org/message-id/{{t.latestmsgid}}">{{t.latestmessage}}</a> by {{t.latestauthor|hidemail}}<br/>
         {%for ta in t.mailthreadattachment_set.all%}
          {%if forloop.first%}
-          Latest attachment (<a href="https://www.postgresql.org/message-id/attachment/{{ta.attachmentid}}/{{ta.filename}}">{{ta.filename}}</a>) at <a href="https://www.postgresql.org/message-id/{{ta.messageid}}">{{ta.date}}</a> from {{ta.author|hidemail}} <button type="button" class="btn btn-default btn-xs" data-toggle="collapse" data-target="#att{{t.pk}}" title="Show all attachments"><i class="glyphicon glyphicon-plus"></i></button>
+          Latest attachment (<a href="https://www.postgresql.org/message-id/attachment/{{ta.attachmentid}}/{{ta.filename}}">{{ta.filename}}</a>) at <a href="https://www.postgresql.org/message-id/{{ta.messageid}}">{{ta.date}}</a> from {{ta.author|hidemail}} <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#att{{t.pk}}" title="Show all attachments">+</button>
           <div id="att{{t.pk}}" class="collapse">
          {%endif%}
          &nbsp;&nbsp;&nbsp;&nbsp;Attachment (<a href="https://www.postgresql.org/message-id/attachment/{{ta.attachmentid}}/{{ta.filename}}">{{ta.filename}}</a>) at <a href="https://www.postgresql.org/message-id/{{ta.messageid}}">{{ta.date}}</a> from {{ta.author|hidemail}} (Patch: {{ta.ispatch|yesno:"Yes,No,Pending check"}})<br/>
@@ -151,7 +151,7 @@
          {%for a in t.mailthreadannotation_set.all%}
           {%if forloop.first%}
            <h4>Annotations</h4>
-           <table class="table table-bordered table-striped table-condensed small">
+           <table class="table table-bordered table-striped small">
             <thead>
              <tr>
               <th>When</th>
@@ -166,14 +166,14 @@
            <td>{{a.date}}</td>
            <td style="white-space: nowrap">{{a.user_string}}</td>
            <td style="white-space: nowrap">From {{a.mailauthor}}<br/>at <a href="https://www.postgresql.org/message-id/{{a.msgid}}">{{a.maildate}}</a></td>
-           <td width="99%">{{a.annotationtext}} <button type="button" class="close" title="Delete this annotation" onclick="deleteAnnotation({{a.id}})">&times;</button></td>
+           <td width="99%">{{a.annotationtext}} <button type="button" class="btn btn-outline-danger btn-sm ms-2" title="Delete this annotation" onclick="deleteAnnotation({{a.id}})">×</button></td>
           </tr>
           {%if forloop.last%}
            </body>
            </table>
           {%endif%}
          {%endfor%}
-         {%if user.is_authenticated%}<button class="btn btn-xs btn-default" onclick="addAnnotation({{t.id}})">Add annotation</button>{%endif%}
+         {%if user.is_authenticated%}<button class="btn btn-sm btn-outline-secondary" onclick="addAnnotation({{t.id}})">Add annotation</button>{%endif%}
         </div>
        </dd>
       {%endfor%}
@@ -184,7 +184,7 @@
     <th>History</th>
     <td>
      <div style="max-height: 200px; overflow-y: scroll;">
-      <table class="table table-bordered table-striped table-condensed">
+      <table class="table table-bordered table-striped">
        <thead>
         <tr>
          <th>When</th>
@@ -204,7 +204,7 @@
       </table>
      </div>
      {%if user.is_authenticated%}
-      <a href="{{is_subscribed|yesno:"unsubscribe,subscribe"}}/" class="btn btn-default">{{is_subscribed|yesno:"Unsubscribe from patch update emails,Subscribe to patch update emails"}}</a>
+      <a href="{{is_subscribed|yesno:"unsubscribe,subscribe"}}/" class="btn btn-outline-secondary">{{is_subscribed|yesno:"Unsubscribe from patch update emails,Subscribe to patch update emails"}}</a>
      {%endif%}
     </td>
    </tr>
@@ -220,7 +220,7 @@
   <div class="modal-dialog modal-lg">
    <div class="modal-content">
     <div class="modal-header">
-     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
      <h3>Flag as committed</h3>
     </div>
     <div class="modal-body">
@@ -237,8 +237,8 @@
      </form>
     </div>
     <div class="modal-footer">
-     <a href="#" class="btn btn-default" data-dismiss="modal">Close</a>
-     <a href="#" class="btn btn-default btn-primary" id="doCommitButton">Flag as committed</a>
+     <a href="#" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</a>
+     <a href="#" class="btn btn-primary" id="doCommitButton">Flag as committed</a>
     </div>
    </div>
   </div>
@@ -249,7 +249,7 @@
  <div class="modal fade" id="annotateModal" role="dialog">
   <div class="modal-dialog modal-lg"><div class="modal-content">
    <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     <h3>Add annotation</h3>
    </div>
    <div id="annotateMessageBody" class="modal-body">
@@ -269,8 +269,8 @@
     </div>
    </div>
    <div class="modal-footer">
-    <a href="#" class="btn btn-default" data-dismiss="modal">Close</a>
-    <a href="#" id="doAnnotateMessageButton" class="btn btn-default btn-primary disabled">Add annotation</a>
+    <a href="#" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</a>
+    <a href="#" id="doAnnotateMessageButton" class="btn btn-primary disabled">Add annotation</a>
    </div>
   </div></div>
  </div>
@@ -279,8 +279,10 @@
 {%block morescript%}
  <script>
   $(document).ready(function() {
-   $('button.close-nofloat').each(function(i,o) {
-    $(o).tooltip();
+   // Initialize Bootstrap 5 tooltips instead of jQuery UI
+   var tooltipTriggerList = [].slice.call(document.querySelectorAll('button[title="Detach this thread"], button[title="Delete this annotation"]'));
+   var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
    });
   });
   {%if attachnow%}

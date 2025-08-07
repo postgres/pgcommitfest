@@ -1,7 +1,7 @@
 {%load commitfest %}
-<div id="collapseFilters" class="collapse {%if has_filter%}in{%endif%}">
+<div id="collapseFilters" class="collapse show">
  <form id="filterform" method="GET" action="." style="margin-bottom: 0px">
-  <table class="table table-condensed" style="margin-bottom: 0px">
+  <table class="table" style="margin-bottom: 0px">
    <thead>
     <tr>
      {%for f in form%}
@@ -23,8 +23,8 @@
       </td>
      {%endfor%}
      <td>
-      <input type="submit" class="btn btn-default" value="Filter">
-      <a class="btn btn-default" href=".">Clear</a>
+      <input type="submit" class="btn btn-outline-secondary" value="Filter">
+      <a class="btn btn-outline-secondary" href=".">Clear</a>
      </td>
     </tr>
    </tbody>

@@ -8,7 +8,7 @@ class ThreadPickWidget(TextInput):
         html = super(ThreadPickWidget, self).render(name, value, attrs)
         html = (
             html
-            + '&nbsp;<button class="btn btn-default attachThreadButton" id="btn_%s">Find thread</button>'
+            + '&nbsp;<button class="btn btn-outline-secondary attachThreadButton" id="btn_%s">Find thread</button>'
             % name
         )
         return mark_safe(html)

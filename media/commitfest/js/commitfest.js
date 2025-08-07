@@ -52,7 +52,10 @@ function browseThreads(attachfunc, closefunc) {
     $("#attachModal").on("hidden.bs.modal", (e) => {
         if (closefunc) closefunc();
     });
-    $("#attachModal").modal();
+    const attachModal = new bootstrap.Modal(
+        document.getElementById("attachModal"),
+    );
+    attachModal.show();
     findLatestThreads();
 
     $("#doAttachThreadButton").unbind("click");
@@ -74,7 +77,10 @@ function browseThreads(attachfunc, closefunc) {
         $("#attachThreadSearchButton").addClass("disabled");
         $("#attachThreadButton").addClass("disabled");
         if (attachfunc(msgid, subject)) {
-            $("#attachModal").modal("hide");
+            const attachModal = bootstrap.Modal.getInstance(
+                document.getElementById("attachModal"),
+            );
+            attachModal.hide();
         }
         $("#attachThreadListWrap").removeClass("loading");
         $("#attachThreadSearchButton").removeClass("disabled");
@@ -272,13 +278,19 @@ function sortpatches(sortby) {
 }
 
 function toggleButtonCollapse(buttonId, collapseId) {
-    $(`#${buttonId}`).button("toggle");
-    $(`#${collapseId}`).toggleClass("in");
+    const button = document.getElementById(buttonId);
+    const collapse = document.getElementById(collapseId);
+    button.classList.toggle("active");
+    const bsCollapse = new bootstrap.Collapse(collapse, {
+        toggle: true,
+    });
 }
 
 function togglePatchFilterButton(buttonId, collapseId) {
+    const collapse = document.getElementById(collapseId);
+
     /* Figure out if we are collapsing it */
-    if ($(`#${collapseId}`).hasClass("in")) {
+    if (collapse.classList.contains("show")) {
         /* Go back to ourselves without a querystring to reset the form, unless it's already empty */
         if (document.location.href.indexOf("?") > -1) {
             document.location.href = ".";
