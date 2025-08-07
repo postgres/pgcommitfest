@@ -82,50 +82,50 @@ def home(request):
         form = CommitFestFilterForm(request.GET)
         patch_list = patchlist(request, cf, personalized=True)
 
-        if not patch_list.redirect:
-            # Get stats related to user for current commitfest (same as me() view)
-            curs.execute(
-                """SELECT
-                    ps.status, ps.statusstring, count(*)
-                FROM commitfest_patchoncommitfest poc
-                INNER JOIN commitfest_patch p ON p.id = poc.patch_id
-                INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status
-                WHERE
-                    ps.status = ANY(%(openstatuses)s)
-                AND (
-                    EXISTS (
-                        SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(user_id)s
-                    )
-                    OR EXISTS (
-                        SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(user_id)s
-                    )
-                    OR p.committer_id=%(user_id)s
-                )
-                GROUP BY ps.status ORDER BY ps.sortkey""",
-                {
-                    "user_id": request.user.id,
-                    "openstatuses": PatchOnCommitFest.OPEN_STATUSES,
-                },
-            )
-            statussummary = curs.fetchall()
+        if patch_list.redirect:
+            return patch_list.redirect
 
-            context.update(
-                {
-                    "show_dashboard": True,
-                    "form": form,
-                    "patches": patch_list.patches,
-                    "statussummary": statussummary,
-                    "all_tags": {t.id: t for t in Tag.objects.all()},
-                    "has_filter": patch_list.has_filter,
-                    "grouping": patch_list.sortkey == 0,
-                    "sortkey": patch_list.sortkey,
-                    "openpatchids": [
-                        p["id"] for p in patch_list.patches if p["is_open"]
-                    ],
-                    "userprofile": getattr(request.user, "userprofile", UserProfile()),
-                    "is_experienced_user": is_experienced_user,
-                }
+        # Get stats related to user for current commitfest (same as me() view)
+        curs.execute(
+            """SELECT
+                ps.status, ps.statusstring, count(*)
+            FROM commitfest_patchoncommitfest poc
+            INNER JOIN commitfest_patch p ON p.id = poc.patch_id
+            INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status
+            WHERE
+                ps.status = ANY(%(openstatuses)s)
+            AND (
+                EXISTS (
+                    SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(user_id)s
+                )
+                OR EXISTS (
+                    SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(user_id)s
+                )
+                OR p.committer_id=%(user_id)s
             )
+            GROUP BY ps.status ORDER BY ps.sortkey""",
+            {
+                "user_id": request.user.id,
+                "openstatuses": PatchOnCommitFest.OPEN_STATUSES,
+            },
+        )
+        statussummary = curs.fetchall()
+
+        context.update(
+            {
+                "show_dashboard": True,
+                "form": form,
+                "patches": patch_list.patches,
+                "statussummary": statussummary,
+                "all_tags": {t.id: t for t in Tag.objects.all()},
+                "has_filter": patch_list.has_filter,
+                "grouping": patch_list.sortkey == 0,
+                "sortkey": patch_list.sortkey,
+                "openpatchids": [p["id"] for p in patch_list.patches if p["is_open"]],
+                "userprofile": getattr(request.user, "userprofile", UserProfile()),
+                "is_experienced_user": is_experienced_user,
+            }
+        )
 
     return render(request, "home.html", context)
 
