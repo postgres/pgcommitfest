@@ -394,7 +394,7 @@ def patchlist(request, cf, personalized=False):
                 EXISTS (
                     SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s
                 ) AND (
-                    poc.commitfest_id < %(cid)s
+                    cf.status = %(closed_status)s
                 )
             THEN 'Your still open patches in a closed commitfest (you should move or close these)'
             WHEN
@@ -422,6 +422,7 @@ def patchlist(request, cf, personalized=False):
         """
         whereparams["needs_author"] = PatchOnCommitFest.STATUS_AUTHOR
         whereparams["needs_committer"] = PatchOnCommitFest.STATUS_COMMITTER
+        whereparams["closed_status"] = CommitFest.STATUS_CLOSED
         is_committer = bool(Committer.objects.filter(user=request.user, active=True))
         whereparams["is_committer"] = is_committer
 
