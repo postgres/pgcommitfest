@@ -11,13 +11,14 @@ from django.http import (
     HttpResponseRedirect,
 )
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 import collections
 import hmac
 import json
 import urllib
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
 
@@ -48,19 +49,85 @@ from .models import (
 )
 
 
+@transaction.atomic
 def home(request):
+    curs = connection.cursor()
+    # Make sure the that all the queries work on the same snapshot. Needs to be
+    # first in the transaction.atomic decorator.
+    curs.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+
     cfs = CommitFest.relevant_commitfests()
 
-    return render(
-        request,
-        "home.html",
-        {
-            "cfs": cfs,
-            "title": "Commitfests",
-            "header_activity": "Activity log",
-            "header_activity_link": "/activity/",
-        },
-    )
+    context = {
+        "cfs": cfs,
+        "header_activity": "Activity log",
+        "header_activity_link": "/activity/",
+    }
+
+    # Add dashboard content for logged-in users
+    if request.user.is_authenticated:
+        # Check if user is experienced (has been active for a while)
+
+        # Consider user experienced if they joined more than 30 days ago
+        is_experienced_user = request.user.date_joined < timezone.now() - timedelta(
+            days=30
+        )
+
+        curs = connection.cursor()
+        curs.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
+
+        # Use existing cfs data instead of querying again
+        cf = cfs.get("in_progress") or cfs.get("open")
+
+        form = CommitFestFilterForm(request.GET)
+        patch_list = patchlist(request, cf, personalized=True)
+
+        if not patch_list.redirect:
+            # Get stats related to user for current commitfest (same as me() view)
+            curs.execute(
+                """SELECT
+                    ps.status, ps.statusstring, count(*)
+                FROM commitfest_patchoncommitfest poc
+                INNER JOIN commitfest_patch p ON p.id = poc.patch_id
+                INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status
+                WHERE
+                    ps.status = ANY(%(openstatuses)s)
+                AND (
+                    EXISTS (
+                        SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(user_id)s
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(user_id)s
+                    )
+                    OR p.committer_id=%(user_id)s
+                )
+                GROUP BY ps.status ORDER BY ps.sortkey""",
+                {
+                    "user_id": request.user.id,
+                    "openstatuses": PatchOnCommitFest.OPEN_STATUSES,
+                },
+            )
+            statussummary = curs.fetchall()
+
+            context.update(
+                {
+                    "show_dashboard": True,
+                    "form": form,
+                    "patches": patch_list.patches,
+                    "statussummary": statussummary,
+                    "all_tags": {t.id: t for t in Tag.objects.all()},
+                    "has_filter": patch_list.has_filter,
+                    "grouping": patch_list.sortkey == 0,
+                    "sortkey": patch_list.sortkey,
+                    "openpatchids": [
+                        p["id"] for p in patch_list.patches if p["is_open"]
+                    ],
+                    "userprofile": getattr(request.user, "userprofile", UserProfile()),
+                    "is_experienced_user": is_experienced_user,
+                }
+            )
+
+    return render(request, "home.html", context)
 
 
 def commitfest_history(request):
@@ -84,79 +151,6 @@ def help(request):
         "help.html",
         {
             "title": "What is the CommitFest app?",
-        },
-    )
-
-
-@login_required
-@transaction.atomic
-def me(request):
-    curs = connection.cursor()
-    # Make sure the patchlist() query, the stats query and, Tag.objects.all()
-    # all work on the same snapshot. Needs to be first in the
-    # transaction.atomic decorator.
-    curs.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ")
-    cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_INPROGRESS))
-    if len(cfs) == 0:
-        cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN))
-
-    if len(cfs) > 0:
-        cf = cfs[0]
-    else:
-        cf = None
-
-    # Generates a fairly expensive query, which we shouldn't do unless
-    # the user is logged in. XXX: Figure out how to avoid doing that..
-    form = CommitFestFilterForm(request.GET)
-
-    patch_list = patchlist(request, cf, personalized=True)
-
-    if patch_list.redirect:
-        return patch_list.redirect
-
-    # Get stats related to user for current commitfest
-    curs.execute(
-        """SELECT
-            ps.status, ps.statusstring, count(*)
-        FROM commitfest_patchoncommitfest poc
-        INNER JOIN commitfest_patch p ON p.id = poc.patch_id
-        INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status
-        WHERE
-            ps.status = ANY(%(openstatuses)s)
-        AND (
-            EXISTS (
-                SELECT 1 FROM commitfest_patch_reviewers cpr WHERE cpr.patch_id=p.id AND cpr.user_id=%(user_id)s
-            )
-            OR EXISTS (
-                SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(user_id)s
-            )
-            OR p.committer_id=%(user_id)s
-        )
-        GROUP BY ps.status ORDER BY ps.sortkey""",
-        {
-            "user_id": request.user.id,
-            "openstatuses": PatchOnCommitFest.OPEN_STATUSES,
-        },
-    )
-    statussummary = curs.fetchall()
-
-    return render(
-        request,
-        "me.html",
-        {
-            "form": form,
-            "title": "Personal Dashboard",
-            "patches": patch_list.patches,
-            "statussummary": statussummary,
-            "all_tags": {t.id: t for t in Tag.objects.all()},
-            "has_filter": patch_list.has_filter,
-            "grouping": patch_list.sortkey == 0,
-            "sortkey": patch_list.sortkey,
-            "openpatchids": [p["id"] for p in patch_list.patches if p["is_open"]],
-            "header_activity": "Activity log",
-            "header_activity_link": "/activity/",
-            "userprofile": getattr(request.user, "userprofile", UserProfile()),
-            "cfs": CommitFest.relevant_commitfests(),
         },
     )
 
@@ -243,6 +237,8 @@ def redir(request, what, end):
             cfs = list(
                 CommitFest.objects.filter(status=CommitFest.STATUS_OPEN, draft=False)
             )
+    elif what == "draft":
+        cfs = list(CommitFest.objects.filter(status=CommitFest.STATUS_OPEN, draft=True))
     else:
         raise Http404()
 
@@ -872,7 +868,7 @@ def newpatch(request, cfid):
             "form": form,
             "title": "New patch",
             "breadcrumbs": [
-                {"title": cf.title, "href": "/%s/" % cf.pk},
+                {"title": f"{cf.title} ({cf.periodstring})", "href": "/%s/" % cf.pk},
             ],
             "savebutton": "Create patch",
             "threadbrowse": True,

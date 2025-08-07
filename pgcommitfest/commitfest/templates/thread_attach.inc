@@ -2,28 +2,28 @@
 <div class="modal fade" id="attachModal" role="dialog">
  <div class="modal-dialog modal-lg"><div class="modal-content">
   <div class="modal-header">
-   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-   <h3>Attach thread</h3>
+   <h3 class="modal-title">Attach thread</h3>
+   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
   <div class="modal-body">
-   <form class="form-inline" style="margin-bottom: 5px;">
+   <form class="d-flex gap-2" style="margin-bottom: 15px;">
     <input type="hidden" id="attachThreadAttachOnly" value="0">
-    <div class="input-append">
-     <input id="attachThreadSearchField" type="text" class="span2 search-query">
-     <button id="attachThreadSearchButton" onclick="return findLatestThreads()" class="btn btn-default disabled">Search</button>
+    <div class="input-group">
+     <input id="attachThreadSearchField" type="text" class="form-control" placeholder="Search subject or name">
+     <button id="attachThreadSearchButton" onclick="return findLatestThreads()" class="btn btn-outline-secondary">Search</button>
     </div>
    </form>
-   <div>Pick one of the recent emails from pgsql-hackers, or search above for subject or name:</div>
-   <div id="attachThreadListWrap">
-    <select id="attachThreadList" size="6" style="width:100%;" onchange="attachThreadChanged()">
+   <div class="mb-3">Pick one of the recent emails from pgsql-hackers, or search above for subject or name:</div>
+   <div id="attachThreadListWrap" class="mb-3">
+    <select id="attachThreadList" size="6" class="form-select" onchange="attachThreadChanged()">
     </select>
    </div>
-   <div>Or enter an <i>exact</i> message id:</div>
-   <input type="text" id="attachThreadMessageId" placeholder="Message id" onkeypress="attachThreadChanged()" onchange="attachThreadChanged()">
+   <div class="mb-2">Or enter an <i>exact</i> message id:</div>
+   <input type="text" id="attachThreadMessageId" class="form-control" placeholder="Message id" onkeypress="attachThreadChanged()" onchange="attachThreadChanged()">
   </div>
   <div class="modal-footer">
-   <a href="#" class="btn btn-default" data-dismiss="modal">Close</a>
-   <a href="#" id="doAttachThreadButton" class="btn btn-default btn-primary disabled">Attach thread</a>
+   <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+   <button type="button" id="doAttachThreadButton" class="btn btn-primary disabled">Attach thread</button>
   </div>
  </div></div>
 </div>

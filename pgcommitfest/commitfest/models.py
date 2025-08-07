@@ -63,7 +63,7 @@ class CommitFest(models.Model):
 
     @property
     def periodstring(self):
-        return "{0} - {1}".format(self.startdate, self.enddate)
+        return "{0} – {1}".format(self.startdate, self.enddate)
 
     @property
     def last_open_date(self):
@@ -276,6 +276,15 @@ class CommitFest(models.Model):
     @classmethod
     def get_open_regular(cls):
         return cls.objects.filter(status=CommitFest.STATUS_OPEN, draft=False).first()
+
+    @classmethod
+    def get_current(cls):
+        # First try to get in-progress CommitFest
+        current = cls.get_in_progress()
+        if current:
+            return current
+        # If no in-progress, fall back to open regular CommitFest
+        return cls.get_open_regular()
 
     def __str__(self):
         return self.name
@@ -526,7 +535,7 @@ class PatchOnCommitFest(models.Model):
         (STATUS_WITHDRAWN, "Withdrawn"),
     )
     _STATUS_LABELS = (
-        (STATUS_REVIEW, "default"),
+        (STATUS_REVIEW, "secondary"),
         (STATUS_AUTHOR, "primary"),
         (STATUS_COMMITTER, "info"),
         (STATUS_COMMITTED, "success"),
