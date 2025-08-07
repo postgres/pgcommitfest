@@ -22,7 +22,14 @@
         <div class="alert alert-danger">{{e}}</div>
        {%endfor%}
       {%endif%}
-      {%if not field.name in form.selectize_fields%}{{field|field_class:"form-control"}}{%else%}{{field}}{%endif%}
+      {%if field.name|slice:":7" == 'review_' %}
+       {%for choice in field %}
+        <div class="form-check form-check-inline">
+         <input type="checkbox" class="form-check-input" name="{{field.name}}" value="{{choice.data.value}}" id="{{choice.id_for_label}}" {% if choice.data.selected %}checked{% endif %}>
+         <label class="form-check-label" for="{{choice.id_for_label}}">{{choice.choice_label}}</label>
+        </div>
+       {%endfor%}
+      {%elif not field.name in form.selectize_fields%}{{field|field_class:"form-control"}}{%else%}{{field}}{%endif%}
       {%if field.help_text%}<br/>{{field.help_text|safe}}{%endif%}</div>
     </div>
    {%else%}
