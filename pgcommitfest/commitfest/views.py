@@ -604,6 +604,21 @@ def commitfest(request, cfid):
     # the user is logged in. XXX: Figure out how to avoid doing that..
     form = CommitFestFilterForm(request.GET)
 
+    # Prepare tag data for enhanced selectize dropdown
+    import json
+
+    tags_data = json.dumps(
+        [
+            {
+                "id": tag.id,
+                "name": tag.name,
+                "color": tag.color,
+                "description": tag.description,
+            }
+            for tag in Tag.objects.all().order_by("name")
+        ]
+    )
+
     return render(
         request,
         "commitfest.html",
@@ -612,6 +627,7 @@ def commitfest(request, cfid):
             "form": form,
             "patches": patch_list.patches,
             "statussummary": statussummary,
+            "tags_data": tags_data,
             "all_tags": {t.id: t for t in Tag.objects.all()},
             "has_filter": patch_list.has_filter,
             "title": f"{cf.title} ({cf.periodstring})",
@@ -805,6 +821,21 @@ def patchform(request, patchid):
     else:
         form = PatchForm(instance=patch)
 
+    # Prepare tag data for enhanced selectize dropdown
+    import json
+
+    tags_data = json.dumps(
+        [
+            {
+                "id": tag.id,
+                "name": tag.name,
+                "color": tag.color,
+                "description": tag.description,
+            }
+            for tag in Tag.objects.all().order_by("name")
+        ]
+    )
+
     return render(
         request,
         "base_form.html",
@@ -813,6 +844,7 @@ def patchform(request, patchid):
             "form": form,
             "patch": patch,
             "title": "Edit patch",
+            "tags_data": tags_data,
             "breadcrumbs": [
                 {"title": cf.title, "href": "/%s/" % cf.pk},
                 {"title": "View patch", "href": "/%s/%s/" % (cf.pk, patch.pk)},
@@ -861,12 +893,28 @@ def newpatch(request, cfid):
     else:
         form = NewPatchForm(request=request)
 
+    # Prepare tag data for enhanced selectize dropdown
+    import json
+
+    tags_data = json.dumps(
+        [
+            {
+                "id": tag.id,
+                "name": tag.name,
+                "color": tag.color,
+                "description": tag.description,
+            }
+            for tag in Tag.objects.all().order_by("name")
+        ]
+    )
+
     return render(
         request,
         "base_form.html",
         {
             "form": form,
             "title": "New patch",
+            "tags_data": tags_data,
             "breadcrumbs": [
                 {"title": f"{cf.title} ({cf.periodstring})", "href": "/%s/" % cf.pk},
             ],

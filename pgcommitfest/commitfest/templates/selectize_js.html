@@ -1,41 +1,83 @@
 <script>
  {% for f, url in form.selectize_fields.items %}
-  $('#id_{{f}}').selectize({
-   plugins: ['remove_button'],
-   valueField: 'id',
-   labelField: 'value',
-   searchField: 'value',
-   {%if url%}
-    load: function(query, callback) {
-     if (!query.length) return callback();
-     $.ajax({
-      'url': '{{url}}',
-      'type': 'GET',
-      'dataType': 'json',
-      'data': {
-       'query': query,
-      },
-      'error': function() { callback();},
-      'success': function(res) { callback(res.values);},
-     });
+  {% if f == 'tags' or f == 'tag' %}
+   $('#id_{{f}}').selectize({
+    plugins: ['remove_button'],
+    valueField: 'id',
+    labelField: 'name',
+    searchField: ['name', 'description'],
+    placeholder: 'Select tags (type to search by name or description)...',
+    {% if tags_data %}
+     options: {{ tags_data|safe }},
+    {% endif %}
+    render: {
+     option: function(item, escape) {
+      return '<div class="option">' +
+      '<span class="tag-color" style="background-color: ' + escape(item.color) + '; width: 12px; height: 12px; display: inline-block; border-radius: 2px; margin-right: 6px;"></span>' +
+      '<strong>' + escape(item.name) + '</strong>' +
+      (item.description ? '<br><small class="text-muted">' + escape(item.description) + '</small>' : '') +
+      '</div>';
+     },
+     item: function(item, escape) {
+      return '<div class="item">' +
+      '<span class="tag-color" style="background-color: ' + escape(item.color) + '; width: 10px; height: 10px; display: inline-block; border-radius: 2px; margin-right: 4px; vertical-align: middle;"></span>' +
+      escape(item.name) +
+      '</div>';
+     }
     },
-   {%endif%}
-   onFocus: function() {
-    if (this.$input.is('[multiple]')) {
-     return;
+    onDropdownOpen: function() {
+     var self = this;
+     var $dropdown = self.$dropdown;
+     var $options = $dropdown.find('[data-selectable]');
+     var totalOptions = self.options ? Object.keys(self.options).length : 0;
+     var visibleOptions = $options.length;
+
+     // Add footer hint if there are more options than visible (due to search filtering or scrolling)
+     if (totalOptions > 6 && !$dropdown.find('.selectize-scroll-hint').length) {
+      $dropdown.append('<div class="selectize-scroll-hint text-center text-muted small py-2 px-3" style="border-top: 1px solid #dee2e6; background-color: #f8f9fa;">' +
+       '⬇ Scroll to see all ' + totalOptions + ' tags, or type to search' +
+       '</div>');
+     }
     }
-    this.lastValue = this.getValue();
-    this.clear(false);
-   },
-   onBlur: function() {
-    if (this.$input.is('[multiple]')) {
-     return;
-    }
-    if(this.getValue() == '') {
-     this.setValue(this.lastValue);
-    }
-   },
-  });
+   });
+  {% else %}
+   $('#id_{{f}}').selectize({
+    plugins: ['remove_button'],
+    valueField: 'id',
+    labelField: 'value',
+    searchField: 'value',
+    {%if url%}
+     load: function(query, callback) {
+      if (!query.length) return callback();
+      $.ajax({
+       'url': '{{url}}',
+       'type': 'GET',
+       'dataType': 'json',
+       'data': {
+        'query': query,
+       },
+       'error': function() { callback();},
+       'success': function(res) { callback(res.values);},
+      });
+     },
+    {%endif%}
+    onFocus: function() {
+     if (this.$input.is('[multiple]')) {
+      return;
+     }
+     this.lastValue = this.getValue();
+     this.clear(false);
+    },
+    onBlur: function() {
+     if (this.$input.is('[multiple]')) {
+      return;
+     }
+     if(this.getValue() == '') {
+      this.setValue(this.lastValue);
+     }
+    },
+   });
+  {% endif %}
  {%endfor%}
 </script>
 
