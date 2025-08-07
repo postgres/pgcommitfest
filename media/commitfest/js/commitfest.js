@@ -378,10 +378,12 @@ git checkout commitfest/cf/${patchId}
 /* Build our button callbacks */
 $(document).ready(() => {
     // Initialize Bootstrap tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
+    const tooltipTriggerList = [].slice.call(
+        document.querySelectorAll('[data-bs-toggle="tooltip"]'),
+    );
+    const tooltipList = tooltipTriggerList.map(
+        (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
+    );
 
     $("button.attachThreadButton").each((i, o) => {
         const b = $(o);
