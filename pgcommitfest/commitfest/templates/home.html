@@ -152,7 +152,7 @@
     <td><a href="/patch/{{p.id}}/">{{p.name}}</a></td>
     <td>{{p.id}}</td>
     {%if user.is_authenticated %}
-     <td><a href="/{{p.cf_id}}/"><span class="badge bg-{{p.cf_status|commitfeststatuslabel}}">{{p.cf_name}}</span></a></td>
+     <td><a href="/{{p.cf_id}}/"><span class="badge bg-{{p.cf_status|commitfeststatuslabel}}" title="{{p.cf_status|commitfeststatusstring}}">{{p.cf_name}}</span></a></td>
     {%endif%}
     <td><span class="badge bg-{{p.status|patchstatuslabel}}">{{p.status|patchstatusstring}}</span></td>
     <td style="width: min-content;">
