@@ -46,11 +46,6 @@
     <tbody>
   {%endifchanged%}
 
-  {%if grouping%}
-   {%ifchanged p.topic%}
-    <tr><th colspan="{%if user.is_staff%}13{%else%}12{%endif%}">{{p.topic}}</th></tr>
-   {%endifchanged%}
-  {%endif%}
   <tr>
    <td><a href="/patch/{{p.id}}/">{{p.name}}</a></td>
    <td>{{p.id}}</td>

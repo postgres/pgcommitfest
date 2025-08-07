@@ -3,29 +3,23 @@ from datetime import datetime
 
 import pytest
 
-from pgcommitfest.commitfest.models import Committer, Patch, PatchOnCommitFest, Topic
+from pgcommitfest.commitfest.models import Committer, Patch, PatchOnCommitFest
 
 pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def topic():
-    """Create a test topic."""
-    return Topic.objects.create(topic="General")
-
-
-@pytest.fixture
-def patches_with_users(users, open_cf, topic):
+def patches_with_users(users, open_cf):
     """Create patches with authors and reviewers in a commitfest."""
     # Alice is an author on patch 1
-    patch1 = Patch.objects.create(name="Test Patch 1", topic=topic)
+    patch1 = Patch.objects.create(name="Test Patch 1")
     patch1.authors.add(users["alice"])
     PatchOnCommitFest.objects.create(
         patch=patch1, commitfest=open_cf, enterdate=datetime.now()
     )
 
     # Bob is a reviewer on patch 2
-    patch2 = Patch.objects.create(name="Test Patch 2", topic=topic)
+    patch2 = Patch.objects.create(name="Test Patch 2")
     patch2.reviewers.add(users["bob"])
     PatchOnCommitFest.objects.create(
         patch=patch2, commitfest=open_cf, enterdate=datetime.now()
@@ -33,9 +27,7 @@ def patches_with_users(users, open_cf, topic):
 
     # Dave is a committer on patch 3
     dave_committer = Committer.objects.create(user=users["dave"])
-    patch3 = Patch.objects.create(
-        name="Test Patch 3", topic=topic, committer=dave_committer
-    )
+    patch3 = Patch.objects.create(name="Test Patch 3", committer=dave_committer)
     PatchOnCommitFest.objects.create(
         patch=patch3, commitfest=open_cf, enterdate=datetime.now()
     )
