@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from pgcommitfest.commitfest.ajax import refresh_single_thread
-from pgcommitfest.commitfest.models import MailThread, Patch, Topic
+from pgcommitfest.commitfest.models import MailThread, Patch
 
 pytestmark = pytest.mark.django_db
 
@@ -14,7 +14,6 @@ def test_refresh_single_thread_updates_patch_lastmail():
     old_date = datetime(2024, 1, 1)
     new_date = datetime(2024, 6, 15)
 
-    topic = Topic.objects.create(topic="Test")
     thread = MailThread.objects.create(
         messageid="old@example.com",
         subject="Test",
@@ -25,7 +24,7 @@ def test_refresh_single_thread_updates_patch_lastmail():
         latestsubject="Test",
         latestmsgid="old@example.com",
     )
-    p = Patch.objects.create(name="Test Patch", topic=topic, lastmail=old_date)
+    p = Patch.objects.create(name="Test Patch", lastmail=old_date)
     p.mailthread_set.add(thread)
 
     api_response = [

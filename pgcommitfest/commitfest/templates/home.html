@@ -151,8 +151,8 @@
    {%endifchanged%}
 
    {%if grouping%}
-    {%ifchanged p.topic%}
-     <tr><th colspan="{%if user.is_authenticated %}13{%else%}12{%endif%}">{{p.topic}}</th></tr>
+    {%ifchanged p.group_name%}
+     <tr><th colspan="{%if user.is_authenticated %}13{%else%}12{%endif%}">{{p.group_name}}</th></tr>
     {%endifchanged%}
    {%endif%}
    <tr>

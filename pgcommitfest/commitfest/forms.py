@@ -95,6 +95,8 @@ class PatchForm(forms.ModelForm):
             "modified",
             "lastmail",
             "subscribers",
+            # TODO: Remove once we fully get rid of topics
+            "topic",
         )
 
     def __init__(self, *args, **kwargs):

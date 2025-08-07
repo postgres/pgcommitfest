@@ -442,7 +442,7 @@ def patchlist(request, cf, personalized=False):
                 )
             THEN 'Patches that are ready for your review'
             ELSE 'Blocked on others'
-            END AS topic,
+            END AS group_name,
             cf.id AS cf_id,
             cf.name AS cf_name,
             cf.status AS cf_status,
@@ -465,7 +465,7 @@ def patchlist(request, cf, personalized=False):
         joins_str = "INNER JOIN commitfest_commitfest cf ON poc.commitfest_id=cf.id"
         groupby_str = "cf.id,"
     else:
-        columns_str = "t.topic as topic,"
+        columns_str = ""
         joins_str = ""
         groupby_str = ""
 
@@ -507,7 +507,7 @@ def patchlist(request, cf, personalized=False):
         orderby_str = "poc.commitfest_id DESC, lastmail"
     else:
         if personalized:
-            # First we sort by topic, to have the grouping work.
+            # First we sort by group_name, to have the grouping work.
             # Then we show non-failing patches first, and the ones that are
             # shortest failing we show first. We consider patches in a closed
             # commitfest, as if they are failing since that commitfest was
@@ -516,7 +516,7 @@ def patchlist(request, cf, personalized=False):
             # progress" commitfest before ones in the "Open" commitfest.
             # And then to break ties, we put ones with the most recent email at
             # the top.
-            orderby_str = """topic DESC,
+            orderby_str = """group_name DESC,
                 COALESCE(
                     branch.failing_since,
                     CASE WHEN cf.status = %(cf_closed_status)s
@@ -526,7 +526,7 @@ def patchlist(request, cf, personalized=False):
                 lastmail DESC"""
             whereparams["cf_closed_status"] = CommitFest.STATUS_CLOSED
         else:
-            orderby_str = "topic, created"
+            orderby_str = "created"
         sortkey = 0
 
     if not has_filter and sortkey == 0 and request.GET:
@@ -584,13 +584,12 @@ branch.failing_since,
 )
 FROM commitfest_patch p
 INNER JOIN commitfest_patchoncommitfest poc ON poc.patch_id=p.id
-INNER JOIN commitfest_topic t ON t.id=p.topic_id
 {joins_str}
 LEFT JOIN auth_user committer ON committer.id=p.committer_id
 LEFT JOIN commitfest_targetversion v ON p.targetversion_id=v.id
 LEFT JOIN commitfest_cfbotbranch branch ON branch.patch_id=p.id
 WHERE {where_str}
-GROUP BY p.id, poc.id, {groupby_str} committer.id, t.id, v.version, branch.patch_id
+GROUP BY p.id, poc.id, {groupby_str} committer.id, v.version, branch.patch_id
 ORDER BY is_open DESC, {orderby_str}""",
         params,
     )
@@ -648,7 +647,6 @@ def commitfest(request, cfid):
             "all_tags": {t.id: t for t in Tag.objects.all()},
             "has_filter": patch_list.has_filter,
             "title": f"{cf.title} ({cf.periodstring})",
-            "grouping": patch_list.sortkey == 0,
             "sortkey": patch_list.sortkey,
             "openpatchids": [p["id"] for p in patch_list.patches if p["is_open"]],
             "header_activity": "Activity log",

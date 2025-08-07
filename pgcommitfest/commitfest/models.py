@@ -347,7 +347,9 @@ class Patch(models.Model, DiffableModel):
     name = models.CharField(
         max_length=500, blank=False, null=False, verbose_name="Description"
     )
-    topic = models.ForeignKey(Topic, blank=False, null=False, on_delete=models.CASCADE)
+    # Topic is deprecated, tags are used instead. For now this field is kept
+    # for debugging purposes in case of problems with the migration.
+    topic = models.ForeignKey(Topic, blank=True, null=True, on_delete=models.CASCADE)
     tags = models.ManyToManyField(Tag, related_name="patches", blank=True)
 
     # One patch can be in multiple commitfests, if it has history
