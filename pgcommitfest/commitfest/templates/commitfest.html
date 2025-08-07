@@ -26,18 +26,18 @@
    <table class="table table-striped table-bordered table-hover">
     <thead>
      <tr>
-      <th><a href="#" style="color:#333333;" onclick="return sortpatches(5);">Patch</a>{%if sortkey == 5%}<div style="float:right;">↓</div>{%elif sortkey == -5%}<div style="float:right;">↑</div>{%endif%}</th>
-      <th><a href="#" style="color:#333333;" onclick="return sortpatches(4);">ID</a>{%if sortkey == 4%}<div style="float:right;">↓</div>{%elif sortkey == -4%}<div style="float:right;">↑</div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(5);">Patch</a>{%if sortkey == 5%}<div style="float:right;"><i class="bi bi-sort-alpha-down"></i></div>{%elif sortkey == -5%}<div style="float:right;"><i class="bi bi-sort-alpha-up"></i></div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(4);">ID</a>{%if sortkey == 4%}<div style="float:right;"><i class="bi bi-sort-numeric-down"></i></div>{%elif sortkey == -4%}<div style="float:right;"><i class="bi bi-sort-numeric-up"></i></div>{%endif%}</th>
       <th>Status</th>
       <th>Tags</th>
       <th>Ver</th>
-      <th><a href="#" style="color:#333333;" onclick="return sortpatches(7);">CI status</a>{%if sortkey == 7%}<div style="float:right;">↓</div>{%elif sortkey == -7%}<div style="float:right;">↑</div>{%endif%}</th>
-      <th><a href="#" style="color:#333333;" onclick="return sortpatches(6);">Stats</a>{%if sortkey == 6%}<div style="float:right;">↓</div>{%elif sortkey == -6%}<div style="float:right;">↑</div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(7);">CI status</a>{%if sortkey == 7%}<div style="float:right;"><i class="bi bi-sort-down-alt"></i></div>{%elif sortkey == -7%}<div style="float:right;"><i class="bi bi-sort-up-alt"></i></div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(6);">Stats</a>{%if sortkey == 6%}<div style="float:right;"><i class="bi bi-sort-numeric-down"></i></div>{%elif sortkey == -6%}<div style="float:right;"><i class="bi bi-sort-numeric-up"></i></div>{%endif%}</th>
       <th>Author</th>
       <th>Reviewers</th>
       <th>Committer</th>
-      <th><a href="#" style="color:#333333;" onclick="return sortpatches(3);">Num cfs</a>{%if sortkey == 3%}<div style="float:right;">↓</div>{%elif sortkey == -3%}<div style="float:right;">↑</div>{%endif%}</th>
-      <th><a href="#" style="color:#333333;" onclick="return sortpatches(2);">Latest mail</a>{%if sortkey == 2%}<div style="float:right;">↓</div>{%elif sortkey == -2%}<div style="float:right;">↑</div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(3);">Num cfs</a>{%if sortkey == 3%}<div style="float:right;"><i class="bi bi-sort-numeric-down-alt"></i></div>{%elif sortkey == -3%}<div style="float:right;"><i class="bi bi-sort-numeric-up-alt"></i></div>{%endif%}</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(2);">Latest mail</a>{%if sortkey == 2%}<div style="float:right;"><i class="bi bi-sort-down"></i></div>{%elif sortkey == -2%}<div style="float:right;"><i class="bi bi-sort-up"></i></div>{%endif%}</th>
       {%if user.is_staff%}
        <th>Select</th>
       {%endif%}
