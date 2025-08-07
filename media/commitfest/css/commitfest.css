@@ -110,10 +110,9 @@ nav[aria-label="breadcrumb"] .float-end {
     font-size: 0.875rem;
 }
 
-/* Override Bootstrap warning color to be less harsh */
-.badge.bg-warning {
-    background-color: #cc8500 !important; /* Muted amber/gold instead of bright yellow */
-    color: white !important;
+:root {
+    --bs-info-rgb: 0, 178, 214;
+    --bs-warning-rgb: 204, 133, 1;
 }
 
 /* Remove underlines from tag links */
