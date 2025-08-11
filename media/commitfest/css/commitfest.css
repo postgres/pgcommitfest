@@ -142,3 +142,51 @@ a:hover .badge {
     float: none;
     margin-left: 0.5rem;
 }
+
+/* Prevent navbar button text from wrapping */
+.navbar .btn {
+    white-space: nowrap;
+}
+
+.navbar .nav-link {
+    white-space: nowrap;
+}
+
+/* Responsive navbar layout */
+.navbar-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* At medium screens and up, arrange navbar items horizontally */
+@media (min-width: 992px) {
+    .navbar-content-wrapper {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .navbar-actions {
+        margin-left: auto;
+    }
+}
+
+/* Between medium and large screens, stack actions below nav items */
+@media (min-width: 992px) and (max-width: 1099px) {
+    .navbar-content-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .navbar-nav {
+        margin-bottom: 0.5rem;
+    }
+
+    .navbar-actions {
+        margin-left: 0;
+    }
+
+    .navbar-actions .form-control {
+        width: 200px !important;
+    }
+}
