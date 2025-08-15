@@ -105,6 +105,11 @@
 
  {% if show_dashboard %}
 
+  <button type="button" class="btn btn-secondary active" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
+  {%if user.is_authenticated%}
+   <a class="btn btn-secondary{% if request.GET.author == '-3' %} active{% endif %}" href="?author=-3">My patches</a>
+   <a class="btn btn-secondary{% if request.GET.reviewer == '-3' %} active{% endif %}" href="?reviewer=-3">My reviews</a>
+  {%endif%}
   {%include "filter_form.html" %}
 
   <p>
