@@ -168,34 +168,47 @@ a:hover .badge {
     width: 100%;
 }
 
-/* At medium screens and up, arrange navbar items horizontally */
+.navbar-nav {
+    margin-bottom: 0.5rem;
+}
+
+/* Mobile: stack actions vertically, tablet+: horizontal */
+.navbar-actions {
+    flex-direction: column;
+    gap: 0.5rem !important;
+    align-items: stretch !important;
+}
+
+.navbar-actions .input-group {
+    width: 100% !important;
+}
+
+@media (min-width: 576px) {
+    .navbar-actions {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .navbar-actions .input-group {
+        width: 250px;
+    }
+}
+
 @media (min-width: 992px) {
     .navbar-content-wrapper {
         flex-direction: row;
         align-items: center;
     }
 
+    .navbar-nav {
+        margin-bottom: 0;
+    }
+
     .navbar-actions {
         margin-left: auto;
     }
-}
 
-/* Between medium and large screens, stack actions below nav items */
-@media (min-width: 992px) and (max-width: 1099px) {
-    .navbar-content-wrapper {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .navbar-nav {
-        margin-bottom: 0.5rem;
-    }
-
-    .navbar-actions {
-        margin-left: 0;
-    }
-
-    .navbar-actions .form-control {
-        width: 200px !important;
+    .navbar-actions .input-group {
+        width: 300px;
     }
 }
