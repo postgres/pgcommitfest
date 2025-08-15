@@ -132,11 +132,6 @@ a:hover .badge {
     text-decoration: none !important;
 }
 
-/* Make GitHub icon white in dark navbar */
-.navbar-dark .github-logo {
-    filter: brightness(0) invert(1);
-}
-
 /* Simple close button without float */
 .btn-close-nofloat {
     float: none;
