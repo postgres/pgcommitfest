@@ -1,8 +1,8 @@
 <div style="margin-bottom:5px;">
- <a class="btn btn-outline-secondary" href="edit/">Edit</a>
+ <a class="btn btn-secondary" href="edit/">Edit</a>
 
  <div class="btn-group">
-  <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Comment/Review</button>
+  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Comment/Review</button>
   <ul class="dropdown-menu">
    <li><a class="dropdown-item" href="comment/">Comment</a></li>
    <li><a class="dropdown-item" href="review/">Review</a></li>
@@ -10,7 +10,7 @@
  </div>
 
  <div class="btn-group">
-  <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Change Status</button>
+  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Change Status</button>
   <ul class="dropdown-menu">
    <li><h6 class="dropdown-header">Open statuses</h6></li>
    <li><a class="dropdown-item" href="status/review/">Needs review</a></li>
@@ -48,7 +48,7 @@
 
  {%if request.user.is_staff%}
   <div class="btn-group">
-   <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Send private mail</button>
+   <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Send private mail</button>
    <ul class="dropdown-menu">
     <li><a class="dropdown-item" href="send_email/?authors={{patch.id}}">Send mail to authors</a></li>
     <li><a class="dropdown-item" href="send_email/?reviewers={{patch.id}}">Send mail to reviewers</a></li>

@@ -59,7 +59,7 @@
       <form class="d-flex gap-2" style="margin-bottom: 5px;">
        <div class="input-group">
         <input id="searchUserSearchField" type="text" class="form-control" autocomplete="off">
-        <button id="searchUserSearchButton" onclick="return findUsers()" class="btn btn-outline-secondary">Search</button>
+        <button id="searchUserSearchButton" onclick="return findUsers()" class="btn btn-secondary">Search</button>
        </div>
       </form>
       <div>Search for users above and then pick one in the list below:</div>
@@ -68,7 +68,7 @@
       </div>
      </div>
      <div class="modal-footer">
-      <a href="#" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</a>
+      <a href="#" class="btn btn-secondary" data-bs-dismiss="modal">Close</a>
       <a href="#" id="doSelectUserButton" class="btn btn-primary disabled">Add user to system</a>
      </div>
     </div>
@@ -83,7 +83,7 @@
  <script>
   {%if user.is_staff%}
    $('.selectize-control.add-user-picker').after(
-    $('<a href="#" class="btn btn-outline-secondary btn-sm">Import user not listed</a>').click(function () {
+    $('<a href="#" class="btn btn-secondary btn-sm">Import user not listed</a>').click(function () {
      search_and_store_user();
     })
    );

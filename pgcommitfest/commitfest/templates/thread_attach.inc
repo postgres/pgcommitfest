@@ -10,7 +10,7 @@
     <input type="hidden" id="attachThreadAttachOnly" value="0">
     <div class="input-group">
      <input id="attachThreadSearchField" type="text" class="form-control" placeholder="Search subject or name">
-     <button id="attachThreadSearchButton" onclick="return findLatestThreads()" class="btn btn-outline-secondary">Search</button>
+     <button id="attachThreadSearchButton" onclick="return findLatestThreads()" class="btn btn-secondary">Search</button>
     </div>
    </form>
    <div class="mb-3">Pick one of the recent emails from pgsql-hackers, or search above for subject or name:</div>
@@ -22,7 +22,7 @@
    <input type="text" id="attachThreadMessageId" class="form-control" placeholder="Message id" onkeypress="attachThreadChanged()" onchange="attachThreadChanged()">
   </div>
   <div class="modal-footer">
-   <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
    <button type="button" id="doAttachThreadButton" class="btn btn-primary disabled">Attach thread</button>
   </div>
  </div></div>
