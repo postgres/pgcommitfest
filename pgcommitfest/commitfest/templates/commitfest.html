@@ -2,12 +2,12 @@
 {%load commitfest %}
 {%block contents%}
 
- <button type="button" class="btn btn-outline-secondary active" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
- <a class="btn btn-outline-secondary{% if request.GET.reviewer == '-2' %} active{% endif %}" href="?reviewer=-2">No reviewers</a>
- <a class="btn btn-outline-secondary{% if request.GET.author == '-3' %} active{% endif %}" href="?author=-3">My patches</a>
- <a class="btn btn-outline-secondary{% if request.GET.reviewer == '-3' %} active{% endif %}" href="?reviewer=-3">My reviews</a>
+ <button type="button" class="btn btn-secondary active" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
+ <a class="btn btn-secondary{% if request.GET.reviewer == '-2' %} active{% endif %}" href="?reviewer=-2">No reviewers</a>
+ <a class="btn btn-secondary{% if request.GET.author == '-3' %} active{% endif %}" href="?author=-3">My patches</a>
+ <a class="btn btn-secondary{% if request.GET.reviewer == '-3' %} active{% endif %}" href="?reviewer=-3">My reviews</a>
  {%if cf.is_open or user.is_staff %}
-  <a class="btn btn-outline-secondary" href="new/">New patch</a>
+  <a class="btn btn-secondary" href="new/">New patch</a>
  {%endif%}
  {%include "filter_form.html" %}
 
@@ -111,11 +111,11 @@
 
  <div>
   {%if cf.is_open or user.is_staff %}
-   <a class="btn btn-outline-secondary" href="new/">New patch</a>
+   <a class="btn btn-secondary" href="new/">New patch</a>
   {%endif%}
   {%if user.is_staff%}
    <div class="btn-group dropup">
-    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Send private mail</button>
+    <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Send private mail</button>
     <ul class="dropdown-menu">
      <li><a class="dropdown-item" href="javascript:send_selected()">Selected</a></li>
      <li><a class="dropdown-item" href="send_email/?reviewers={{openpatchids|join:","}}">All reviewers (open patches)</a></li>
@@ -125,7 +125,7 @@
    </div>
 
    <div class="btn-group dropup">
-    <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Reports</button>
+    <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Reports</button>
     <ul class="dropdown-menu">
      <li><a class="dropdown-item" href="reports/authorstats/">Author stats</a></li>
     </ul>

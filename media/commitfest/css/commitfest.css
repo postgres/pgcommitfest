@@ -152,6 +152,20 @@ a:hover .badge {
     white-space: nowrap;
 }
 
+/* Light grey btn-secondary with dark text that darkens on hover */
+.btn-secondary {
+    --bs-btn-color: #495057;
+    --bs-btn-bg: #f2f2f2;
+    --bs-btn-border-color: #f2f2f2;
+    --bs-btn-hover-color: #212529;
+    --bs-btn-hover-bg: #dee2e6;
+    --bs-btn-hover-border-color: #dee2e6;
+    --bs-btn-focus-shadow-rgb: 222, 226, 230;
+    --bs-btn-active-color: #212529;
+    --bs-btn-active-bg: #ced4da;
+    --bs-btn-active-border-color: #ced4da;
+}
+
 /* Responsive navbar layout */
 .navbar-content-wrapper {
     display: flex;
