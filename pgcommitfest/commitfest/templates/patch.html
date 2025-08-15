@@ -44,9 +44,9 @@
      {%endif%}
      {%if cfbot_branch %}
       <button class="btn btn-secondary" title="This adds the following to your clipboard (needs to be run in an existing git repo):
-                                                       git remote add commitfest https://github.com/postgresql-cfbot/postgresql.git
-                                                       git fetch commitfest cf/{{patch.id}}
-                                                       git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{patch.id}})">Copy git checkout commands</button>
+                                               git remote add commitfest https://github.com/postgresql-cfbot/postgresql.git
+                                               git fetch commitfest cf/{{patch.id}}
+                                               git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{patch.id}})">Copy git checkout commands</button>
      {%endif%}
     </a>
    </td>
