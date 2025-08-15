@@ -55,9 +55,13 @@
        </li>
       </ul>
       <div class="navbar-actions d-flex gap-2 align-items-center">
-       <form method="GET" action="/search/" class="d-flex gap-1">
-        <input type="text" class="form-control" name="searchterm" placeholder="Email Message-ID or keywords" style="width: 250px;">
-        <button type="submit" class="btn btn-outline-light">Search</button>
+       <form method="GET" action="/search/">
+        <div class="input-group" style="width: 300px;">
+         <input type="text" class="form-control" name="searchterm" placeholder="Email Message-ID or keywords">
+         <button type="submit" class="btn btn-secondary">
+          <i class="bi bi-search"></i>
+         </button>
+        </div>
        </form>
        <a class="btn btn-primary" href="https://github.com/postgres/pgcommitfest" target="_blank"><img class="github-logo" src="/media/commitfest/github-mark.svg"/> Contribute</a>
       </div>
