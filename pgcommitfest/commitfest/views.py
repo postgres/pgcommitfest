@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import connection, transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import (
     Http404,
     HttpResponse,
@@ -700,18 +700,134 @@ def global_search(request):
         patches = patches_by_messageid(cleaned_id)
 
     if not patches:
-        patches = (
-            Patch.objects.select_related()
-            .filter(name__icontains=searchterm)
-            .order_by(
-                "created",
+        patches_query = (
+            Patch.objects.select_related("targetversion", "committer")
+            .prefetch_related(
+                "authors",
+                "reviewers",
+                "tags",
+                "patchoncommitfest_set__commitfest",
+                "mailthread_set",
             )
-            .all()
+            .select_related("cfbot_branch")
+            .filter(name__icontains=searchterm)
         )
+
+        # Apply filters using the same logic as patchlist
+        if request.GET.get("status", "-1") != "-1":
+            try:
+                status = int(request.GET["status"])
+                patches_query = patches_query.filter(
+                    patchoncommitfest__status=status
+                ).distinct()
+            except ValueError:
+                pass
+
+        if request.GET.get("targetversion", "-1") != "-1":
+            if request.GET["targetversion"] == "-2":
+                patches_query = patches_query.filter(targetversion_id__isnull=True)
+            else:
+                try:
+                    ver_id = int(request.GET["targetversion"])
+                    patches_query = patches_query.filter(targetversion_id=ver_id)
+                except ValueError:
+                    pass
+
+        if request.GET.getlist("tag"):
+            try:
+                tag_ids = [int(t) for t in request.GET.getlist("tag")]
+                for tag_id in tag_ids:
+                    patches_query = patches_query.filter(tags__id=tag_id)
+                patches_query = patches_query.distinct()
+            except ValueError:
+                pass
+
+        # Apply author filter
+        if request.GET.get("author", "-1") != "-1":
+            if request.GET["author"] == "-2":
+                patches_query = patches_query.filter(authors__isnull=True)
+            elif request.GET["author"] == "-3":
+                # Filter for current user's patches
+                if not request.user.is_authenticated:
+                    return HttpResponseRedirect(
+                        f"{settings.LOGIN_URL}?next={request.path}?searchterm={searchterm}"
+                    )
+                patches_query = patches_query.filter(authors=request.user)
+            else:
+                try:
+                    author_id = int(request.GET["author"])
+                    patches_query = patches_query.filter(authors__id=author_id)
+                except ValueError:
+                    pass
+
+        # Apply reviewer filter
+        if request.GET.get("reviewer", "-1") != "-1":
+            if request.GET["reviewer"] == "-2":
+                patches_query = patches_query.filter(reviewers__isnull=True)
+            elif request.GET["reviewer"] == "-3":
+                # Filter for current user's reviews
+                if not request.user.is_authenticated:
+                    return HttpResponseRedirect(
+                        f"{settings.LOGIN_URL}?next={request.path}?searchterm={searchterm}"
+                    )
+                patches_query = patches_query.filter(reviewers=request.user)
+            else:
+                try:
+                    reviewer_id = int(request.GET["reviewer"])
+                    patches_query = patches_query.filter(reviewers__id=reviewer_id)
+                except ValueError:
+                    pass
+
+        # Ensure distinct results after filtering on many-to-many relationships
+        patches_query = patches_query.distinct()
+
+        # Apply sorting based on sortkey parameter (adapted for Django ORM)
+        sortkey = request.GET.get("sortkey", "1")
+        if sortkey == "2":  # Latest mail
+            patches_query = patches_query.order_by("-modified")  # Use modified as proxy
+        elif sortkey == "-2":
+            patches_query = patches_query.order_by("modified")
+        elif sortkey == "3":  # Num cfs
+            patches_query = patches_query.annotate(
+                num_cfs=Count("patchoncommitfest")
+            ).order_by("-num_cfs")
+        elif sortkey == "-3":
+            patches_query = patches_query.annotate(
+                num_cfs=Count("patchoncommitfest")
+            ).order_by("num_cfs")
+        elif sortkey == "4":  # ID
+            patches_query = patches_query.order_by("id")
+        elif sortkey == "-4":
+            patches_query = patches_query.order_by("-id")
+        elif sortkey == "5":  # Patch name
+            patches_query = patches_query.order_by("name")
+        elif sortkey == "-5":
+            patches_query = patches_query.order_by("-name")
+        elif sortkey == "8":  # CF
+            patches_query = patches_query.order_by("patchoncommitfest__commitfest__id")
+        elif sortkey == "-8":
+            patches_query = patches_query.order_by("-patchoncommitfest__commitfest__id")
+        else:  # Default: Created (sortkey 1)
+            patches_query = patches_query.order_by("created")
+
+        patches = patches_query.all()
 
     if len(patches) == 1:
         patch = patches[0]
         return HttpResponseRedirect(f"/patch/{patch.id}/")
+
+    # Use the existing filter form
+    form = CommitFestFilterForm(request.GET)
+
+    # Get user profile for timestamp preferences
+    userprofile = None
+    if request.user.is_authenticated:
+        try:
+            from pgcommitfest.userprofile.models import UserProfile
+
+            userprofile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            pass
 
     return render(
         request,
@@ -719,6 +835,13 @@ def global_search(request):
         {
             "patches": patches,
             "title": "Patch search results",
+            "searchterm": searchterm,
+            "form": form,
+            "cf": None,  # No specific commitfest context
+            "sortkey": int(request.GET.get("sortkey") or "1"),
+            "tags_data": get_tags_data(),
+            "all_tags": {t.id: t for t in Tag.objects.all()},
+            "userprofile": userprofile,
         },
     )
 
