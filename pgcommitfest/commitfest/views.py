@@ -1457,8 +1457,11 @@ def cfbot_ingest(message):
                                                 position, status,
                                                 created, modified)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                        ON CONFLICT (task_id) DO UPDATE
-                            SET status = EXCLUDED.status,
+                        ON CONFLICT (branch_id, position) DO UPDATE
+                            SET task_id = EXCLUDED.task_id,
+                                task_name = EXCLUDED.task_name,
+                                status = EXCLUDED.status,
+                                created = EXCLUDED.created,
                                 modified = EXCLUDED.modified
                         WHERE commitfest_cfbottask.modified < EXCLUDED.modified""",
                 (

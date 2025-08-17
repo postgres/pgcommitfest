@@ -842,7 +842,7 @@ class CfbotTask(models.Model):
     # given that we might need to change CI providers at some point, and that
     # CI provider might use e.g. UUIDs, we prefer to consider the format of the
     # ID opaque and store it as text.
-    task_id = models.TextField(unique=True)
+    task_id = models.TextField()
     task_name = models.TextField(null=False)
     patch = models.ForeignKey(
         Patch, on_delete=models.CASCADE, related_name="cfbot_tasks"
@@ -853,3 +853,11 @@ class CfbotTask(models.Model):
     status = models.TextField(choices=STATUS_CHOICES, null=False)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["branch_id", "position"],
+                name="commitfest_cfbottask_branch_position_unique",
+            )
+        ]
