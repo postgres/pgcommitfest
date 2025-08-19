@@ -180,7 +180,8 @@ function addAnnotation(threadid) {
     $("#annotateThreadList").find("option").remove();
     $("#annotateMessage").val("");
     $("#annotateMsgId").val("");
-    $("#annotateModal").modal();
+    const modal = new bootstrap.Modal(document.getElementById('annotateModal'));
+    modal.show();
     $("#annotateThreadList").focus();
     updateAnnotationMessages(threadid);
     $("#doAnnotateMessageButton").unbind("click");
@@ -204,7 +205,7 @@ function addAnnotation(threadid) {
                     alert(data);
                     $("#annotateMessageBody").removeClass("loading");
                 } else {
-                    $("#annotateModal").modal("hide");
+                    modal.hide();
                     location.reload();
                 }
             })
@@ -247,7 +248,8 @@ function deleteAnnotation(annid) {
 }
 
 function flagCommitted(committer) {
-    $("#commitModal").modal();
+    const modal = new bootstrap.Modal(document.getElementById('commitModal'));
+    modal.show();
     $("#committerSelect")[0].selectize.setValue(committer);
     $("#doCommitButton").unbind("click");
     $("#doCommitButton").click(() => {
@@ -305,6 +307,7 @@ function togglePatchFilterButton(buttonId, collapseId) {
  * Upstream user search dialog
  */
 function search_and_store_user() {
+    const modal = new bootstrap.Modal(document.getElementById('searchUserModal'));
     $("#doSelectUserButton").unbind("click");
     $("#doSelectUserButton").click(() => {
         if (!$("#searchUserList").val()) {
@@ -318,7 +321,7 @@ function search_and_store_user() {
             .success((data) => {
                 if (data === "OK") {
                     alert("User imported!");
-                    $("#searchUserModal").modal("hide");
+                    modal.hide();
                 } else {
                     alert(`Failed to import user: ${data}`);
                 }
@@ -330,7 +333,7 @@ function search_and_store_user() {
         return false;
     });
 
-    $("#searchUserModal").modal();
+    modal.show();
 }
 
 function findUsers() {
