@@ -1,4 +1,4 @@
-# CommitFest
+# Commitfest
 
 This application manages commitfests for the PostgreSQL community.
 
