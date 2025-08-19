@@ -19,6 +19,7 @@ urlpatterns = [
     re_path(r"^api/v1/commitfests/needs_ci$", apiv1.commitfestst_that_need_ci),
     re_path(r"^help/$", views.help),
     re_path(r"^commitfest_history/$", views.commitfest_history),
+    re_path(r"^me/$", views.me_legacy_redirect),
     re_path(r"^archive/$", views.archive),
     re_path(r"^activity(?P<rss>\.rss)?/", views.activity),
     re_path(r"^(\d+)/$", views.commitfest),

@@ -146,6 +146,13 @@ def home(request):
     return render(request, "home.html", context)
 
 
+@login_required
+def me_legacy_redirect(request):
+    # Previously we would have a dedicated dashboard page, now this
+    # is on the homepage.
+    return HttpResponseRedirect("/#dashboard")
+
+
 def commitfest_history(request):
     cfs = list(CommitFest.objects.order_by("-enddate"))
 
