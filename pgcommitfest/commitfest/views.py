@@ -173,7 +173,7 @@ def help(request):
         request,
         "help.html",
         {
-            "title": "What is the CommitFest app?",
+            "title": "What is the Commitfest app?",
         },
     )
 
