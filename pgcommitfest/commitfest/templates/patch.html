@@ -224,10 +224,10 @@
      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     </div>
     <div class="modal-body">
-     <form class="form" style="margin-bottom: 5px;">
-      <div class="form-group">
-       <label for="committerlist">Committer</label>
-       <select id="committerSelect" class="enable-selectize">
+     <form>
+      <div class="mb-3">
+       <label for="committerSelect" class="form-label">Committer</label>
+       <select id="committerSelect" class="enable-selectize form-select">
         <option value="" style="display:none;"></option>
         {%for c in committers%}
          <option value="{{c.user.username}}">{{c.user.first_name}} {{c.user.last_name}}</option>
@@ -253,20 +253,27 @@
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
    </div>
    <div id="annotateMessageBody" class="modal-body">
-    <div>Pick one of the messages in this thread</div>
-    <div id="annotateListWrap">
-     <select id="annotateMessageList" style="width:100%;" onChange="annotateMsgPicked()">
-     </select>
-    </div>
-    <div>Or copy/paste the message-id:</div>
-    <div id="annotateMsgidWrap">
-     <input id="annotateMsgId" type="text" style="width:100%" onKeyUp="annotateChanged()">
-    </div>
-    <div><br/></div>
-    <div>Enter a message for the annotation</div>
-    <div id="annotateTextWrap">
-     <input id="annotateMessage" type="text" style="width:100%" onKeyUp="annotateChanged()">
-    </div>
+    <form>
+     <div class="mb-3">
+      <label for="annotateMessageList" class="form-label">Pick one of the messages in this thread</label>
+      <div id="annotateListWrap">
+       <select id="annotateMessageList" class="form-select" onChange="annotateMsgPicked()">
+       </select>
+      </div>
+     </div>
+     <div class="mb-3">
+      <label for="annotateMsgId" class="form-label">Or copy/paste the message-id:</label>
+      <div id="annotateMsgidWrap">
+       <input id="annotateMsgId" type="text" class="form-control" onKeyUp="annotateChanged()">
+      </div>
+     </div>
+     <div class="mb-3">
+      <label for="annotateMessage" class="form-label">Enter a message for the annotation</label>
+      <div id="annotateTextWrap">
+       <input id="annotateMessage" type="text" class="form-control" onKeyUp="annotateChanged()">
+      </div>
+     </div>
+    </form>
    </div>
    <div class="modal-footer">
     <a href="#" class="btn btn-secondary" data-bs-dismiss="modal">Close</a>
