@@ -2,6 +2,10 @@
  * commitfest.postgresql.org specific styles
  */
 
+body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
 /* Bootstrap 5 inline delete/close buttons */
 .btn-outline-danger.btn-sm {
     font-size: 0.75rem;
