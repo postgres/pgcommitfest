@@ -25,12 +25,12 @@
        <li class="nav-item">
         <a class="nav-link{% if request.resolver_match.url_name == 'home' or request.path == '/' %} active{% endif %}" href="/">Home</a>
        </li>
-        <li class="nav-item">
-         <a class="nav-link{% if '/new/' in request.path %} active{% endif %}" href="/{{open_cf.id}}/new/">New Patch</a>
-        </li>
-        <li class="nav-item">
-         <a class="nav-link{% if cf and cf.is_in_progress %} active{% endif %}" href="/current/">Current CF</a>
-        </li>
+       <li class="nav-item">
+        <a class="nav-link{% if '/new/' in request.path %} active{% endif %}" href="/{{open_cf.id}}/new/">New Patch</a>
+       </li>
+       <li class="nav-item">
+        <a class="nav-link{% if cf and cf.is_in_progress %} active{% endif %}" href="/current/">Current CF</a>
+       </li>
        <li class="nav-item">
         <a class="nav-link{% if cf and cf.is_open_regular %} active{% endif %}" href="/open/">Open CF</a>
        </li>

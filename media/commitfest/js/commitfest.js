@@ -180,7 +180,7 @@ function addAnnotation(threadid) {
     $("#annotateThreadList").find("option").remove();
     $("#annotateMessage").val("");
     $("#annotateMsgId").val("");
-    const modal = new bootstrap.Modal(document.getElementById('annotateModal'));
+    const modal = new bootstrap.Modal(document.getElementById("annotateModal"));
     modal.show();
     $("#annotateThreadList").focus();
     updateAnnotationMessages(threadid);
@@ -248,7 +248,7 @@ function deleteAnnotation(annid) {
 }
 
 function flagCommitted(committer) {
-    const modal = new bootstrap.Modal(document.getElementById('commitModal'));
+    const modal = new bootstrap.Modal(document.getElementById("commitModal"));
     modal.show();
     $("#committerSelect")[0].selectize.setValue(committer);
     $("#doCommitButton").unbind("click");
@@ -307,7 +307,9 @@ function togglePatchFilterButton(buttonId, collapseId) {
  * Upstream user search dialog
  */
 function search_and_store_user() {
-    const modal = new bootstrap.Modal(document.getElementById('searchUserModal'));
+    const modal = new bootstrap.Modal(
+        document.getElementById("searchUserModal"),
+    );
     $("#doSelectUserButton").unbind("click");
     $("#doSelectUserButton").click(() => {
         if (!$("#searchUserList").val()) {
