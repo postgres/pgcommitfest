@@ -1567,11 +1567,7 @@ def thread_notify(request):
         return HttpResponseForbidden(b"Invalid API key")
 
     for m in j["messageids"]:
-        try:
-            t = MailThread.objects.get(messageid=m)
-            refresh_single_thread(t)
-        except Exception:
-            # Just ignore it, we'll check again later
-            pass
+        t = MailThread.objects.get(messageid=m)
+        refresh_single_thread(t)
 
     return HttpResponse(status=200)
