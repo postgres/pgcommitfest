@@ -1547,11 +1547,11 @@ def cfbot_ingest(message):
 @csrf_exempt
 def cfbot_notify(request):
     if request.method != "POST":
-        return HttpResponseForbidden("Invalid method")
+        return HttpResponseForbidden(b"Invalid method")
 
     j = json.loads(request.body)
     if not hmac.compare_digest(j["shared_secret"], settings.CFBOT_SECRET):
-        return HttpResponseForbidden("Invalid API key")
+        return HttpResponseForbidden(b"Invalid API key")
 
     cfbot_ingest(j)
     return HttpResponse(status=200)
@@ -1560,11 +1560,11 @@ def cfbot_notify(request):
 @csrf_exempt
 def thread_notify(request):
     if request.method != "POST":
-        return HttpResponseForbidden("Invalid method")
+        return HttpResponseForbidden(b"Invalid method")
 
     j = json.loads(request.body)
     if j["apikey"] != settings.ARCHIVES_APIKEY:
-        return HttpResponseForbidden("Invalid API key")
+        return HttpResponseForbidden(b"Invalid API key")
 
     for m in j["messageids"]:
         try:
