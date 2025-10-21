@@ -1,4 +1,3 @@
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import Http404, HttpResponse
@@ -6,7 +5,6 @@ from django.http import Http404, HttpResponse
 import json
 
 
-@login_required
 def userlookup(request):
     query = request.GET.get("query", None)
     if not query:
