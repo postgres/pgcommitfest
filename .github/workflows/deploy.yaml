@@ -15,4 +15,7 @@ jobs:
     steps:
       - name: Trigger deploy
         run: |
-          curl --fail-with-body --silent --show-error -X POST "${{ secrets.HOOKURL }}?commit=${{ github.sha }}" -H "X-Key: ${{ secrets.HOOKSECRET }}"
+          curl --fail-with-body --silent --show-error -X POST ${{ secrets.HOOKURL }} \
+            -H "X-Key: ${{ secrets.HOOKSECRET }}" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "commit=${{ github.sha }}"
