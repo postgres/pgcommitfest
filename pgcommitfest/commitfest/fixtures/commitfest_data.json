@@ -1106,19 +1106,19 @@
     "fields": {
         "branch_id": 345,
         "branch_name": "cf/2",
-        "commit_id": null,
+        "commit_id": "def456",
         "apply_url": "http://cfbot.cputube.org/patch_4573.log",
-        "status": "failed",
-        "needs_rebase_since": "2025-03-01T22:30:42",
-        "failing_since": "2025-02-01T22:30:42",
+        "status": "finished",
+        "needs_rebase_since": null,
+        "failing_since": null,
         "created": "2025-01-26T22:11:09.961",
         "modified": "2025-03-01T22:59:14.717",
-        "version": "",
-        "patch_count": null,
-        "first_additions": null,
-        "first_deletions": null,
-        "all_additions": null,
-        "all_deletions": null
+        "version": "v2",
+        "patch_count": 3,
+        "first_additions": 50,
+        "first_deletions": 10,
+        "all_additions": 120,
+        "all_deletions": 35
     }
 },
 {
@@ -1294,6 +1294,62 @@
         "status": "PAUSED",
         "created": "2025-07-03T06:29:25.086",
         "modified": "2025-07-03T06:29:25.086"
+    }
+},
+{
+    "model": "commitfest.cfbottask",
+    "pk": 9,
+    "fields": {
+        "task_id": "12347",
+        "task_name": "FormattingCheck",
+        "patch": 1,
+        "branch_id": 123,
+        "position": 3,
+        "status": "FAILED",
+        "created": "2025-01-26T22:08:00.000",
+        "modified": "2025-01-26T22:08:30.000"
+    }
+},
+{
+    "model": "commitfest.cfbottask",
+    "pk": 10,
+    "fields": {
+        "task_id": "34501",
+        "task_name": "Linux build",
+        "patch": 2,
+        "branch_id": 345,
+        "position": 1,
+        "status": "COMPLETED",
+        "created": "2025-01-26T22:11:30.000",
+        "modified": "2025-01-26T22:12:15.000"
+    }
+},
+{
+    "model": "commitfest.cfbottask",
+    "pk": 11,
+    "fields": {
+        "task_id": "34502",
+        "task_name": "MacOS Build",
+        "patch": 2,
+        "branch_id": 345,
+        "position": 2,
+        "status": "COMPLETED",
+        "created": "2025-01-26T22:11:35.000",
+        "modified": "2025-01-26T22:13:20.000"
+    }
+},
+{
+    "model": "commitfest.cfbottask",
+    "pk": 12,
+    "fields": {
+        "task_id": "34503",
+        "task_name": "FormattingCheck",
+        "patch": 2,
+        "branch_id": 345,
+        "position": 3,
+        "status": "COMPLETED",
+        "created": "2025-01-26T22:11:40.000",
+        "modified": "2025-01-26T22:12:00.000"
     }
 }
 ]

@@ -564,6 +564,7 @@ branch.failing_since,
             count(*) FILTER (WHERE task.status in ('COMPLETED', 'PAUSED')) as completed,
             count(*) FILTER (WHERE task.status in ('CREATED', 'SCHEDULED', 'EXECUTING')) running,
             count(*) FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) failed,
+            count(*) FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED') AND task.task_name != 'FormattingCheck') as failed_non_formatting,
             count(*) total,
             string_agg(task.task_name, ', ') FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) as failed_task_names,
             branch.status as branch_status,
@@ -1526,10 +1527,15 @@ def cfbot_ingest(message):
     failing = branch_status["status"] in ("failed", "timeout") or needs_rebase
     finished = branch_status["status"] == "finished"
 
-    if "task_status" in message and message["task_status"]["status"] in (
-        "ABORTED",
-        "ERRORED",
-        "FAILED",
+    if (
+        "task_status" in message
+        and message["task_status"]["status"]
+        in (
+            "ABORTED",
+            "ERRORED",
+            "FAILED",
+        )
+        and message["task_status"]["task_name"] != "FormattingCheck"
     ):
         failing = True
 
