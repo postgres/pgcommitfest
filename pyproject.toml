@@ -14,7 +14,6 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "uwsgi",
     "pycodestyle",
     "ruff",
     "djhtml",

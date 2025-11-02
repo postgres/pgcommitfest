@@ -1,14 +1,15 @@
 {%load commitfest%}
+{%load static%}
 <!DOCTYPE html>
 <html>
  <head>
   <title>{{title|default:'Commitfest' }}</title>
-  <link rel="stylesheet" href="/media/commitfest/css/jquery-ui.css" type="text/css">
-  <link rel="stylesheet" href="/media/commitfest/css/bootstrap.css?v=5.3.7" />
-  <link rel="stylesheet" href="/media/commitfest/css/bootstrap-icons.css" />
-  <link rel="stylesheet" href="/media/commitfest/css/selectize.bootstrap5.css" />
-  <link rel="stylesheet" href="/media/commitfest/css/commitfest.css?{% static_file_param %}" />
-  <link rel="shortcut icon" href="/media/commitfest/favicon.ico" />
+  <link rel="stylesheet" href="{% static 'commitfest/css/jquery-ui.css' %}" type="text/css">
+  <link rel="stylesheet" href="{% static 'commitfest/css/bootstrap.css' %}?v=5.3.7" />
+  <link rel="stylesheet" href="{% static 'commitfest/css/bootstrap-icons.css' %}" />
+  <link rel="stylesheet" href="{% static 'commitfest/css/selectize.bootstrap5.css' %}" />
+  <link rel="stylesheet" href="{% static 'commitfest/css/commitfest.css' %}?{% static_file_param %}" />
+  <link rel="shortcut icon" href="{% static 'commitfest/favicon.ico' %}" />
   {%block extrahead%}{%endblock%}
   {%if rss_alternate%}  <link rel="alternate" type="application/rss+xml" title="{{rss_alternate_title}}" href="{{rss_alternate}}" />{%endif%}
  </head>
@@ -59,7 +60,7 @@
          </button>
         </div>
        </form>
-       <a class="btn btn-secondary" href="https://github.com/postgres/pgcommitfest" target="_blank"><img class="github-logo" src="/media/commitfest/github-mark.svg"/> Contribute</a>
+       <a class="btn btn-secondary" href="https://github.com/postgres/pgcommitfest" target="_blank"><img class="github-logo" src="{% static 'commitfest/github-mark.svg' %}"/> Contribute</a>
       </div>
      </div>
     </div>
@@ -103,10 +104,10 @@
    {%block contents%}
    {%endblock%}
   </div>
-  <script src="/media/commitfest/js/jquery.js"></script>
-  <script src="/media/commitfest/js/jquery-ui.js"></script>
-  <script src="/media/commitfest/js/bootstrap.js?v=5.3.7"></script>
-  <script src="/media/commitfest/js/selectize.min.js"></script>
-  <script src="/media/commitfest/js/commitfest.js?{% static_file_param %}"></script>
+  <script src="{% static 'commitfest/js/jquery.js' %}"></script>
+  <script src="{% static 'commitfest/js/jquery-ui.js' %}"></script>
+  <script src="{% static 'commitfest/js/bootstrap.js' %}?v=5.3.7"></script>
+  <script src="{% static 'commitfest/js/selectize.min.js' %}"></script>
+  <script src="{% static 'commitfest/js/commitfest.js' %}?{% static_file_param %}"></script>
   {%block morescript%}{%endblock%}
  </html>

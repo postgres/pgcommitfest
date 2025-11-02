@@ -71,10 +71,10 @@ following command to create a super user:
 Finally, you're ready to start the application:
 
 ```bash
-./run_dev.py
+./manage.py runserver
 ```
 
-Then open http://localhost:8007/admin to log in. Once redirected to the Django
+Then open http://localhost:8000/admin to log in. Once redirected to the Django
 admin interface, go back to the main interface. You're now logged in.
 
 ## Contributing

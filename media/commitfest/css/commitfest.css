@@ -60,7 +60,7 @@ div.form-group div.controls input.threadpick-input {
  */
 #attachThreadListWrap.loading {
     display: block;
-    background: url("/media/commitfest/spinner.gif") no-repeat center;
+    background: url("/static/commitfest/spinner.gif") no-repeat center;
     width: 124px;
     height: 124px;
     margin: 0 auto;
@@ -73,7 +73,7 @@ div.form-group div.controls input.threadpick-input {
  * Annotate message dialog */
 #annotateMessageBody.loading {
     display: block;
-    background: url("/media/commitfest/spinner.gif") no-repeat center;
+    background: url("/static/commitfest/spinner.gif") no-repeat center;
     width: 124px;
     height: 124px;
     margin: 0 auto;
