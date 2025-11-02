@@ -1,5 +1,5 @@
 [project]
-name = "pgocmmitfest"
+name = "pgcommitfest"
 description = "Commitfest app for the PostgreSQL community"
 dynamic = ["version"]
 readme = "README.md"
