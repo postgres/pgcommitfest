@@ -33,3 +33,53 @@ jobs:
 
       - name: Run djhtml
         run: djhtml pgcommitfest/*/templates/*.html pgcommitfest/*/templates/*.inc --tabwidth=1 --check
+
+  test:
+    runs-on: ubuntu-24.04
+    name: "Django Tests"
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python with uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Create CI settings
+        run: |
+          cat > pgcommitfest/local_settings.py << 'EOF'
+          # CI test settings
+          DATABASES = {
+              "default": {
+                  "ENGINE": "django.db.backends.postgresql_psycopg2",
+                  "NAME": "pgcommitfest",
+                  "USER": "postgres",
+                  "PASSWORD": "postgres",
+                  "HOST": "localhost",
+                  "PORT": "5432",
+              }
+          }
+
+          # Enable debug for better error messages in CI
+          DEBUG = True
+          EOF
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run tests
+        run: uv run manage.py test --verbosity=2
