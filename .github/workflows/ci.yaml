@@ -60,23 +60,7 @@ jobs:
         uses: astral-sh/setup-uv@v4
 
       - name: Create CI settings
-        run: |
-          cat > pgcommitfest/local_settings.py << 'EOF'
-          # CI test settings
-          DATABASES = {
-              "default": {
-                  "ENGINE": "django.db.backends.postgresql_psycopg2",
-                  "NAME": "pgcommitfest",
-                  "USER": "postgres",
-                  "PASSWORD": "postgres",
-                  "HOST": "localhost",
-                  "PORT": "5432",
-              }
-          }
-
-          # Enable debug for better error messages in CI
-          DEBUG = True
-          EOF
+        run: cp pgcommitfest/local_settings_example.py pgcommitfest/local_settings.py
 
       - name: Install dependencies
         run: uv sync
