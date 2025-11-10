@@ -81,5 +81,8 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
+      - name: Run migrations
+        run: uv run manage.py migrate --noinput
+
       - name: Run tests
-        run: uv run manage.py test --verbosity=2
+        run: uv run pytest
