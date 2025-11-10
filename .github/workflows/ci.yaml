@@ -65,8 +65,5 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Run migrations
-        run: uv run manage.py migrate --noinput
-
       - name: Run tests
-        run: uv run pytest
+        run: uv run pytest --create-db
