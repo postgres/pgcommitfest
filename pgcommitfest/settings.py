@@ -29,7 +29,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
 TIME_ZONE = "GMT"
-USE_TZ = True
+
+# Our code currently compares naive datetimes
+USE_TZ = False
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
