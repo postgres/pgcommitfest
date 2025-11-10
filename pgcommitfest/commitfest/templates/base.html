@@ -1,112 +1,115 @@
 {%load commitfest%}
-<!DOCTYPE html>
-<html>
- <head>
-  <title>{{title|default:'Commitfest' }}</title>
-  <link rel="stylesheet" href="/media/commitfest/css/jquery-ui.css" type="text/css">
-  <link rel="stylesheet" href="/media/commitfest/css/bootstrap.css?v=5.3.7" />
-  <link rel="stylesheet" href="/media/commitfest/css/bootstrap-icons.css" />
-  <link rel="stylesheet" href="/media/commitfest/css/selectize.bootstrap5.css" />
-  <link rel="stylesheet" href="/media/commitfest/css/commitfest.css?{% static_file_param %}" />
-  <link rel="shortcut icon" href="/media/commitfest/favicon.ico" />
-  {%block extrahead%}{%endblock%}
-  {%if rss_alternate%}  <link rel="alternate" type="application/rss+xml" title="{{rss_alternate_title}}" href="{{rss_alternate}}" />{%endif%}
- </head>
- <body>
+{%load l10n%}
+{%localize off%}
+ <!DOCTYPE html>
+ <html>
+  <head>
+   <title>{{title|default:'Commitfest' }}</title>
+   <link rel="stylesheet" href="/media/commitfest/css/jquery-ui.css" type="text/css">
+   <link rel="stylesheet" href="/media/commitfest/css/bootstrap.css?v=5.3.7" />
+   <link rel="stylesheet" href="/media/commitfest/css/bootstrap-icons.css" />
+   <link rel="stylesheet" href="/media/commitfest/css/selectize.bootstrap5.css" />
+   <link rel="stylesheet" href="/media/commitfest/css/commitfest.css?{% static_file_param %}" />
+   <link rel="shortcut icon" href="/media/commitfest/favicon.ico" />
+   {%block extrahead%}{%endblock%}
+   {%if rss_alternate%}  <link rel="alternate" type="application/rss+xml" title="{{rss_alternate_title}}" href="{{rss_alternate}}" />{%endif%}
+  </head>
+  <body>
   <!-- Main Navigation -->
-  <nav class="navbar navbar-expand-sm navbar-dark bg-dark mb-3">
-   <div class="container-fluid">
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
-     <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="mainNavbar">
-     <div class="navbar-content-wrapper">
-      <ul class="navbar-nav me-auto mb-2 mb-sm-0">
-       <li class="nav-item">
-        <a class="nav-link{% if request.resolver_match.url_name == 'home' or request.path == '/' %} active{% endif %}" href="/">Home</a>
-       </li>
-       <li class="nav-item">
-        <a class="nav-link{% if '/new/' in request.path %} active{% endif %}" href="/{{open_cf.id}}/new/">New Patch</a>
-       </li>
-       <li class="nav-item">
-        <a class="nav-link{% if cf and cf.is_in_progress %} active{% endif %}" href="/current/">Current CF</a>
-       </li>
-       <li class="nav-item">
-        <a class="nav-link{% if cf and cf.is_open_regular %} active{% endif %}" href="/open/">Open CF</a>
-       </li>
-       <li class="nav-item">
-        <a class="nav-link{% if cf and cf.is_open_draft %} active{% endif %}" href="/draft/">Draft CF</a>
-       </li>
-       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle{% if '/activity/' in request.path or '/commitfest_history/' in request.path %} active{% endif %}" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-         More
-        </a>
-        <ul class="dropdown-menu" aria-labelledby="moreDropdown">
-         <li><a class="dropdown-item" href="/activity/">Activity Log</a></li>
-         <li><a class="dropdown-item" href="/commitfest_history/">All Commitfests</a></li>
-        </ul>
-       </li>
-       <li class="nav-item">
-        <a class="nav-link{% if '/help/' in request.path %} active{% endif %}" href="/help/">Help</a>
-       </li>
-      </ul>
-      <div class="navbar-actions d-flex gap-2 align-items-center">
-       <form method="GET" action="/search/">
-        <div class="input-group" style="width: 300px;">
-         <input type="text" class="form-control" name="searchterm" placeholder="Email Message-ID or keywords">
-         <button type="submit" class="btn btn-secondary">
-          <i class="bi bi-search"></i>
-         </button>
-        </div>
-       </form>
-       <a class="btn btn-secondary" href="https://github.com/postgres/pgcommitfest" target="_blank"><img class="github-logo" src="/media/commitfest/github-mark.svg"/> Contribute</a>
+   <nav class="navbar navbar-expand-sm navbar-dark bg-dark mb-3">
+    <div class="container-fluid">
+     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+     </button>
+     <div class="collapse navbar-collapse" id="mainNavbar">
+      <div class="navbar-content-wrapper">
+       <ul class="navbar-nav me-auto mb-2 mb-sm-0">
+        <li class="nav-item">
+         <a class="nav-link{% if request.resolver_match.url_name == 'home' or request.path == '/' %} active{% endif %}" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+         <a class="nav-link{% if '/new/' in request.path %} active{% endif %}" href="/{{open_cf.id}}/new/">New Patch</a>
+        </li>
+        <li class="nav-item">
+         <a class="nav-link{% if cf and cf.is_in_progress %} active{% endif %}" href="/current/">Current CF</a>
+        </li>
+        <li class="nav-item">
+         <a class="nav-link{% if cf and cf.is_open_regular %} active{% endif %}" href="/open/">Open CF</a>
+        </li>
+        <li class="nav-item">
+         <a class="nav-link{% if cf and cf.is_open_draft %} active{% endif %}" href="/draft/">Draft CF</a>
+        </li>
+        <li class="nav-item dropdown">
+         <a class="nav-link dropdown-toggle{% if '/activity/' in request.path or '/commitfest_history/' in request.path %} active{% endif %}" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          More
+         </a>
+         <ul class="dropdown-menu" aria-labelledby="moreDropdown">
+          <li><a class="dropdown-item" href="/activity/">Activity Log</a></li>
+          <li><a class="dropdown-item" href="/commitfest_history/">All Commitfests</a></li>
+         </ul>
+        </li>
+        <li class="nav-item">
+         <a class="nav-link{% if '/help/' in request.path %} active{% endif %}" href="/help/">Help</a>
+        </li>
+       </ul>
+       <div class="navbar-actions d-flex gap-2 align-items-center">
+        <form method="GET" action="/search/">
+         <div class="input-group" style="width: 300px;">
+          <input type="text" class="form-control" name="searchterm" placeholder="Email Message-ID or keywords">
+          <button type="submit" class="btn btn-secondary">
+           <i class="bi bi-search"></i>
+          </button>
+         </div>
+        </form>
+        <a class="btn btn-secondary" href="https://github.com/postgres/pgcommitfest" target="_blank"><img class="github-logo" src="/media/commitfest/github-mark.svg"/> Contribute</a>
+       </div>
       </div>
      </div>
     </div>
-   </div>
-  </nav>
-
-  <div class="container-fluid">
-
-   <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-     {%if title %}
-      <li class="breadcrumb-item"><a href="/">Home</a></li>
-      {%for c in breadcrumbs%}
-       <li class="breadcrumb-item"><a href="{{c.href}}">{{c.title}}</a></li>
-      {%endfor%}
-      <li class="breadcrumb-item active" aria-current="page">{{title}}</li>
-     {%else%}
-      <li class="breadcrumb-item active" aria-current="page">Home</li>
-     {%endif%}
-    </ol>
-    <div class="float-end">
-     {%if user.is_authenticated%}
-      Logged in as {{user}} (<a href="/account/profile/">edit profile</a> | <a href="/account/logout/">log out</a>{%if user.is_staff%} | <a href="/admin/">administration</a>{%endif%})
-     {%else%}
-      <a href="/account/login/?next={{request.path}}">Log in</a>
-     {%endif%}
-     {%if header_activity%} | <a href="{{header_activity_link}}">{{header_activity}}</a>{%endif%}
-    </div>
    </nav>
 
-   {%if title %}
-    <h1>{{title}}</h1>
-   {%endif%}
+   <div class="container-fluid">
 
-   {%if messages%}
-    {%for m in messages%}
-     <div class="alert {{m.tags|alertmap}}">{{m}}</div>
-    {%endfor%}
-   {%endif%}
+    <nav aria-label="breadcrumb">
+     <ol class="breadcrumb">
+      {%if title %}
+       <li class="breadcrumb-item"><a href="/">Home</a></li>
+       {%for c in breadcrumbs%}
+        <li class="breadcrumb-item"><a href="{{c.href}}">{{c.title}}</a></li>
+       {%endfor%}
+       <li class="breadcrumb-item active" aria-current="page">{{title}}</li>
+      {%else%}
+       <li class="breadcrumb-item active" aria-current="page">Home</li>
+      {%endif%}
+     </ol>
+     <div class="float-end">
+      {%if user.is_authenticated%}
+       Logged in as {{user}} (<a href="/account/profile/">edit profile</a> | <a href="/account/logout/">log out</a>{%if user.is_staff%} | <a href="/admin/">administration</a>{%endif%})
+      {%else%}
+       <a href="/account/login/?next={{request.path}}">Log in</a>
+      {%endif%}
+      {%if header_activity%} | <a href="{{header_activity_link}}">{{header_activity}}</a>{%endif%}
+     </div>
+    </nav>
 
-   {%block contents%}
-   {%endblock%}
-  </div>
-  <script src="/media/commitfest/js/jquery.js"></script>
-  <script src="/media/commitfest/js/jquery-ui.js"></script>
-  <script src="/media/commitfest/js/bootstrap.js?v=5.3.7"></script>
-  <script src="/media/commitfest/js/selectize.min.js"></script>
-  <script src="/media/commitfest/js/commitfest.js?{% static_file_param %}"></script>
-  {%block morescript%}{%endblock%}
- </html>
+    {%if title %}
+     <h1>{{title}}</h1>
+    {%endif%}
+
+    {%if messages%}
+     {%for m in messages%}
+      <div class="alert {{m.tags|alertmap}}">{{m}}</div>
+     {%endfor%}
+    {%endif%}
+
+    {%block contents%}
+    {%endblock%}
+   </div>
+   <script src="/media/commitfest/js/jquery.js"></script>
+   <script src="/media/commitfest/js/jquery-ui.js"></script>
+   <script src="/media/commitfest/js/bootstrap.js?v=5.3.7"></script>
+   <script src="/media/commitfest/js/selectize.min.js"></script>
+   <script src="/media/commitfest/js/commitfest.js?{% static_file_param %}"></script>
+   {%block morescript%}{%endblock%}
+{%endlocalize%}
+</html>
