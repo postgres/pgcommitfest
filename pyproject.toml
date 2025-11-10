@@ -18,6 +18,8 @@ dev = [
     "pycodestyle",
     "ruff",
     "djhtml",
+    "pytest",
+    "pytest-django",
 ]
 
 [tool.setuptools.packages.find]
@@ -47,3 +49,13 @@ section-order = [
 [tool.ruff.lint.isort.sections]
 # Group all Django imports into a separate section.
 django = ["django"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "pgcommitfest.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+testpaths = ["pgcommitfest"]
+addopts = [
+    "--reuse-db",
+    "--strict-markers",
+    "-vv",
+]

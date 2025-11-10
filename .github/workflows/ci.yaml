@@ -33,3 +33,37 @@ jobs:
 
       - name: Run djhtml
         run: djhtml pgcommitfest/*/templates/*.html pgcommitfest/*/templates/*.inc --tabwidth=1 --check
+
+  test:
+    runs-on: ubuntu-24.04
+    name: "Django Tests"
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python with uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Create CI settings
+        run: cp pgcommitfest/local_settings_example.py pgcommitfest/local_settings.py
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run tests
+        run: uv run pytest --create-db
