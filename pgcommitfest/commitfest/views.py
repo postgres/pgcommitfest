@@ -1700,3 +1700,35 @@ def thread_notify(request):
         refresh_single_thread(t)
 
     return HttpResponse(status=200)
+
+
+@login_required
+def cfbot_requeue(request, patchid):
+    """Trigger a requeue of a patch in the cfbot."""
+    if request.method != "POST":
+        return HttpResponseForbidden(b"Invalid method")
+
+    patch = get_object_or_404(Patch, pk=patchid)
+    cf = patch.current_commitfest()
+
+    # Make API call to cfbot
+    import requests
+
+    payload = {
+        "commitfest_id": cf.id,
+        "submission_id": patchid,
+        "shared_secret": settings.CFBOT_SECRET,
+    }
+
+    try:
+        response = requests.post(
+            f"{settings.CFBOT_API_URL}/requeue-patch", json=payload, timeout=10
+        )
+        if response.status_code == 200:
+            messages.success(request, "Patch requeued successfully")
+        else:
+            messages.error(request, f"Failed to requeue patch: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        messages.error(request, f"Failed to requeue patch: {e}")
+
+    return HttpResponseRedirect(f"/patch/{patchid}/")

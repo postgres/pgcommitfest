@@ -166,6 +166,8 @@ NOTIFICATION_FROM = "webmaster@postgresql.org"
 
 AUTO_CREATE_COMMITFESTS = True
 
+CFBOT_API_URL = "https://cfbot.cputube.org/api"
+
 # Load local settings overrides
 try:
     from .local_settings import *  # noqa: F403

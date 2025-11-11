@@ -36,6 +36,7 @@ urlpatterns = [
     re_path(r"^patch/(\d+)/committer/(become|remove)/$", views.committer),
     re_path(r"^patch/(\d+)/(un)?subscribe/$", views.subscribe),
     re_path(r"^patch/(\d+)/(comment|review)/", views.comment),
+    re_path(r"^patch/(\d+)/cfbot_requeue/$", views.cfbot_requeue),
     re_path(r"^(\d+)/send_email/$", views.send_email),
     re_path(r"^patch/(\d+)/send_email/$", views.send_patch_email),
     re_path(r"^(\d+)/reports/authorstats/$", reports.authorstats),
