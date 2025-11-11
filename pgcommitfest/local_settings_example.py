@@ -32,6 +32,7 @@ MOCK_ARCHIVE_DATA = os.path.join(
 )
 
 CFBOT_SECRET = "INSECURE"
+CFBOT_API_URL = "http://localhost:5000/api"
 
 # There are already commitfests in the default dummy database data.
 # Automatically creating new ones would cause the ones that are visible on the

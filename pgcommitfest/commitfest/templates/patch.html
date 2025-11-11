@@ -52,6 +52,12 @@
                                                git fetch commitfest cf/{{patch.id}}
                                                git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{patch.id}})">Copy git checkout commands</button>
      {%endif%}
+     {%if user.is_authenticated%}
+      <form method="post" action="/patch/{{patch.id}}/cfbot_requeue/" style="display: inline;">
+       {%csrf_token%}
+       <button type="submit" class="btn btn-secondary" title="Requeue this patch for CFBot processing">Requeue CFBot</button>
+      </form>
+     {%endif%}
     </a>
    </td>
   </tr>
