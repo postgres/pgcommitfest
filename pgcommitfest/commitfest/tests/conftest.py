@@ -24,7 +24,7 @@ def alice():
 def bob():
     """Create test user Bob."""
     return User.objects.create_user(
-        username="bob",
+        username="b",
         first_name="Bob",
         last_name="Brown",
         email="bob@example.com",
