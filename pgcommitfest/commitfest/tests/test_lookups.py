@@ -123,7 +123,7 @@ def test_userlookup_with_cf_includes_reviewers(
         "values": [
             {
                 "id": bob.id,
-                "value": "Bob Brown (bob)",
+                "value": "Bob Brown (b)",
             }
         ]
     }
@@ -163,16 +163,16 @@ def test_userlookup_requires_query_parameter(client, commitfests):
     assert response.status_code == 404
 
 
-def test_userlookup_searches_first_name(client, alice, open_cf, patches_with_users):
+def test_userlookup_searches_first_name(client, bob, open_cf, patches_with_users):
     """Test that userlookup searches by first name."""
-    response = client.get("/lookups/user/", {"query": "Alice", "cf": open_cf.id})
+    response = client.get("/lookups/user/", {"query": "Bob", "cf": open_cf.id})
 
     assert response.status_code == 200
     assert json.loads(response.content) == {
         "values": [
             {
-                "id": alice.id,
-                "value": "Alice Anderson (alice)",
+                "id": bob.id,
+                "value": "Bob Brown (b)",
             }
         ]
     }
@@ -187,7 +187,7 @@ def test_userlookup_searches_last_name(client, bob, open_cf, patches_with_users)
         "values": [
             {
                 "id": bob.id,
-                "value": "Bob Brown (bob)",
+                "value": "Bob Brown (b)",
             }
         ]
     }
