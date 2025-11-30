@@ -94,7 +94,7 @@ def home(request):
         # Use existing cfs data instead of querying again
         cf = cfs.get("in_progress") or cfs.get("open")
 
-        form = CommitFestFilterForm(request.GET)
+        form = CommitFestFilterForm(request.GET, commitfest=cf)
         patch_list = patchlist(request, cf, personalized=True)
 
         if patch_list.redirect:
@@ -627,7 +627,7 @@ def commitfest(request, cfid):
 
     # Generates a fairly expensive query, which we shouldn't do unless
     # the user is logged in. XXX: Figure out how to avoid doing that..
-    form = CommitFestFilterForm(request.GET)
+    form = CommitFestFilterForm(request.GET, commitfest=cf)
 
     return render(
         request,
@@ -687,6 +687,11 @@ def patches_by_messageid(messageid):
     )
 
 
+# We require login for this page primarily so that the author/reviewer filter
+# boxes can always be searched. Since searching for users outside of a
+# commitfest requires users to be logged in to not make the data too easy to
+# scrape.
+@login_required
 def global_search(request):
     if "searchterm" not in request.GET:
         return HttpResponseRedirect("/")
@@ -816,7 +821,7 @@ def global_search(request):
         patch = patches[0]
         return HttpResponseRedirect(f"/patch/{patch.id}/")
 
-    # Use the existing filter form
+    # Use the existing filter form (no cf parameter, will require login for user lookups)
     form = CommitFestFilterForm(request.GET)
 
     # Get user profile for timestamp preferences

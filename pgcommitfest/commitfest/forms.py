@@ -24,8 +24,17 @@ class CommitFestFilterForm(forms.Form):
     reviewer = forms.ChoiceField(required=False, label="Reviewer (type to search)")
     sortkey = forms.IntegerField(required=False)
 
-    def __init__(self, data, *args, **kwargs):
+    def __init__(self, data, commitfest=None, *args, **kwargs):
         super(CommitFestFilterForm, self).__init__(data, *args, **kwargs)
+        self.commitfest = commitfest
+
+        # Update selectize_fields with cf parameter if commitfest is provided
+        if commitfest:
+            self.selectize_fields = {
+                "author": f"/lookups/user?cf={commitfest.id}",
+                "reviewer": f"/lookups/user?cf={commitfest.id}",
+                "tag": None,
+            }
 
         self.fields["sortkey"].widget = forms.HiddenInput()
 
