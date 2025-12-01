@@ -114,17 +114,22 @@ def refresh_single_thread(thread):
     )
     if thread.latestmsgid != r[-1]["msgid"]:
         # There is now a newer mail in the thread!
-        thread.latestmsgid = r[-1]["msgid"]
-        thread.latestmessage = r[-1]["date"]
-        thread.latestauthor = r[-1]["from"]
-        thread.latestsubject = r[-1]["subj"]
-        thread.save()
         parse_and_add_attachments(r, thread)
         # Potentially update the last mail date - if there wasn't already a mail on each patch
         # from a *different* thread that had an earlier date.
         for p in thread.patches.filter(lastmail__lt=thread.latestmessage):
             p.lastmail = thread.latestmessage
             p.save()
+
+        # Finally, we update the thread entry itself. We should only do that at
+        # the end, in case any of the previous steps fail. Then we'll retry on
+        # the next run. We could also do this in a transaction, but that would
+        # mean we lock a bunch of rows for potentially a long time.
+        thread.latestmsgid = r[-1]["msgid"]
+        thread.latestmessage = r[-1]["date"]
+        thread.latestauthor = r[-1]["from"]
+        thread.latestsubject = r[-1]["subj"]
+        thread.save()
 
 
 @transaction.atomic
