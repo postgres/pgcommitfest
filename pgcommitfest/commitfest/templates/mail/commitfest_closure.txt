@@ -1,0 +1,21 @@
+Hello {{user.first_name|default:user.username}},
+
+Commitfest {{commitfest.name}} has now closed. You have {{patches|length}} open patch{{patches|length|pluralize:"es"}} in this commitfest:
+
+{%for poc in patches%}
+  - {{poc.patch.name}}
+    https://commitfest.postgresql.org/{{commitfest.id}}/{{poc.patch.id}}/
+{%endfor%}
+
+Please take action on {{patches|length|pluralize:"this patch,these patches"}}:
+
+1. If you want to continue working on {{patches|length|pluralize:"it,them"}}, move {{patches|length|pluralize:"it,them"}} to the next commitfest{% if next_cf %}: {{next_cf_url}}{% endif %}
+
+2. If you no longer wish to pursue {{patches|length|pluralize:"this patch,these patches"}}, please close {{patches|length|pluralize:"it,them"}} with an appropriate status (Withdrawn, Returned with feedback, etc.)
+
+{% if next_cf %}The next commitfest is {{next_cf.name}}, which runs from {{next_cf.startdate}} to {{next_cf.enddate}}.{% else %}Please check https://commitfest.postgresql.org/ for upcoming commitfests.{% endif %}
+
+Thank you for your contributions to PostgreSQL!
+
+--
+This is an automated message from the PostgreSQL Commitfest application.
