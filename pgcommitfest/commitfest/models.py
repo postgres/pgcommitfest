@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 
 from datetime import datetime, timedelta, timezone
 
+from pgcommitfest.mailqueue.util import send_template_mail
 from pgcommitfest.userprofile.models import UserProfile
 
 from .util import DiffableModel
@@ -109,6 +110,75 @@ class CommitFest(models.Model):
             "enddate": self.enddate.isoformat(),
         }
 
+    def send_closure_notifications(self):
+        """Send email notifications to authors of open patches when this commitfest is closed."""
+
+        # Get all patches with open status in this commitfest
+        open_patches = (
+            self.patchoncommitfest_set.filter(
+                status__in=[
+                    PatchOnCommitFest.STATUS_REVIEW,
+                    PatchOnCommitFest.STATUS_AUTHOR,
+                    PatchOnCommitFest.STATUS_COMMITTER,
+                ]
+            )
+            .select_related("patch")
+            .prefetch_related("patch__authors")
+        )
+
+        # Collect unique authors across all open patches
+        authors_to_notify = set()
+        for poc in open_patches:
+            for author in poc.patch.authors.all():
+                if author.email:
+                    authors_to_notify.add(author)
+
+        # Get the next open commitfest if available
+        next_cf = (
+            CommitFest.objects.filter(
+                status=CommitFest.STATUS_OPEN,
+                draft=False,
+                startdate__gt=self.enddate,
+            )
+            .order_by("startdate")
+            .first()
+        )
+
+        if next_cf:
+            next_cf_url = f"https://commitfest.postgresql.org/{next_cf.id}/"
+        else:
+            next_cf_url = "https://commitfest.postgresql.org/"
+
+        # Send email to each author
+        for author in authors_to_notify:
+            # Get user's notification email preference
+            email = author.email
+            try:
+                if author.userprofile and author.userprofile.notifyemail:
+                    email = author.userprofile.notifyemail.email
+            except UserProfile.DoesNotExist:
+                pass
+
+            # Get user's open patches in this commitfest
+            user_patches = [
+                poc for poc in open_patches if author in poc.patch.authors.all()
+            ]
+
+            send_template_mail(
+                settings.NOTIFICATION_FROM,
+                None,
+                email,
+                f"Commitfest {self.name} has closed",
+                "mail/commitfest_closure.txt",
+                {
+                    "user": author,
+                    "commitfest": self,
+                    "patches": user_patches,
+                    "next_cf": next_cf,
+                    "next_cf_url": next_cf_url,
+                },
+            )
+
     @staticmethod
     def _are_relevant_commitfests_up_to_date(cfs, current_date):
         inprogress_cf = cfs["in_progress"]
@@ -143,15 +213,18 @@ class CommitFest(models.Model):
             if inprogress_cf and inprogress_cf.enddate < current_date:
                 inprogress_cf.status = CommitFest.STATUS_CLOSED
                 inprogress_cf.save()
+                inprogress_cf.send_closure_notifications()
 
             open_cf = cfs["open"]
 
             if open_cf.startdate <= current_date:
                 if open_cf.enddate < current_date:
                     open_cf.status = CommitFest.STATUS_CLOSED
+                    open_cf.save()
+                    open_cf.send_closure_notifications()
                 else:
                     open_cf.status = CommitFest.STATUS_INPROGRESS
-                open_cf.save()
+                    open_cf.save()
 
                 cls.next_open_cf(current_date).save()
 
@@ -162,6 +235,7 @@ class CommitFest(models.Model):
                 # If the draft commitfest has started, we need to update it
                 draft_cf.status = CommitFest.STATUS_CLOSED
                 draft_cf.save()
+                draft_cf.send_closure_notifications()
                 cls.next_draft_cf(current_date).save()
 
             return cls.relevant_commitfests(for_update=for_update)
