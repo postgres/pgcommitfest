@@ -110,11 +110,103 @@ class CommitFest(models.Model):
             "enddate": self.enddate.isoformat(),
         }
 
-    def send_closure_notifications(self):
-        """Send email notifications to authors of open patches when this commitfest is closed."""
+    def _should_auto_move_patch(self, patch, current_date):
+        """Determine if a patch should be automatically moved to the next commitfest.
+
+        A patch qualifies for auto-move if it both:
+        1. Has had email activity within the configured number of days
+        2. Hasn't been failing CI for longer than the configured threshold
+        """
+        activity_cutoff = current_date - timedelta(
+            days=settings.AUTO_MOVE_EMAIL_ACTIVITY_DAYS
+        )
+        failing_cutoff = current_date - timedelta(
+            days=settings.AUTO_MOVE_MAX_FAILING_DAYS
+        )
+
+        # Check for recent email activity
+        if not patch.lastmail or patch.lastmail < activity_cutoff:
+            return False
+
+        # Check if CI has been failing too long
+        try:
+            cfbot_branch = patch.cfbot_branch
+            if (
+                cfbot_branch.failing_since
+                and cfbot_branch.failing_since < failing_cutoff
+            ):
+                return False
+        except CfbotBranch.DoesNotExist:
+            pass
+
+        return True
+
+    def auto_move_active_patches(self):
+        """Automatically move active patches to the next commitfest.
+
+        A patch is moved if it has recent email activity and hasn't been
+        failing CI for too long.
+
+        Returns a set of patch IDs that were moved.
+        """
+        current_date = datetime.now()
+
+        # Get the next open commitfest
+        # For draft CFs, find the next draft CF
+        # For regular CFs, find the next regular CF by start date
+        if self.draft:
+            next_cf = (
+                CommitFest.objects.filter(
+                    status=CommitFest.STATUS_OPEN,
+                    draft=True,
+                    startdate__gt=self.enddate,
+                )
+                .order_by("startdate")
+                .first()
+            )
+        else:
+            next_cf = (
+                CommitFest.objects.filter(
+                    status=CommitFest.STATUS_OPEN,
+                    draft=False,
+                    startdate__gt=self.enddate,
+                )
+                .order_by("startdate")
+                .first()
+            )
+
+        if not next_cf:
+            return set()
 
         # Get all patches with open status in this commitfest
-        open_patches = (
+        open_pocs = self.patchoncommitfest_set.filter(
+            status__in=[
+                PatchOnCommitFest.STATUS_REVIEW,
+                PatchOnCommitFest.STATUS_AUTHOR,
+                PatchOnCommitFest.STATUS_COMMITTER,
+            ]
+        ).select_related("patch")
+
+        moved_patch_ids = set()
+        for poc in open_pocs:
+            if self._should_auto_move_patch(poc.patch, current_date):
+                poc.patch.move(self, next_cf, by_user=None, by_cfbot=True)
+                moved_patch_ids.add(poc.patch.id)
+
+        return moved_patch_ids
+
+    def send_closure_notifications(self, moved_patch_ids=None):
+        """Send email notifications to authors of patches that weren't auto-moved.
+
+        Args:
+            moved_patch_ids: Set of patch IDs that were auto-moved to the next commitfest.
+                           These patches are excluded since the move triggers its own notification.
+        """
+        if moved_patch_ids is None:
+            moved_patch_ids = set()
+
+        # Get patches that still need action (not moved, not closed)
+        open_pocs = list(
             self.patchoncommitfest_set.filter(
                 status__in=[
                     PatchOnCommitFest.STATUS_REVIEW,
@@ -122,22 +214,19 @@ class CommitFest(models.Model):
                     PatchOnCommitFest.STATUS_COMMITTER,
                 ]
             )
+            .exclude(patch_id__in=moved_patch_ids)
             .select_related("patch")
             .prefetch_related("patch__authors")
         )
 
-        # Collect unique authors across all open patches
-        authors_to_notify = set()
-        for poc in open_patches:
-            for author in poc.patch.authors.all():
-                if author.email:
-                    authors_to_notify.add(author)
+        if not open_pocs:
+            return
 
         # Get the next open commitfest if available
         next_cf = (
             CommitFest.objects.filter(
                 status=CommitFest.STATUS_OPEN,
-                draft=False,
+                draft=self.draft,
                 startdate__gt=self.enddate,
             )
             .order_by("startdate")
@@ -149,8 +238,18 @@ class CommitFest(models.Model):
         else:
             next_cf_url = "https://commitfest.postgresql.org/"
 
+        # Collect unique authors and their patches
+        authors_patches = {}
+        for poc in open_pocs:
+            for author in poc.patch.authors.all():
+                if not author.email:
+                    continue
+                if author not in authors_patches:
+                    authors_patches[author] = []
+                authors_patches[author].append(poc)
+
         # Send email to each author
-        for author in authors_to_notify:
+        for author, patches in authors_patches.items():
             # Get user's notification email preference
             email = author.email
             try:
@@ -158,11 +257,6 @@ class CommitFest(models.Model):
                     email = author.userprofile.notifyemail.email
             except UserProfile.DoesNotExist:
                 pass
-
-            # Get user's open patches in this commitfest
-            user_patches = [
-                poc for poc in open_patches if author in poc.patch.authors.all()
-            ]
 
             send_template_mail(
                 settings.NOTIFICATION_FROM,
@@ -173,7 +267,7 @@ class CommitFest(models.Model):
                 {
                     "user": author,
                     "commitfest": self,
-                    "patches": user_patches,
+                    "patches": patches,
                     "next_cf": next_cf,
                     "next_cf_url": next_cf_url,
                 },
@@ -211,17 +305,19 @@ class CommitFest(models.Model):
 
             inprogress_cf = cfs["in_progress"]
             if inprogress_cf and inprogress_cf.enddate < current_date:
+                moved_patch_ids = inprogress_cf.auto_move_active_patches()
                 inprogress_cf.status = CommitFest.STATUS_CLOSED
                 inprogress_cf.save()
-                inprogress_cf.send_closure_notifications()
+                inprogress_cf.send_closure_notifications(moved_patch_ids)
 
             open_cf = cfs["open"]
 
             if open_cf.startdate <= current_date:
                 if open_cf.enddate < current_date:
+                    moved_patch_ids = open_cf.auto_move_active_patches()
                     open_cf.status = CommitFest.STATUS_CLOSED
                     open_cf.save()
-                    open_cf.send_closure_notifications()
+                    open_cf.send_closure_notifications(moved_patch_ids)
                 else:
                     open_cf.status = CommitFest.STATUS_INPROGRESS
                     open_cf.save()
@@ -233,9 +329,10 @@ class CommitFest(models.Model):
                 cls.next_draft_cf(current_date).save()
             elif draft_cf.enddate < current_date:
                 # If the draft commitfest has started, we need to update it
+                moved_patch_ids = draft_cf.auto_move_active_patches()
                 draft_cf.status = CommitFest.STATUS_CLOSED
                 draft_cf.save()
-                draft_cf.send_closure_notifications()
+                draft_cf.send_closure_notifications(moved_patch_ids)
                 cls.next_draft_cf(current_date).save()
 
             return cls.relevant_commitfests(for_update=for_update)
@@ -530,7 +627,9 @@ class Patch(models.Model, DiffableModel):
         else:
             self.lastmail = max(threads, key=lambda t: t.latestmessage).latestmessage
 
-    def move(self, from_cf, to_cf, by_user, allow_move_to_in_progress=False):
+    def move(
+        self, from_cf, to_cf, by_user, allow_move_to_in_progress=False, by_cfbot=False
+    ):
         """Returns the new PatchOnCommitFest object, or raises UserInputError"""
 
         current_poc = self.current_patch_on_commitfest()
@@ -575,6 +674,7 @@ class Patch(models.Model, DiffableModel):
         PatchHistory(
             patch=self,
             by=by_user,
+            by_cfbot=by_cfbot,
             what=f"Moved from CF {from_cf} to CF {to_cf}",
         ).save_and_notify()
 

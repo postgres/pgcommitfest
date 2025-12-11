@@ -1,17 +1,19 @@
 Hello {{user.first_name|default:user.username}},
 
-Commitfest {{commitfest.name}} has now closed. You have {{patches|length}} open patch{{patches|length|pluralize:"es"}} in this commitfest:
+Commitfest {{commitfest.name}} has now closed.
 
-{%for poc in patches%}
+You have {{patches|length}} open patch{{patches|length|pluralize:"es"}} that need{{patches|length|pluralize:"s,"}} attention:
+
+{% for poc in patches %}
   - {{poc.patch.name}}
     https://commitfest.postgresql.org/{{commitfest.id}}/{{poc.patch.id}}/
-{%endfor%}
+{% endfor %}
 
-Please take action on {{patches|length|pluralize:"this patch,these patches"}}:
+Please take action on {{patches|length|pluralize:"these patches,this patch"}}:
 
-1. If you want to continue working on {{patches|length|pluralize:"it,them"}}, move {{patches|length|pluralize:"it,them"}} to the next commitfest{% if next_cf %}: {{next_cf_url}}{% endif %}
+1. If you want to continue working on {{patches|length|pluralize:"them,it"}}, move {{patches|length|pluralize:"them,it"}} to the next commitfest{% if next_cf %}: {{next_cf_url}}{% endif %}
 
-2. If you no longer wish to pursue {{patches|length|pluralize:"this patch,these patches"}}, please close {{patches|length|pluralize:"it,them"}} with an appropriate status (Withdrawn, Returned with feedback, etc.)
+2. If you no longer wish to pursue {{patches|length|pluralize:"these patches,this patch"}}, please close {{patches|length|pluralize:"them,it"}} with an appropriate status (Withdrawn, Returned with feedback, etc.)
 
 {% if next_cf %}The next commitfest is {{next_cf.name}}, which runs from {{next_cf.startdate}} to {{next_cf.enddate}}.{% else %}Please check https://commitfest.postgresql.org/ for upcoming commitfests.{% endif %}
 
