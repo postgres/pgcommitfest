@@ -407,6 +407,10 @@ def patchlist(request, cf, personalized=False):
         whereclauses.append("poc.status=ANY(%(openstatuses)s)")
     else:
         whereclauses.append("poc.commitfest_id=%(cid)s")
+        # Exclude "Moved to other CF" patches from draft commitfests
+        if cf.draft:
+            whereclauses.append("poc.status != %(status_moved)s")
+            whereparams["status_moved"] = PatchOnCommitFest.STATUS_MOVED
 
     if personalized:
         # For now we can just order by these names in descending order, because
@@ -616,12 +620,22 @@ def commitfest(request, cfid):
         return patch_list.redirect
 
     # Generate patch status summary.
-    curs.execute(
-        "SELECT ps.status, ps.statusstring, count(*) FROM commitfest_patchoncommitfest poc INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status WHERE commitfest_id=%(id)s GROUP BY ps.status ORDER BY ps.sortkey",
-        {
-            "id": cf.id,
-        },
-    )
+    if cf.draft:
+        # Exclude "Moved to other CF" status from draft commitfests
+        curs.execute(
+            "SELECT ps.status, ps.statusstring, count(*) FROM commitfest_patchoncommitfest poc INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status WHERE commitfest_id=%(id)s AND poc.status != %(status_moved)s GROUP BY ps.status ORDER BY ps.sortkey",
+            {
+                "id": cf.id,
+                "status_moved": PatchOnCommitFest.STATUS_MOVED,
+            },
+        )
+    else:
+        curs.execute(
+            "SELECT ps.status, ps.statusstring, count(*) FROM commitfest_patchoncommitfest poc INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status WHERE commitfest_id=%(id)s GROUP BY ps.status ORDER BY ps.sortkey",
+            {
+                "id": cf.id,
+            },
+        )
     statussummary = curs.fetchall()
     statussummary.append([-1, "Total", sum((r[2] for r in statussummary))])
 
