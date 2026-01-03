@@ -4,6 +4,8 @@ from django.http import Http404, HttpResponse, HttpResponseForbidden
 
 import json
 
+from .models import Patch
+
 
 def userlookup(request):
     query = request.GET.get("query", None)
@@ -20,23 +22,27 @@ def userlookup(request):
         | Q(last_name__icontains=query),
     )
 
-    if not request.user.is_authenticated:
-        return HttpResponseForbidden("Login required when not filtering by commitfest")
-    _ = cf
     # If no commitfest filter is provided, require login
-    # if not cf:
-    #     if not request.user.is_authenticated:
-    #         return HttpResponseForbidden(
-    #             "Login required when not filtering by commitfest"
-    #         )
-    # else:
-    #     # Filter users to only those who have participated in the specified commitfest
-    #     # This includes authors, reviewers, and committers of patches in that commitfest
-    #     users = users.filter(
-    #         Q(patch_author__commitfests__id=cf)
-    #         | Q(patch_reviewer__commitfests__id=cf)
-    #         | Q(committer__patch__commitfests__id=cf)
-    #     ).distinct()
+    if not cf:
+        if not request.user.is_authenticated:
+            return HttpResponseForbidden(
+                "Login required when not filtering by commitfest"
+            )
+    else:
+        # Filter users to only those who have participated in the specified commitfest.
+        # We collect user IDs via a single query to avoid a complex join.
+        patches = Patch.objects.filter(patchoncommitfest__commitfest_id=cf)
+        user_ids = set()
+        for author_id, reviewer_id, committer_user_id in patches.values_list(
+            "authors", "reviewers", "committer__user_id"
+        ):
+            if author_id:
+                user_ids.add(author_id)
+            if reviewer_id:
+                user_ids.add(reviewer_id)
+            if committer_user_id:
+                user_ids.add(committer_user_id)
+        users = users.filter(id__in=user_ids)
 
     return HttpResponse(
         json.dumps(
