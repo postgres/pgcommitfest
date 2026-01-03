@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db import connection
 from django.db.models import Q
 from django.http import Http404, HttpResponse, HttpResponseForbidden
 
@@ -20,23 +21,33 @@ def userlookup(request):
         | Q(last_name__icontains=query),
     )
 
-    if not request.user.is_authenticated:
-        return HttpResponseForbidden("Login required when not filtering by commitfest")
-    _ = cf
     # If no commitfest filter is provided, require login
-    # if not cf:
-    #     if not request.user.is_authenticated:
-    #         return HttpResponseForbidden(
-    #             "Login required when not filtering by commitfest"
-    #         )
-    # else:
-    #     # Filter users to only those who have participated in the specified commitfest
-    #     # This includes authors, reviewers, and committers of patches in that commitfest
-    #     users = users.filter(
-    #         Q(patch_author__commitfests__id=cf)
-    #         | Q(patch_reviewer__commitfests__id=cf)
-    #         | Q(committer__patch__commitfests__id=cf)
-    #     ).distinct()
+    if not cf:
+        if not request.user.is_authenticated:
+            return HttpResponseForbidden(
+                "Login required when not filtering by commitfest"
+            )
+    else:
+        # Filter users to only those who have participated in the specified commitfest.
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT cpa.user_id FROM commitfest_patch_authors cpa
+                INNER JOIN commitfest_patchoncommitfest poc ON poc.patch_id = cpa.patch_id
+                WHERE poc.commitfest_id = %(cf)s
+                UNION
+                SELECT cpr.user_id FROM commitfest_patch_reviewers cpr
+                INNER JOIN commitfest_patchoncommitfest poc ON poc.patch_id = cpr.patch_id
+                WHERE poc.commitfest_id = %(cf)s
+                UNION
+                SELECT p.committer_id FROM commitfest_patch p
+                INNER JOIN commitfest_patchoncommitfest poc ON poc.patch_id = p.id
+                WHERE poc.commitfest_id = %(cf)s AND p.committer_id IS NOT NULL
+                """,
+                {"cf": cf},
+            )
+            user_ids = [row[0] for row in cursor.fetchall()]
+        users = users.filter(id__in=user_ids)
 
     return HttpResponse(
         json.dumps(
