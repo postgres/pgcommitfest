@@ -38,7 +38,11 @@
        {%elif c.status == 'EXECUTING' %}
         <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/running.svg"/></a>
        {%else %}
-        <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_failure.svg"/></a>
+        {%if c.task_name == 'FormattingCheck' %}
+         <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/formatting_failure.svg"/></a>
+        {%else%}
+         <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_failure.svg"/></a>
+        {%endif%}
        {%endif%}
       {%endfor%}
      {%endif%}
@@ -47,6 +51,12 @@
                                                git remote add commitfest https://github.com/postgresql-cfbot/postgresql.git
                                                git fetch commitfest cf/{{patch.id}}
                                                git checkout commitfest/cf/{{patch.id}}" onclick="addGitCheckoutToClipboard({{patch.id}})">Copy git checkout commands</button>
+     {%endif%}
+     {%if user.is_authenticated%}
+      <form method="post" action="/patch/{{patch.id}}/cfbot_requeue/" style="display: inline;">
+       {%csrf_token%}
+       <button type="submit" class="btn btn-secondary" title="Requeue this patch for CFBot processing">Requeue CFBot</button>
+      </form>
      {%endif%}
     </a>
    </td>

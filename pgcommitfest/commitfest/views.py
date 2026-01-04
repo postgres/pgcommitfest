@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import connection, transaction
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import (
     Http404,
     HttpResponse,
@@ -94,7 +94,7 @@ def home(request):
         # Use existing cfs data instead of querying again
         cf = cfs.get("in_progress") or cfs.get("open")
 
-        form = CommitFestFilterForm(request.GET)
+        form = CommitFestFilterForm(request.GET, commitfest=cf)
         patch_list = patchlist(request, cf, personalized=True)
 
         if patch_list.redirect:
@@ -407,6 +407,10 @@ def patchlist(request, cf, personalized=False):
         whereclauses.append("poc.status=ANY(%(openstatuses)s)")
     else:
         whereclauses.append("poc.commitfest_id=%(cid)s")
+        # Exclude "Moved to other CF" patches from draft commitfests
+        if cf.draft:
+            whereclauses.append("poc.status != %(status_moved)s")
+            whereparams["status_moved"] = PatchOnCommitFest.STATUS_MOVED
 
     if personalized:
         # For now we can just order by these names in descending order, because
@@ -564,6 +568,7 @@ branch.failing_since,
             count(*) FILTER (WHERE task.status in ('COMPLETED', 'PAUSED')) as completed,
             count(*) FILTER (WHERE task.status in ('CREATED', 'SCHEDULED', 'EXECUTING')) running,
             count(*) FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) failed,
+            count(*) FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED') AND task.task_name != 'FormattingCheck') as failed_non_formatting,
             count(*) total,
             string_agg(task.task_name, ', ') FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) as failed_task_names,
             branch.status as branch_status,
@@ -615,10 +620,13 @@ def commitfest(request, cfid):
         return patch_list.redirect
 
     # Generate patch status summary.
+    # Exclude "Moved to other CF" status from draft commitfests
+    status_filter = "AND poc.status != %(status_moved)s" if cf.draft else ""
     curs.execute(
-        "SELECT ps.status, ps.statusstring, count(*) FROM commitfest_patchoncommitfest poc INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status WHERE commitfest_id=%(id)s GROUP BY ps.status ORDER BY ps.sortkey",
+        f"SELECT ps.status, ps.statusstring, count(*) FROM commitfest_patchoncommitfest poc INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status WHERE commitfest_id=%(id)s {status_filter} GROUP BY ps.status ORDER BY ps.sortkey",
         {
             "id": cf.id,
+            "status_moved": PatchOnCommitFest.STATUS_MOVED,
         },
     )
     statussummary = curs.fetchall()
@@ -626,7 +634,7 @@ def commitfest(request, cfid):
 
     # Generates a fairly expensive query, which we shouldn't do unless
     # the user is logged in. XXX: Figure out how to avoid doing that..
-    form = CommitFestFilterForm(request.GET)
+    form = CommitFestFilterForm(request.GET, commitfest=cf)
 
     return render(
         request,
@@ -686,6 +694,11 @@ def patches_by_messageid(messageid):
     )
 
 
+# We require login for this page primarily so that the author/reviewer filter
+# boxes can always be searched. Since searching for users outside of a
+# commitfest requires users to be logged in to not make the data too easy to
+# scrape.
+@login_required
 def global_search(request):
     if "searchterm" not in request.GET:
         return HttpResponseRedirect("/")
@@ -699,18 +712,134 @@ def global_search(request):
         patches = patches_by_messageid(cleaned_id)
 
     if not patches:
-        patches = (
-            Patch.objects.select_related()
-            .filter(name__icontains=searchterm)
-            .order_by(
-                "created",
+        patches_query = (
+            Patch.objects.select_related("targetversion", "committer")
+            .prefetch_related(
+                "authors",
+                "reviewers",
+                "tags",
+                "patchoncommitfest_set__commitfest",
+                "mailthread_set",
             )
-            .all()
+            .select_related("cfbot_branch")
+            .filter(name__icontains=searchterm)
         )
+
+        # Apply filters using the same logic as patchlist
+        if request.GET.get("status", "-1") != "-1":
+            try:
+                status = int(request.GET["status"])
+                patches_query = patches_query.filter(
+                    patchoncommitfest__status=status
+                ).distinct()
+            except ValueError:
+                pass
+
+        if request.GET.get("targetversion", "-1") != "-1":
+            if request.GET["targetversion"] == "-2":
+                patches_query = patches_query.filter(targetversion_id__isnull=True)
+            else:
+                try:
+                    ver_id = int(request.GET["targetversion"])
+                    patches_query = patches_query.filter(targetversion_id=ver_id)
+                except ValueError:
+                    pass
+
+        if request.GET.getlist("tag"):
+            try:
+                tag_ids = [int(t) for t in request.GET.getlist("tag")]
+                for tag_id in tag_ids:
+                    patches_query = patches_query.filter(tags__id=tag_id)
+                patches_query = patches_query.distinct()
+            except ValueError:
+                pass
+
+        # Apply author filter
+        if request.GET.get("author", "-1") != "-1":
+            if request.GET["author"] == "-2":
+                patches_query = patches_query.filter(authors__isnull=True)
+            elif request.GET["author"] == "-3":
+                # Filter for current user's patches
+                if not request.user.is_authenticated:
+                    return HttpResponseRedirect(
+                        f"{settings.LOGIN_URL}?next={request.path}?searchterm={searchterm}"
+                    )
+                patches_query = patches_query.filter(authors=request.user)
+            else:
+                try:
+                    author_id = int(request.GET["author"])
+                    patches_query = patches_query.filter(authors__id=author_id)
+                except ValueError:
+                    pass
+
+        # Apply reviewer filter
+        if request.GET.get("reviewer", "-1") != "-1":
+            if request.GET["reviewer"] == "-2":
+                patches_query = patches_query.filter(reviewers__isnull=True)
+            elif request.GET["reviewer"] == "-3":
+                # Filter for current user's reviews
+                if not request.user.is_authenticated:
+                    return HttpResponseRedirect(
+                        f"{settings.LOGIN_URL}?next={request.path}?searchterm={searchterm}"
+                    )
+                patches_query = patches_query.filter(reviewers=request.user)
+            else:
+                try:
+                    reviewer_id = int(request.GET["reviewer"])
+                    patches_query = patches_query.filter(reviewers__id=reviewer_id)
+                except ValueError:
+                    pass
+
+        # Ensure distinct results after filtering on many-to-many relationships
+        patches_query = patches_query.distinct()
+
+        # Apply sorting based on sortkey parameter (adapted for Django ORM)
+        sortkey = request.GET.get("sortkey", "1")
+        if sortkey == "2":  # Latest mail
+            patches_query = patches_query.order_by("-modified")  # Use modified as proxy
+        elif sortkey == "-2":
+            patches_query = patches_query.order_by("modified")
+        elif sortkey == "3":  # Num cfs
+            patches_query = patches_query.annotate(
+                num_cfs=Count("patchoncommitfest")
+            ).order_by("-num_cfs")
+        elif sortkey == "-3":
+            patches_query = patches_query.annotate(
+                num_cfs=Count("patchoncommitfest")
+            ).order_by("num_cfs")
+        elif sortkey == "4":  # ID
+            patches_query = patches_query.order_by("id")
+        elif sortkey == "-4":
+            patches_query = patches_query.order_by("-id")
+        elif sortkey == "5":  # Patch name
+            patches_query = patches_query.order_by("name")
+        elif sortkey == "-5":
+            patches_query = patches_query.order_by("-name")
+        elif sortkey == "8":  # CF
+            patches_query = patches_query.order_by("patchoncommitfest__commitfest__id")
+        elif sortkey == "-8":
+            patches_query = patches_query.order_by("-patchoncommitfest__commitfest__id")
+        else:  # Default: Created (sortkey 1)
+            patches_query = patches_query.order_by("created")
+
+        patches = patches_query.all()
 
     if len(patches) == 1:
         patch = patches[0]
         return HttpResponseRedirect(f"/patch/{patch.id}/")
+
+    # Use the existing filter form (no cf parameter, will require login for user lookups)
+    form = CommitFestFilterForm(request.GET)
+
+    # Get user profile for timestamp preferences
+    userprofile = None
+    if request.user.is_authenticated:
+        try:
+            from pgcommitfest.userprofile.models import UserProfile
+
+            userprofile = UserProfile.objects.get(user=request.user)
+        except UserProfile.DoesNotExist:
+            pass
 
     return render(
         request,
@@ -718,6 +847,13 @@ def global_search(request):
         {
             "patches": patches,
             "title": "Patch search results",
+            "searchterm": searchterm,
+            "form": form,
+            "cf": None,  # No specific commitfest context
+            "sortkey": int(request.GET.get("sortkey") or "1"),
+            "tags_data": get_tags_data(),
+            "all_tags": {t.id: t for t in Tag.objects.all()},
+            "userprofile": userprofile,
         },
     )
 
@@ -1526,10 +1662,15 @@ def cfbot_ingest(message):
     failing = branch_status["status"] in ("failed", "timeout") or needs_rebase
     finished = branch_status["status"] == "finished"
 
-    if "task_status" in message and message["task_status"]["status"] in (
-        "ABORTED",
-        "ERRORED",
-        "FAILED",
+    if (
+        "task_status" in message
+        and message["task_status"]["status"]
+        in (
+            "ABORTED",
+            "ERRORED",
+            "FAILED",
+        )
+        and message["task_status"]["task_name"] != "FormattingCheck"
     ):
         failing = True
 
@@ -1547,11 +1688,11 @@ def cfbot_ingest(message):
 @csrf_exempt
 def cfbot_notify(request):
     if request.method != "POST":
-        return HttpResponseForbidden("Invalid method")
+        return HttpResponseForbidden(b"Invalid method")
 
     j = json.loads(request.body)
     if not hmac.compare_digest(j["shared_secret"], settings.CFBOT_SECRET):
-        return HttpResponseForbidden("Invalid API key")
+        return HttpResponseForbidden(b"Invalid API key")
 
     cfbot_ingest(j)
     return HttpResponse(status=200)
@@ -1560,18 +1701,46 @@ def cfbot_notify(request):
 @csrf_exempt
 def thread_notify(request):
     if request.method != "POST":
-        return HttpResponseForbidden("Invalid method")
+        return HttpResponseForbidden(b"Invalid method")
 
     j = json.loads(request.body)
     if j["apikey"] != settings.ARCHIVES_APIKEY:
-        return HttpResponseForbidden("Invalid API key")
+        return HttpResponseForbidden(b"Invalid API key")
 
     for m in j["messageids"]:
-        try:
-            t = MailThread.objects.get(messageid=m)
-            refresh_single_thread(t)
-        except Exception:
-            # Just ignore it, we'll check again later
-            pass
+        t = MailThread.objects.get(messageid=m)
+        refresh_single_thread(t)
 
     return HttpResponse(status=200)
+
+
+@login_required
+def cfbot_requeue(request, patchid):
+    """Trigger a requeue of a patch in the cfbot."""
+    if request.method != "POST":
+        return HttpResponseForbidden(b"Invalid method")
+
+    patch = get_object_or_404(Patch, pk=patchid)
+    cf = patch.current_commitfest()
+
+    # Make API call to cfbot
+    import requests
+
+    payload = {
+        "commitfest_id": cf.id,
+        "submission_id": patchid,
+        "shared_secret": settings.CFBOT_SECRET,
+    }
+
+    try:
+        response = requests.post(
+            f"{settings.CFBOT_API_URL}/requeue-patch", json=payload, timeout=10
+        )
+        if response.status_code == 200:
+            messages.success(request, "Patch requeued successfully")
+        else:
+            messages.error(request, f"Failed to requeue patch: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        messages.error(request, f"Failed to requeue patch: {e}")
+
+    return HttpResponseRedirect(f"/patch/{patchid}/")

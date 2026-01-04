@@ -32,6 +32,16 @@ class PatchAdmin(admin.ModelAdmin):
     list_display = ("name",)
 
 
+class MailThreadAdmin(admin.ModelAdmin):
+    list_display = (
+        "messageid",
+        "subject",
+        "firstmessage",
+        "latestmsgid",
+        "latestmessage",
+    )
+
+
 class MailThreadAttachmentAdmin(admin.ModelAdmin):
     list_display = (
         "date",
@@ -68,5 +78,5 @@ admin.site.register(TargetVersion)
 admin.site.register(CfbotBranch)
 admin.site.register(CfbotTask)
 
-admin.site.register(MailThread)
+admin.site.register(MailThread, MailThreadAdmin)
 admin.site.register(MailThreadAttachment, MailThreadAttachmentAdmin)

@@ -5,12 +5,17 @@ on:
     branches:
       - main
       - prod
+    tags:
+      - 'v*'
 
 jobs:
   deployment:
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name }}
+    environment: ${{ startsWith(github.ref, 'refs/tags/') && 'prod' || github.ref_name }}
     steps:
       - name: Trigger deploy
         run: |
-          curl --fail-with-body --silent --show-error -X POST ${{ secrets.HOOKURL }} -H "X-Key: ${{ secrets.HOOKSECRET }}"
+          curl --fail-with-body --silent --show-error -X POST ${{ secrets.HOOKURL }} \
+            -H "X-Key: ${{ secrets.HOOKSECRET }}" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "commit=${{ github.sha }}"

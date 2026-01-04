@@ -30,6 +30,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # system time zone.
 TIME_ZONE = "GMT"
 
+# Our code currently compares naive datetimes
+USE_TZ = False
+
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = "en-us"
@@ -39,10 +42,6 @@ SITE_ID = 1
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
 USE_I18N = False
-
-# If you set this to False, Django will not format dates, numbers and
-# calendars according to the current locale
-USE_L10N = False
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
@@ -166,6 +165,8 @@ HACKERS_EMAIL = "pgsql-hackers-testing@localhost"
 NOTIFICATION_FROM = "webmaster@postgresql.org"
 
 AUTO_CREATE_COMMITFESTS = True
+
+CFBOT_API_URL = "https://cfbot.cputube.org/api"
 
 # Load local settings overrides
 try:
