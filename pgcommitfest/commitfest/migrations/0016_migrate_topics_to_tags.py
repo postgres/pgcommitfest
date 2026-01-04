@@ -6,16 +6,11 @@ from django.db import migrations
 def create_missing_tags_and_map_topics(apps, schema_editor):
     """
     Create missing tags and map existing topics to appropriate tags.
-    Only applies to patches in active (open or in-progress) commitfests.
     """
     Tag = apps.get_model("commitfest", "Tag")
     Patch = apps.get_model("commitfest", "Patch")
     Topic = apps.get_model("commitfest", "Topic")
-    PatchOnCommitFest = apps.get_model("commitfest", "PatchOnCommitFest")
-
-    # CommitFest status constants (matching models.py)
-    STATUS_OPEN = 2
-    STATUS_INPROGRESS = 3
+    PatchTag = Patch.tags.through
 
     # Create missing tags
     Tag.objects.get_or_create(
@@ -55,30 +50,25 @@ def create_missing_tags_and_map_topics(apps, schema_editor):
         # chosen there.
     }
 
-    # Get patch IDs that are in active commitfests (open or in-progress)
-    active_patch_ids = set(
-        PatchOnCommitFest.objects.filter(
-            commitfest__status__in=[STATUS_OPEN, STATUS_INPROGRESS]
-        ).values_list("patch_id", flat=True)
-    )
-
     # Apply tags to existing patches based on their topics
     for topic_name, tag_name in topic_tag_mapping.items():
         try:
             topic = Topic.objects.get(topic=topic_name)
             tag = Tag.objects.get(name=tag_name)
 
-            # Get patches with this topic that are in active commitfests
-            patches_with_topic = Patch.objects.filter(
-                topic=topic, id__in=active_patch_ids
+            # Get all patch IDs with this topic
+            patch_ids = list(
+                Patch.objects.filter(topic=topic).values_list("id", flat=True)
             )
 
-            # Add the corresponding tag to each patch
-            for patch in patches_with_topic:
-                patch.tags.add(tag)
+            # Bulk create the patch-tag relationships
+            PatchTag.objects.bulk_create(
+                [PatchTag(patch_id=pid, tag_id=tag.id) for pid in patch_ids],
+                ignore_conflicts=True,
+            )
 
             print(
-                f"Mapped {patches_with_topic.count()} patches from topic '{topic_name}' to tag '{tag_name}'"
+                f"Mapped {len(patch_ids)} patches from topic '{topic_name}' to tag '{tag_name}'"
             )
 
         except Topic.DoesNotExist:
