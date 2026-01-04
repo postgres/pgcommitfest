@@ -3,7 +3,7 @@ have received updates in the PostgreSQL commitfest app:
 
 {%for p in patches.values %}
 {{p.patch.name}}
-https://commitfest.postgresql.org/{{p.patch.patchoncommitfest_set.all.0.commitfest.id}}/{{p.patch.id}}/
+https://commitfest.postgresql.org/patch/{{p.patch.id}}/
 {%for h in p.entries%}
 * {{h.what}} by {{h.by_string}}{%endfor%}
 

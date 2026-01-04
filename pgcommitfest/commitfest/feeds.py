@@ -30,12 +30,7 @@ class ActivityFeed(Feed):
         )
 
     def item_link(self, item):
-        if self.cfid:
-            return "https://commitfest.postgresql.org/{0}/{1}/".format(
-                self.cfid, item["patchid"]
-            )
-        else:
-            return "https://commitfest.postgresql.org/{cfid}/{patchid}/".format(**item)
+        return "https://commitfest.postgresql.org/patch/{patchid}/".format(**item)
 
     def item_pubdate(self, item):
         return item["date"]
