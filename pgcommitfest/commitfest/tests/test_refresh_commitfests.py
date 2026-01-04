@@ -9,8 +9,9 @@ from pgcommitfest.commitfest.models import (
     PatchOnCommitFest,
 )
 
+pytestmark = pytest.mark.django_db
 
-@pytest.mark.django_db
+
 @freeze_time("2024-12-05")
 def test_inprogress_cf_closes_when_enddate_passed(commitfests, alice):
     """When an in_progress CF's enddate has passed, it should be closed."""
@@ -38,7 +39,6 @@ def test_inprogress_cf_closes_when_enddate_passed(commitfests, alice):
     assert patch.current_commitfest().id == open_cf.id
 
 
-@pytest.mark.django_db
 @freeze_time("2025-01-15")
 def test_open_cf_becomes_inprogress_when_startdate_reached(commitfests):
     """When an open CF's startdate is reached, it becomes in_progress."""
@@ -59,7 +59,6 @@ def test_open_cf_becomes_inprogress_when_startdate_reached(commitfests):
     assert new_open.startdate > open_cf.enddate
 
 
-@pytest.mark.django_db
 @freeze_time("2025-02-05")
 def test_open_cf_closes_when_enddate_passed(commitfests, alice):
     """When an open CF's enddate has passed (skipping in_progress), it closes."""
@@ -94,7 +93,6 @@ def test_open_cf_closes_when_enddate_passed(commitfests, alice):
     assert patch.current_commitfest().id == new_open.id
 
 
-@pytest.mark.django_db
 @freeze_time("2025-01-15")
 def test_draft_cf_created_when_missing(commitfests):
     """When no draft CF exists, one should be created."""
@@ -113,7 +111,6 @@ def test_draft_cf_created_when_missing(commitfests):
     assert draft_cf.status == CommitFest.STATUS_OPEN
 
 
-@pytest.mark.django_db
 @freeze_time("2025-04-05")
 def test_draft_cf_closes_when_enddate_passed(commitfests, alice):
     """When a draft CF's enddate has passed, it should be closed."""
@@ -149,7 +146,6 @@ def test_draft_cf_closes_when_enddate_passed(commitfests, alice):
     assert patch.current_commitfest().id == new_draft.id
 
 
-@pytest.mark.django_db
 @freeze_time("2024-11-15")
 def test_no_changes_when_up_to_date(commitfests):
     """When commitfests are up to date, no changes should be made."""
