@@ -117,8 +117,9 @@ def refresh_single_thread(thread):
         parse_and_add_attachments(r, thread)
         # Potentially update the last mail date - if there wasn't already a mail on each patch
         # from a *different* thread that had an earlier date.
-        for p in thread.patches.filter(lastmail__lt=thread.latestmessage):
-            p.lastmail = thread.latestmessage
+        new_latestmessage = r[-1]["date"]
+        for p in thread.patches.filter(lastmail__lt=new_latestmessage):
+            p.lastmail = new_latestmessage
             p.save()
 
         # Finally, we update the thread entry itself. We should only do that at
