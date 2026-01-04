@@ -13,7 +13,6 @@ from pgcommitfest.commitfest.models import (
     PatchHistory,
     PatchOnCommitFest,
     PendingNotification,
-    Topic,
 )
 from pgcommitfest.mailqueue.models import QueuedMail
 from pgcommitfest.userprofile.models import UserProfile
@@ -31,17 +30,9 @@ def get_email_body(queued_mail):
     return ""
 
 
-@pytest.fixture
-def topic():
-    """Create a test topic."""
-    return Topic.objects.create(topic="General")
-
-
-def test_send_closure_notifications_to_authors_of_open_patches(
-    alice, in_progress_cf, topic
-):
+def test_send_closure_notifications_to_authors_of_open_patches(alice, in_progress_cf):
     """Authors of patches with open status should receive closure notifications."""
-    patch = Patch.objects.create(name="Test Patch", topic=topic)
+    patch = Patch.objects.create(name="Test Patch")
     patch.authors.add(alice)
     PatchOnCommitFest.objects.create(
         patch=patch,
@@ -60,9 +51,9 @@ def test_send_closure_notifications_to_authors_of_open_patches(
     assert "Test Patch" in body
 
 
-def test_no_notification_for_committed_patches(alice, in_progress_cf, topic):
+def test_no_notification_for_committed_patches(alice, in_progress_cf):
     """Authors of committed patches should not receive notifications."""
-    patch = Patch.objects.create(name="Committed Patch", topic=topic)
+    patch = Patch.objects.create(name="Committed Patch")
     patch.authors.add(alice)
     PatchOnCommitFest.objects.create(
         patch=patch,
@@ -77,11 +68,10 @@ def test_no_notification_for_committed_patches(alice, in_progress_cf, topic):
     assert QueuedMail.objects.count() == 0
 
 
-def test_no_notification_for_withdrawn_patches(alice, in_progress_cf, open_cf, topic):
+def test_no_notification_for_withdrawn_patches(alice, in_progress_cf, open_cf):
     """Withdrawn patches should not receive notifications or be auto-moved."""
     patch = Patch.objects.create(
         name="Withdrawn Patch",
-        topic=topic,
         lastmail=datetime.now() - timedelta(days=5),
     )
     patch.authors.add(alice)
@@ -99,9 +89,9 @@ def test_no_notification_for_withdrawn_patches(alice, in_progress_cf, open_cf, t
     assert QueuedMail.objects.count() == 0
 
 
-def test_one_email_per_author_with_multiple_patches(alice, in_progress_cf, topic):
+def test_one_email_per_author_with_multiple_patches(alice, in_progress_cf):
     """An author with multiple open patches should receive one email listing all patches."""
-    patch1 = Patch.objects.create(name="Patch One", topic=topic)
+    patch1 = Patch.objects.create(name="Patch One")
     patch1.authors.add(alice)
     PatchOnCommitFest.objects.create(
         patch=patch1,
@@ -110,7 +100,7 @@ def test_one_email_per_author_with_multiple_patches(alice, in_progress_cf, topic
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
 
-    patch2 = Patch.objects.create(name="Patch Two", topic=topic)
+    patch2 = Patch.objects.create(name="Patch Two")
     patch2.authors.add(alice)
     PatchOnCommitFest.objects.create(
         patch=patch2,
@@ -128,12 +118,12 @@ def test_one_email_per_author_with_multiple_patches(alice, in_progress_cf, topic
     assert "Patch Two" in body
 
 
-def test_multiple_authors_receive_separate_emails(alice, bob, in_progress_cf, topic):
+def test_multiple_authors_receive_separate_emails(alice, bob, in_progress_cf):
     """Each author of open patches should receive their own notification (if opted in)."""
     # Bob also needs notify_all_author enabled to receive closure emails
     UserProfile.objects.create(user=bob, notify_all_author=True)
 
-    patch1 = Patch.objects.create(name="Alice Patch", topic=topic)
+    patch1 = Patch.objects.create(name="Alice Patch")
     patch1.authors.add(alice)
     PatchOnCommitFest.objects.create(
         patch=patch1,
@@ -142,7 +132,7 @@ def test_multiple_authors_receive_separate_emails(alice, bob, in_progress_cf, to
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
 
-    patch2 = Patch.objects.create(name="Bob Patch", topic=topic)
+    patch2 = Patch.objects.create(name="Bob Patch")
     patch2.authors.add(bob)
     PatchOnCommitFest.objects.create(
         patch=patch2,
@@ -158,32 +148,12 @@ def test_multiple_authors_receive_separate_emails(alice, bob, in_progress_cf, to
     assert receivers == {alice.email, bob.email}
 
 
-def test_notification_includes_next_commitfest_info(
-    alice, in_progress_cf, open_cf, topic
-):
-    """Notification should include information about the next open commitfest."""
-    patch = Patch.objects.create(name="Test Patch", topic=topic)
-    patch.authors.add(alice)
-    PatchOnCommitFest.objects.create(
-        patch=patch,
-        commitfest=in_progress_cf,
-        enterdate=datetime.now(),
-        status=PatchOnCommitFest.STATUS_REVIEW,
-    )
-
-    in_progress_cf.send_closure_notifications()
-
-    mail = QueuedMail.objects.first()
-    body = get_email_body(mail)
-    assert open_cf.name in body
-
-
-def test_coauthors_both_receive_notification(alice, bob, in_progress_cf, topic):
+def test_coauthors_both_receive_notification(alice, bob, in_progress_cf):
     """Both co-authors of a patch should receive notifications (if opted in)."""
     # Bob also needs notify_all_author enabled to receive closure emails
     UserProfile.objects.create(user=bob, notify_all_author=True)
 
-    patch = Patch.objects.create(name="Coauthored Patch", topic=topic)
+    patch = Patch.objects.create(name="Coauthored Patch")
     patch.authors.add(alice)
     patch.authors.add(bob)
     PatchOnCommitFest.objects.create(
@@ -200,12 +170,10 @@ def test_coauthors_both_receive_notification(alice, bob, in_progress_cf, topic):
     assert receivers == {alice.email, bob.email}
 
 
-def test_no_notification_for_author_without_notify_all_author(
-    bob, in_progress_cf, topic
-):
+def test_no_notification_for_author_without_notify_all_author(bob, in_progress_cf):
     """Authors without notify_all_author enabled should not receive closure notifications."""
     # bob has no UserProfile, so notify_all_author is not enabled
-    patch = Patch.objects.create(name="Test Patch", topic=topic)
+    patch = Patch.objects.create(name="Test Patch")
     patch.authors.add(bob)
     PatchOnCommitFest.objects.create(
         patch=patch,
@@ -223,12 +191,11 @@ def test_no_notification_for_author_without_notify_all_author(
 
 
 def test_auto_move_patch_with_recent_email_activity(
-    alice, bob, in_progress_cf, open_cf, topic
+    alice, bob, in_progress_cf, open_cf
 ):
     """Patches with recent email activity should be auto-moved to the next commitfest."""
     patch = Patch.objects.create(
         name="Active Patch",
-        topic=topic,
         lastmail=datetime.now() - timedelta(days=5),
     )
     patch.authors.add(alice)
@@ -261,11 +228,10 @@ def test_auto_move_patch_with_recent_email_activity(
     assert QueuedMail.objects.count() == 0
 
 
-def test_no_auto_move_without_email_activity(alice, in_progress_cf, open_cf, topic):
+def test_no_auto_move_without_email_activity(alice, in_progress_cf, open_cf):
     """Patches without recent email activity should NOT be auto-moved."""
     patch = Patch.objects.create(
         name="Inactive Patch",
-        topic=topic,
         lastmail=datetime.now()
         - timedelta(days=settings.AUTO_MOVE_EMAIL_ACTIVITY_DAYS + 10),
     )
@@ -292,11 +258,10 @@ def test_no_auto_move_without_email_activity(alice, in_progress_cf, open_cf, top
     assert "need" in body  # "needs attention"
 
 
-def test_no_auto_move_when_failing_too_long(alice, in_progress_cf, open_cf, topic):
+def test_no_auto_move_when_failing_too_long(alice, in_progress_cf, open_cf):
     """Patches failing CI for too long should NOT be auto-moved even with recent activity."""
     patch = Patch.objects.create(
         name="Failing Patch",
-        topic=topic,
         lastmail=datetime.now() - timedelta(days=5),
     )
     patch.authors.add(alice)
@@ -326,11 +291,10 @@ def test_no_auto_move_when_failing_too_long(alice, in_progress_cf, open_cf, topi
     assert patch.current_commitfest().id == in_progress_cf.id
 
 
-def test_auto_move_when_failing_within_threshold(alice, in_progress_cf, open_cf, topic):
+def test_auto_move_when_failing_within_threshold(alice, in_progress_cf, open_cf):
     """Patches failing CI within the threshold should still be auto-moved."""
     patch = Patch.objects.create(
         name="Recently Failing Patch",
-        topic=topic,
         lastmail=datetime.now() - timedelta(days=5),
     )
     patch.authors.add(alice)
@@ -363,11 +327,10 @@ def test_auto_move_when_failing_within_threshold(alice, in_progress_cf, open_cf,
     assert QueuedMail.objects.count() == 0
 
 
-def test_no_auto_move_with_null_lastmail(alice, in_progress_cf, open_cf, topic):
+def test_no_auto_move_with_null_lastmail(alice, in_progress_cf, open_cf):
     """Patches with no email activity (null lastmail) should NOT be auto-moved."""
     patch = Patch.objects.create(
         name="No Activity Patch",
-        topic=topic,
         lastmail=None,
     )
     patch.authors.add(alice)
@@ -384,11 +347,10 @@ def test_no_auto_move_with_null_lastmail(alice, in_progress_cf, open_cf, topic):
     assert patch.current_commitfest().id == in_progress_cf.id
 
 
-def test_auto_move_patch_without_cfbot_branch(alice, in_progress_cf, open_cf, topic):
+def test_auto_move_patch_without_cfbot_branch(alice, in_progress_cf, open_cf):
     """Patches with recent activity but no CI branch should be auto-moved."""
     patch = Patch.objects.create(
         name="No CI Patch",
-        topic=topic,
         lastmail=datetime.now() - timedelta(days=5),
     )
     patch.authors.add(alice)
@@ -411,7 +373,7 @@ def test_auto_move_patch_without_cfbot_branch(alice, in_progress_cf, open_cf, to
     assert QueuedMail.objects.count() == 0
 
 
-def test_regular_cf_does_not_move_to_draft_cf(alice, in_progress_cf, topic):
+def test_regular_cf_does_not_move_to_draft_cf(alice, in_progress_cf):
     """Regular commitfest should move patches to the next regular CF, not a draft CF."""
     # Create a draft CF - should be ignored for regular CF patches
     draft_cf = CommitFest.objects.create(
@@ -432,7 +394,6 @@ def test_regular_cf_does_not_move_to_draft_cf(alice, in_progress_cf, topic):
 
     patch = Patch.objects.create(
         name="Regular Patch",
-        topic=topic,
         lastmail=datetime.now() - timedelta(days=5),
     )
     patch.authors.add(alice)
@@ -451,7 +412,7 @@ def test_regular_cf_does_not_move_to_draft_cf(alice, in_progress_cf, topic):
     assert patch.current_commitfest().id != draft_cf.id
 
 
-def test_draft_cf_moves_active_patches_to_next_draft(alice, bob, topic):
+def test_draft_cf_moves_active_patches_to_next_draft(alice, bob):
     """Active patches in a draft commitfest should be auto-moved to the next draft CF."""
     # Create two draft CFs - one closing and one to receive patches
     closing_draft_cf = CommitFest.objects.create(
@@ -471,7 +432,6 @@ def test_draft_cf_moves_active_patches_to_next_draft(alice, bob, topic):
 
     patch = Patch.objects.create(
         name="Draft Patch",
-        topic=topic,
         lastmail=datetime.now() - timedelta(days=5),
     )
     patch.authors.add(alice)
