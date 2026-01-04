@@ -44,12 +44,15 @@ def create_missing_tags_and_map_topics(apps, schema_editor):
         "Performance": "Performance",
         "Security": "Security",
         "Monitoring & Control": "Monitoring",
-        "Procedural Languages": "PL/pgSQL",
         "Replication & Recovery": "Physical Replication",
         "Clients": "libpq",
         "SQL Commands": "SQL Commands",
         "System Administration": "System Administration",
-        # 'Miscellaneous' and 'Server Features' are left untagged
+        # 'Miscellaneous' and 'Server Features' are left untagged, because they
+        # are too vague.
+        # 'Procedural Languages' has no direct tag equivalent, because new
+        # there are tags per language. So there's no clear tag that should be
+        # chosen there.
     }
 
     # Get patch IDs that are in active commitfests (open or in-progress)
