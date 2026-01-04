@@ -1351,5 +1351,63 @@
         "created": "2025-01-26T22:11:40.000",
         "modified": "2025-01-26T22:12:00.000"
     }
+},
+{
+    "model": "commitfest.patch",
+    "pk": 9,
+    "fields": {
+        "name": "Abandoned patch in closed commitfest",
+        "topic": 3,
+        "wikilink": "",
+        "gitlink": "",
+        "targetversion": null,
+        "committer": null,
+        "created": "2024-10-15T10:00:00",
+        "modified": "2024-10-15T10:00:00",
+        "lastmail": "2024-10-01T10:00:00",
+        "tags": [],
+        "authors": [],
+        "reviewers": [],
+        "subscribers": [],
+        "mailthread_set": [
+            9
+        ]
+    }
+},
+{
+    "model": "commitfest.mailthread",
+    "pk": 9,
+    "fields": {
+        "messageid": "abandoned@message-09",
+        "subject": "Abandoned patch in closed commitfest",
+        "firstmessage": "2024-10-01T10:00:00",
+        "firstauthor": "test@test.com",
+        "latestmessage": "2024-10-01T10:00:00",
+        "latestauthor": "test@test.com",
+        "latestsubject": "Abandoned patch in closed commitfest",
+        "latestmsgid": "abandoned@message-09"
+    }
+},
+{
+    "model": "commitfest.patchoncommitfest",
+    "pk": 10,
+    "fields": {
+        "patch": 9,
+        "commitfest": 1,
+        "enterdate": "2024-10-15T10:00:00",
+        "leavedate": null,
+        "status": 1
+    }
+},
+{
+    "model": "commitfest.patchhistory",
+    "pk": 23,
+    "fields": {
+        "patch": 9,
+        "date": "2024-10-15T10:00:00",
+        "by": 1,
+        "by_cfbot": false,
+        "what": "Created patch record"
+    }
 }
 ]

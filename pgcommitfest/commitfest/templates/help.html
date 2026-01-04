@@ -15,6 +15,11 @@
  </p>
  <p>There are 5 Commitfests per year. The first one is "In Progress" in <em>July</em> and starts the nine months feature development cycle of PostgreSQL. The next three are "In Progress" in <em>September</em>, <em>November</em> and <em>January</em>. The last Commitfest of the feature development cycle is "In Progress" in <em>March</em>, and ends a when the feature freeze starts. The exact date of the feature freeze depends on the year, but it's usually in early April.</p>
 
+ <h3>Commitfest closure</h3>
+ <p>
+  When a Commitfest closes, patches that have been active recently are automatically moved to the next Commitfest. A patch is considered "active" if it has had email activity in the past 30 days and has not been failing CI for more than 21 days. Patches that are not automatically moved will stay in the closed Commitfest, where they will no longer be picked up by CI. Authors of such patches that have enabled "Notify on all where author" in their profile settings will receive an email notification asking them to either move the patch to the next Commitfest or close it with an appropriate status.
+ </p>
+
  <h2>Patches</h2>
  <p>
   A "patch" is a bit of an overloaded term in the PostgreSQL community. Email threads on the mailing list often contain "patch files" as attachments, such a file is often referred to as a "patch". A single email can even contain multiple related "patch files", which are called a "patchset". However, in the context of a Commitfest app a "patch" usually means a "patch entry" in the Commitfest app. Such a "patch entry" is a reference to a mailinglist thread on which change to PostgreSQL has been proposed, by someone sending an email that contain one or more "patch files". The Commitfest app will automatically detect new versions of the patch files and update the "patch entry" accordingly.

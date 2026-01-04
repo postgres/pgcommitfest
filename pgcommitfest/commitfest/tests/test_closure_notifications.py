@@ -16,6 +16,7 @@ from pgcommitfest.commitfest.models import (
     Topic,
 )
 from pgcommitfest.mailqueue.models import QueuedMail
+from pgcommitfest.userprofile.models import UserProfile
 
 pytestmark = pytest.mark.django_db
 
@@ -129,7 +130,10 @@ def test_one_email_per_author_with_multiple_patches(alice, in_progress_cf, topic
 
 
 def test_multiple_authors_receive_separate_emails(alice, bob, in_progress_cf, topic):
-    """Each author of open patches should receive their own notification."""
+    """Each author of open patches should receive their own notification (if opted in)."""
+    # Bob also needs notify_all_author enabled to receive closure emails
+    UserProfile.objects.create(user=bob, notify_all_author=True)
+
     patch1 = Patch.objects.create(name="Alice Patch", topic=topic)
     patch1.authors.add(alice)
     PatchOnCommitFest.objects.create(
@@ -176,7 +180,10 @@ def test_notification_includes_next_commitfest_info(
 
 
 def test_coauthors_both_receive_notification(alice, bob, in_progress_cf, topic):
-    """Both co-authors of a patch should receive notifications."""
+    """Both co-authors of a patch should receive notifications (if opted in)."""
+    # Bob also needs notify_all_author enabled to receive closure emails
+    UserProfile.objects.create(user=bob, notify_all_author=True)
+
     patch = Patch.objects.create(name="Coauthored Patch", topic=topic)
     patch.authors.add(alice)
     patch.authors.add(bob)
@@ -195,10 +202,30 @@ def test_coauthors_both_receive_notification(alice, bob, in_progress_cf, topic):
 
 
 def test_no_notification_for_author_without_email(bob, in_progress_cf, topic):
-    """Authors without email addresses should be skipped."""
+    """Authors without email addresses should be skipped even if opted in."""
+    UserProfile.objects.create(user=bob, notify_all_author=True)
     bob.email = ""
     bob.save()
 
+    patch = Patch.objects.create(name="Test Patch", topic=topic)
+    patch.authors.add(bob)
+    PatchOnCommitFest.objects.create(
+        patch=patch,
+        commitfest=in_progress_cf,
+        enterdate=datetime.now(),
+        status=PatchOnCommitFest.STATUS_REVIEW,
+    )
+
+    in_progress_cf.send_closure_notifications()
+
+    assert QueuedMail.objects.count() == 0
+
+
+def test_no_notification_for_author_without_notify_all_author(
+    bob, in_progress_cf, topic
+):
+    """Authors without notify_all_author enabled should not receive closure notifications."""
+    # bob has no UserProfile, so notify_all_author is not enabled
     patch = Patch.objects.create(name="Test Patch", topic=topic)
     patch.authors.add(bob)
     PatchOnCommitFest.objects.create(
