@@ -39,7 +39,6 @@ def create_missing_tags_and_map_topics(apps, schema_editor):
         "Performance": "Performance",
         "Security": "Security",
         "Monitoring & Control": "Monitoring",
-        "Replication & Recovery": "Physical Replication",
         "Clients": "libpq",
         "SQL Commands": "SQL Commands",
         "System Administration": "System Administration",
@@ -47,7 +46,8 @@ def create_missing_tags_and_map_topics(apps, schema_editor):
         # are too vague.
         # 'Procedural Languages' has no direct tag equivalent, because new
         # there are tags per language. So there's no clear tag that should be
-        # chosen there.
+        # chosen there. Similar for 'Replication & Recovery', which also has
+        # separate tags now for logical and physical replication.
     }
 
     # Apply tags to existing patches based on their topics
