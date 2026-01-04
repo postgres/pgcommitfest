@@ -624,7 +624,10 @@ def commitfest(request, cfid):
     status_filter = "AND poc.status != %(status_moved)s" if cf.draft else ""
     curs.execute(
         f"SELECT ps.status, ps.statusstring, count(*) FROM commitfest_patchoncommitfest poc INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status WHERE commitfest_id=%(id)s {status_filter} GROUP BY ps.status ORDER BY ps.sortkey",
-        {"id": cf.id, "status_moved": PatchOnCommitFest.STATUS_MOVED},
+        {
+            "id": cf.id,
+            "status_moved": PatchOnCommitFest.STATUS_MOVED,
+        },
     )
     statussummary = curs.fetchall()
     statussummary.append([-1, "Total", sum((r[2] for r in statussummary))])
