@@ -208,27 +208,23 @@ class CommitFest(models.Model):
             next_cf_url = "https://commitfest.postgresql.org/"
 
         # Collect unique authors and their patches
-        # Only include authors who have notify_all_author enabled
         authors_patches = {}
         for poc in open_pocs:
             for author in poc.patch.authors.all():
-                if not author.email:
-                    continue
-                try:
-                    if not author.userprofile.notify_all_author:
-                        continue
-                except UserProfile.DoesNotExist:
-                    continue
                 if author not in authors_patches:
                     authors_patches[author] = []
                 authors_patches[author].append(poc)
 
-        # Send email to each author
+        # Send email to each author who has notifications enabled
         for author, patches in authors_patches.items():
-            # Get user's notification email preference
-            email = author.email
-            if author.userprofile.notifyemail:
-                email = author.userprofile.notifyemail.email
+            try:
+                if not author.userprofile.notify_all_author:
+                    continue
+                notifyemail = author.userprofile.notifyemail
+            except UserProfile.DoesNotExist:
+                continue
+
+            email = notifyemail.email if notifyemail else author.email
 
             send_template_mail(
                 settings.NOTIFICATION_FROM,

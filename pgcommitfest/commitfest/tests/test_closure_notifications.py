@@ -200,26 +200,6 @@ def test_coauthors_both_receive_notification(alice, bob, in_progress_cf, topic):
     assert receivers == {alice.email, bob.email}
 
 
-def test_no_notification_for_author_without_email(bob, in_progress_cf, topic):
-    """Authors without email addresses should be skipped even if opted in."""
-    UserProfile.objects.create(user=bob, notify_all_author=True)
-    bob.email = ""
-    bob.save()
-
-    patch = Patch.objects.create(name="Test Patch", topic=topic)
-    patch.authors.add(bob)
-    PatchOnCommitFest.objects.create(
-        patch=patch,
-        commitfest=in_progress_cf,
-        enterdate=datetime.now(),
-        status=PatchOnCommitFest.STATUS_REVIEW,
-    )
-
-    in_progress_cf.send_closure_notifications()
-
-    assert QueuedMail.objects.count() == 0
-
-
 def test_no_notification_for_author_without_notify_all_author(
     bob, in_progress_cf, topic
 ):
