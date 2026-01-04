@@ -43,9 +43,6 @@ def test_inprogress_cf_closes_when_enddate_passed(commitfests, alice):
 def test_open_cf_becomes_inprogress_when_startdate_reached(commitfests):
     """When an open CF's startdate is reached, it becomes in_progress."""
     open_cf = commitfests["open"]
-    # Mark in_progress as closed so open_cf becomes the active one
-    commitfests["in_progress"].status = CommitFest.STATUS_CLOSED
-    commitfests["in_progress"].save()
 
     CommitFest._refresh_relevant_commitfests(for_update=False)
 
@@ -63,9 +60,6 @@ def test_open_cf_becomes_inprogress_when_startdate_reached(commitfests):
 def test_open_cf_closes_when_enddate_passed(commitfests, alice):
     """When an open CF's enddate has passed (skipping in_progress), it closes."""
     open_cf = commitfests["open"]
-    # Mark in_progress as closed
-    commitfests["in_progress"].status = CommitFest.STATUS_CLOSED
-    commitfests["in_progress"].save()
 
     patch = Patch.objects.create(
         name="Test Patch",
@@ -96,9 +90,6 @@ def test_open_cf_closes_when_enddate_passed(commitfests, alice):
 @freeze_time("2025-01-15")
 def test_draft_cf_created_when_missing(commitfests):
     """When no draft CF exists, one should be created."""
-    # Mark in_progress as closed
-    commitfests["in_progress"].status = CommitFest.STATUS_CLOSED
-    commitfests["in_progress"].save()
     # Delete the draft CF
     commitfests["draft"].delete()
 
@@ -115,9 +106,6 @@ def test_draft_cf_created_when_missing(commitfests):
 def test_draft_cf_closes_when_enddate_passed(commitfests, alice):
     """When a draft CF's enddate has passed, it should be closed."""
     draft_cf = commitfests["draft"]
-    # Mark in_progress as closed
-    commitfests["in_progress"].status = CommitFest.STATUS_CLOSED
-    commitfests["in_progress"].save()
 
     patch = Patch.objects.create(
         name="Draft Patch",
