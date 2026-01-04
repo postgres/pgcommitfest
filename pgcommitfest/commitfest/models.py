@@ -154,40 +154,25 @@ class CommitFest(models.Model):
         """
         current_date = datetime.now()
 
-        # Get the next open commitfest
+        # Get the next open commitfest (must exist, raises IndexError otherwise)
         # For draft CFs, find the next draft CF
         # For regular CFs, find the next regular CF by start date
         if self.draft:
-            next_cf = (
-                CommitFest.objects.filter(
-                    status=CommitFest.STATUS_OPEN,
-                    draft=True,
-                    startdate__gt=self.enddate,
-                )
-                .order_by("startdate")
-                .first()
-            )
+            next_cf = CommitFest.objects.filter(
+                status=CommitFest.STATUS_OPEN,
+                draft=True,
+                startdate__gt=self.enddate,
+            ).order_by("startdate")[0]
         else:
-            next_cf = (
-                CommitFest.objects.filter(
-                    status=CommitFest.STATUS_OPEN,
-                    draft=False,
-                    startdate__gt=self.enddate,
-                )
-                .order_by("startdate")
-                .first()
-            )
-
-        if not next_cf:
-            return set()
+            next_cf = CommitFest.objects.filter(
+                status=CommitFest.STATUS_OPEN,
+                draft=False,
+                startdate__gt=self.enddate,
+            ).order_by("startdate")[0]
 
         # Get all patches with open status in this commitfest
         open_pocs = self.patchoncommitfest_set.filter(
-            status__in=[
-                PatchOnCommitFest.STATUS_REVIEW,
-                PatchOnCommitFest.STATUS_AUTHOR,
-                PatchOnCommitFest.STATUS_COMMITTER,
-            ]
+            status__in=PatchOnCommitFest.OPEN_STATUSES
         ).select_related("patch")
 
         moved_patch_ids = set()
@@ -211,11 +196,7 @@ class CommitFest(models.Model):
         # Get patches that still need action (not moved, not closed)
         open_pocs = list(
             self.patchoncommitfest_set.filter(
-                status__in=[
-                    PatchOnCommitFest.STATUS_REVIEW,
-                    PatchOnCommitFest.STATUS_AUTHOR,
-                    PatchOnCommitFest.STATUS_COMMITTER,
-                ]
+                status__in=PatchOnCommitFest.OPEN_STATUSES
             )
             .exclude(patch_id__in=moved_patch_ids)
             .select_related("patch")

@@ -384,29 +384,6 @@ def test_auto_move_when_failing_within_threshold(alice, in_progress_cf, open_cf,
     assert QueuedMail.objects.count() == 0
 
 
-def test_no_auto_move_without_next_commitfest(alice, in_progress_cf, topic):
-    """Patches should not be auto-moved if there's no next commitfest."""
-    patch = Patch.objects.create(
-        name="Active Patch No Next CF",
-        topic=topic,
-        lastmail=datetime.now() - timedelta(days=5),
-    )
-    patch.authors.add(alice)
-    PatchOnCommitFest.objects.create(
-        patch=patch,
-        commitfest=in_progress_cf,
-        enterdate=datetime.now(),
-        status=PatchOnCommitFest.STATUS_REVIEW,
-    )
-
-    moved_patch_ids = in_progress_cf.auto_move_active_patches()
-    in_progress_cf.send_closure_notifications(moved_patch_ids)
-
-    # Patch should NOT be moved (no next CF)
-    patch.refresh_from_db()
-    assert patch.current_commitfest().id == in_progress_cf.id
-
-
 def test_no_auto_move_with_null_lastmail(alice, in_progress_cf, open_cf, topic):
     """Patches with no email activity (null lastmail) should NOT be auto-moved."""
     patch = Patch.objects.create(
@@ -458,14 +435,22 @@ def test_auto_move_patch_without_cfbot_branch(alice, in_progress_cf, open_cf, to
 
 
 def test_regular_cf_does_not_move_to_draft_cf(alice, in_progress_cf, topic):
-    """Regular commitfest should not move patches to a draft commitfest."""
-    # Create only a draft CF as the "next" option (should be ignored)
-    CommitFest.objects.create(
+    """Regular commitfest should move patches to the next regular CF, not a draft CF."""
+    # Create a draft CF - should be ignored for regular CF patches
+    draft_cf = CommitFest.objects.create(
         name="2025-05-draft",
         status=CommitFest.STATUS_OPEN,
         startdate=date(2025, 5, 1),
         enddate=date(2025, 5, 31),
         draft=True,
+    )
+    # Create a regular CF - this is where patches should go
+    regular_cf = CommitFest.objects.create(
+        name="2025-01",
+        status=CommitFest.STATUS_OPEN,
+        startdate=date(2025, 1, 1),
+        enddate=date(2025, 1, 31),
+        draft=False,
     )
 
     patch = Patch.objects.create(
@@ -483,10 +468,11 @@ def test_regular_cf_does_not_move_to_draft_cf(alice, in_progress_cf, topic):
 
     moved_patch_ids = in_progress_cf.auto_move_active_patches()
 
-    # Should not be moved since only draft CF is available
-    assert patch.id not in moved_patch_ids
+    # Should be moved to regular CF, not draft CF
+    assert patch.id in moved_patch_ids
     patch.refresh_from_db()
-    assert patch.current_commitfest().id == in_progress_cf.id
+    assert patch.current_commitfest().id == regular_cf.id
+    assert patch.current_commitfest().id != draft_cf.id
 
 
 def test_draft_cf_moves_active_patches_to_next_draft(alice, bob, topic):
