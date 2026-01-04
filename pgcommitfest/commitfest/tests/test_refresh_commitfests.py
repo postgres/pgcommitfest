@@ -7,14 +7,8 @@ from pgcommitfest.commitfest.models import (
     CommitFest,
     Patch,
     PatchOnCommitFest,
-    Topic,
 )
 from pgcommitfest.userprofile.models import UserProfile
-
-
-@pytest.fixture
-def topic(db):
-    return Topic.objects.create(topic="General")
 
 
 @pytest.fixture
@@ -41,7 +35,7 @@ def create_closed_cf(name, startdate, enddate):
 
 @pytest.mark.django_db
 @freeze_time("2024-12-05")
-def test_inprogress_cf_closes_when_enddate_passed(topic, alice):
+def test_inprogress_cf_closes_when_enddate_passed(alice):
     """When an in_progress CF's enddate has passed, it should be closed."""
     # Create some closed CFs for padding (relevant_commitfests needs history)
     create_closed_cf("2024-07", date(2024, 7, 1), date(2024, 7, 31))
@@ -73,7 +67,6 @@ def test_inprogress_cf_closes_when_enddate_passed(topic, alice):
     # Create a patch with recent activity that should be auto-moved
     patch = Patch.objects.create(
         name="Test Patch",
-        topic=topic,
         lastmail=datetime(2024, 11, 25),
     )
     patch.authors.add(alice)
@@ -133,7 +126,7 @@ def test_open_cf_becomes_inprogress_when_startdate_reached():
 
 @pytest.mark.django_db
 @freeze_time("2025-02-05")
-def test_open_cf_closes_when_enddate_passed(topic, alice):
+def test_open_cf_closes_when_enddate_passed(alice):
     """When an open CF's enddate has passed (skipping in_progress), it closes."""
     # Create some closed CFs for padding
     create_closed_cf("2024-07", date(2024, 7, 1), date(2024, 7, 31))
@@ -158,7 +151,6 @@ def test_open_cf_closes_when_enddate_passed(topic, alice):
     # Create a patch with recent activity
     patch = Patch.objects.create(
         name="Test Patch",
-        topic=topic,
         lastmail=datetime(2025, 1, 25),
     )
     patch.authors.add(alice)
@@ -214,7 +206,7 @@ def test_draft_cf_created_when_missing():
 
 @pytest.mark.django_db
 @freeze_time("2025-04-05")
-def test_draft_cf_closes_when_enddate_passed(topic, alice):
+def test_draft_cf_closes_when_enddate_passed(alice):
     """When a draft CF's enddate has passed, it should be closed."""
     # Create closed CFs for padding
     create_closed_cf("2024-07", date(2024, 7, 1), date(2024, 7, 31))
@@ -241,7 +233,6 @@ def test_draft_cf_closes_when_enddate_passed(topic, alice):
     # Create a patch with recent activity
     patch = Patch.objects.create(
         name="Draft Patch",
-        topic=topic,
         lastmail=datetime(2025, 3, 25),
     )
     patch.authors.add(alice)

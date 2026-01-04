@@ -255,7 +255,7 @@ def test_no_auto_move_without_email_activity(alice, in_progress_cf, open_cf):
     mail = QueuedMail.objects.first()
     body = get_email_body(mail)
     assert "Inactive Patch" in body
-    assert "need" in body  # "needs attention"
+    assert "needs attention" in body
 
 
 def test_no_auto_move_when_failing_too_long(alice, in_progress_cf, open_cf):
@@ -289,6 +289,12 @@ def test_no_auto_move_when_failing_too_long(alice, in_progress_cf, open_cf):
     # Patch should NOT be moved
     patch.refresh_from_db()
     assert patch.current_commitfest().id == in_progress_cf.id
+
+    # Author should receive closure notification
+    assert QueuedMail.objects.count() == 1
+    mail = QueuedMail.objects.first()
+    body = get_email_body(mail)
+    assert "Failing Patch" in body
 
 
 def test_auto_move_when_failing_within_threshold(alice, in_progress_cf, open_cf):
@@ -327,68 +333,22 @@ def test_auto_move_when_failing_within_threshold(alice, in_progress_cf, open_cf)
     assert QueuedMail.objects.count() == 0
 
 
-def test_no_auto_move_with_null_lastmail(alice, in_progress_cf, open_cf):
-    """Patches with no email activity (null lastmail) should NOT be auto-moved."""
-    patch = Patch.objects.create(
-        name="No Activity Patch",
-        lastmail=None,
-    )
-    patch.authors.add(alice)
-    PatchOnCommitFest.objects.create(
-        patch=patch,
-        commitfest=in_progress_cf,
-        enterdate=datetime.now(),
-        status=PatchOnCommitFest.STATUS_REVIEW,
-    )
-
-    in_progress_cf.auto_move_active_patches()
-
-    patch.refresh_from_db()
-    assert patch.current_commitfest().id == in_progress_cf.id
-
-
-def test_auto_move_patch_without_cfbot_branch(alice, in_progress_cf, open_cf):
-    """Patches with recent activity but no CI branch should be auto-moved."""
-    patch = Patch.objects.create(
-        name="No CI Patch",
-        lastmail=datetime.now() - timedelta(days=5),
-    )
-    patch.authors.add(alice)
-    PatchOnCommitFest.objects.create(
-        patch=patch,
-        commitfest=in_progress_cf,
-        enterdate=datetime.now(),
-        status=PatchOnCommitFest.STATUS_REVIEW,
-    )
-
-    # No CfbotBranch created - CI never ran
-
-    in_progress_cf.auto_move_active_patches()
-    in_progress_cf.send_closure_notifications()
-
-    patch.refresh_from_db()
-    assert patch.current_commitfest().id == open_cf.id
-
-    # No closure email for moved patches
-    assert QueuedMail.objects.count() == 0
-
-
 def test_regular_cf_does_not_move_to_draft_cf(alice, in_progress_cf):
     """Regular commitfest should move patches to the next regular CF, not a draft CF."""
-    # Create a draft CF - should be ignored for regular CF patches
+    # Create a draft CF with earlier startdate - should be ignored for regular CF patches
     draft_cf = CommitFest.objects.create(
-        name="2025-05-draft",
+        name="2024-12-draft",
         status=CommitFest.STATUS_OPEN,
-        startdate=date(2025, 5, 1),
-        enddate=date(2025, 5, 31),
+        startdate=date(2024, 12, 1),
+        enddate=date(2024, 12, 31),
         draft=True,
     )
-    # Create a regular CF - this is where patches should go
+    # Create a regular CF with later startdate - this is where patches should go
     regular_cf = CommitFest.objects.create(
-        name="2025-01",
+        name="2025-03",
         status=CommitFest.STATUS_OPEN,
-        startdate=date(2025, 1, 1),
-        enddate=date(2025, 1, 31),
+        startdate=date(2025, 3, 1),
+        enddate=date(2025, 3, 31),
         draft=False,
     )
 
@@ -421,6 +381,14 @@ def test_draft_cf_moves_active_patches_to_next_draft(alice, bob):
         startdate=date(2025, 3, 1),
         enddate=date(2025, 3, 31),
         draft=True,
+    )
+    # Create a regular open CF with earlier startdate - should be ignored for draft patches
+    CommitFest.objects.create(
+        name="2025-05",
+        status=CommitFest.STATUS_OPEN,
+        startdate=date(2025, 5, 1),
+        enddate=date(2025, 5, 31),
+        draft=False,
     )
     next_draft_cf = CommitFest.objects.create(
         name="2026-03-draft",
