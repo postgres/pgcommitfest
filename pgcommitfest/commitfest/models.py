@@ -137,6 +137,9 @@ class CommitFest(models.Model):
             ):
                 return False
         except CfbotBranch.DoesNotExist:
+            # IF no CFBot data exists, the patch is probably very new (i.e. no
+            # CI run has ever taken place for it yet). So we auto-move it in
+            # that case.
             pass
 
         return True
