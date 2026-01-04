@@ -149,8 +149,6 @@ class CommitFest(models.Model):
 
         A patch is moved if it has recent email activity and hasn't been
         failing CI for too long.
-
-        Returns a set of patch IDs that were moved.
         """
         current_date = datetime.now()
 
@@ -175,30 +173,17 @@ class CommitFest(models.Model):
             status__in=PatchOnCommitFest.OPEN_STATUSES
         ).select_related("patch")
 
-        moved_patch_ids = set()
         for poc in open_pocs:
             if self._should_auto_move_patch(poc.patch, current_date):
                 poc.patch.move(self, next_cf, by_user=None, by_cfbot=True)
-                moved_patch_ids.add(poc.patch.id)
 
-        return moved_patch_ids
-
-    def send_closure_notifications(self, moved_patch_ids=None):
-        """Send email notifications to authors of patches that weren't auto-moved.
-
-        Args:
-            moved_patch_ids: Set of patch IDs that were auto-moved to the next commitfest.
-                           These patches are excluded since the move triggers its own notification.
-        """
-        if moved_patch_ids is None:
-            moved_patch_ids = set()
-
+    def send_closure_notifications(self):
+        """Send email notifications to authors of patches that are still open."""
         # Get patches that still need action (not moved, not closed)
         open_pocs = list(
             self.patchoncommitfest_set.filter(
                 status__in=PatchOnCommitFest.OPEN_STATUSES
             )
-            .exclude(patch_id__in=moved_patch_ids)
             .select_related("patch")
             .prefetch_related("patch__authors")
         )
@@ -292,19 +277,19 @@ class CommitFest(models.Model):
 
             inprogress_cf = cfs["in_progress"]
             if inprogress_cf and inprogress_cf.enddate < current_date:
-                moved_patch_ids = inprogress_cf.auto_move_active_patches()
+                inprogress_cf.auto_move_active_patches()
                 inprogress_cf.status = CommitFest.STATUS_CLOSED
                 inprogress_cf.save()
-                inprogress_cf.send_closure_notifications(moved_patch_ids)
+                inprogress_cf.send_closure_notifications()
 
             open_cf = cfs["open"]
 
             if open_cf.startdate <= current_date:
                 if open_cf.enddate < current_date:
-                    moved_patch_ids = open_cf.auto_move_active_patches()
+                    open_cf.auto_move_active_patches()
                     open_cf.status = CommitFest.STATUS_CLOSED
                     open_cf.save()
-                    open_cf.send_closure_notifications(moved_patch_ids)
+                    open_cf.send_closure_notifications()
                 else:
                     open_cf.status = CommitFest.STATUS_INPROGRESS
                     open_cf.save()
@@ -316,10 +301,10 @@ class CommitFest(models.Model):
                 cls.next_draft_cf(current_date).save()
             elif draft_cf.enddate < current_date:
                 # If the draft commitfest has started, we need to update it
-                moved_patch_ids = draft_cf.auto_move_active_patches()
+                draft_cf.auto_move_active_patches()
                 draft_cf.status = CommitFest.STATUS_CLOSED
                 draft_cf.save()
-                draft_cf.send_closure_notifications(moved_patch_ids)
+                draft_cf.send_closure_notifications()
                 cls.next_draft_cf(current_date).save()
 
             return cls.relevant_commitfests(for_update=for_update)

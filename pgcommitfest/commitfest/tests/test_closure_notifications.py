@@ -93,10 +93,9 @@ def test_no_notification_for_withdrawn_patches(alice, in_progress_cf, open_cf, t
         status=PatchOnCommitFest.STATUS_WITHDRAWN,
     )
 
-    moved_patch_ids = in_progress_cf.auto_move_active_patches()
-    in_progress_cf.send_closure_notifications(moved_patch_ids)
+    in_progress_cf.auto_move_active_patches()
+    in_progress_cf.send_closure_notifications()
 
-    assert patch.id not in moved_patch_ids
     assert QueuedMail.objects.count() == 0
 
 
@@ -261,8 +260,8 @@ def test_auto_move_patch_with_recent_email_activity(
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
 
-    moved_patch_ids = in_progress_cf.auto_move_active_patches()
-    in_progress_cf.send_closure_notifications(moved_patch_ids)
+    in_progress_cf.auto_move_active_patches()
+    in_progress_cf.send_closure_notifications()
 
     # Patch should be moved
     patch.refresh_from_db()
@@ -298,8 +297,8 @@ def test_no_auto_move_without_email_activity(alice, in_progress_cf, open_cf, top
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
 
-    moved_patch_ids = in_progress_cf.auto_move_active_patches()
-    in_progress_cf.send_closure_notifications(moved_patch_ids)
+    in_progress_cf.auto_move_active_patches()
+    in_progress_cf.send_closure_notifications()
 
     # Patch should NOT be moved
     patch.refresh_from_db()
@@ -339,8 +338,8 @@ def test_no_auto_move_when_failing_too_long(alice, in_progress_cf, open_cf, topi
         - timedelta(days=settings.AUTO_MOVE_MAX_FAILING_DAYS + 10),
     )
 
-    moved_patch_ids = in_progress_cf.auto_move_active_patches()
-    in_progress_cf.send_closure_notifications(moved_patch_ids)
+    in_progress_cf.auto_move_active_patches()
+    in_progress_cf.send_closure_notifications()
 
     # Patch should NOT be moved
     patch.refresh_from_db()
@@ -373,8 +372,8 @@ def test_auto_move_when_failing_within_threshold(alice, in_progress_cf, open_cf,
         - timedelta(days=settings.AUTO_MOVE_MAX_FAILING_DAYS - 5),
     )
 
-    moved_patch_ids = in_progress_cf.auto_move_active_patches()
-    in_progress_cf.send_closure_notifications(moved_patch_ids)
+    in_progress_cf.auto_move_active_patches()
+    in_progress_cf.send_closure_notifications()
 
     # Patch should be moved (failure is recent enough)
     patch.refresh_from_db()
@@ -399,9 +398,8 @@ def test_no_auto_move_with_null_lastmail(alice, in_progress_cf, open_cf, topic):
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
 
-    moved_patch_ids = in_progress_cf.auto_move_active_patches()
+    in_progress_cf.auto_move_active_patches()
 
-    assert patch.id not in moved_patch_ids
     patch.refresh_from_db()
     assert patch.current_commitfest().id == in_progress_cf.id
 
@@ -423,10 +421,9 @@ def test_auto_move_patch_without_cfbot_branch(alice, in_progress_cf, open_cf, to
 
     # No CfbotBranch created - CI never ran
 
-    moved_patch_ids = in_progress_cf.auto_move_active_patches()
-    in_progress_cf.send_closure_notifications(moved_patch_ids)
+    in_progress_cf.auto_move_active_patches()
+    in_progress_cf.send_closure_notifications()
 
-    assert patch.id in moved_patch_ids
     patch.refresh_from_db()
     assert patch.current_commitfest().id == open_cf.id
 
@@ -466,10 +463,9 @@ def test_regular_cf_does_not_move_to_draft_cf(alice, in_progress_cf, topic):
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
 
-    moved_patch_ids = in_progress_cf.auto_move_active_patches()
+    in_progress_cf.auto_move_active_patches()
 
     # Should be moved to regular CF, not draft CF
-    assert patch.id in moved_patch_ids
     patch.refresh_from_db()
     assert patch.current_commitfest().id == regular_cf.id
     assert patch.current_commitfest().id != draft_cf.id
@@ -507,8 +503,8 @@ def test_draft_cf_moves_active_patches_to_next_draft(alice, bob, topic):
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
 
-    moved_patch_ids = closing_draft_cf.auto_move_active_patches()
-    closing_draft_cf.send_closure_notifications(moved_patch_ids)
+    closing_draft_cf.auto_move_active_patches()
+    closing_draft_cf.send_closure_notifications()
 
     # Patch should be moved to the next draft CF
     patch.refresh_from_db()
