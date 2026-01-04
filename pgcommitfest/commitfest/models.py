@@ -284,24 +284,24 @@ class CommitFest(models.Model):
                 if open_cf.enddate < current_date:
                     open_cf.status = CommitFest.STATUS_CLOSED
                     open_cf.save()
+                    cls.next_open_cf(current_date).save()
                     open_cf.auto_move_active_patches()
                     open_cf.send_closure_notifications()
                 else:
                     open_cf.status = CommitFest.STATUS_INPROGRESS
                     open_cf.save()
-
-                cls.next_open_cf(current_date).save()
+                    cls.next_open_cf(current_date).save()
 
             draft_cf = cfs["draft"]
             if not draft_cf:
                 cls.next_draft_cf(current_date).save()
             elif draft_cf.enddate < current_date:
-                # If the draft commitfest has started, we need to update it
+                # Create next CF first so auto_move has somewhere to move patches
                 draft_cf.status = CommitFest.STATUS_CLOSED
                 draft_cf.save()
+                cls.next_draft_cf(current_date).save()
                 draft_cf.auto_move_active_patches()
                 draft_cf.send_closure_notifications()
-                cls.next_draft_cf(current_date).save()
 
             return cls.relevant_commitfests(for_update=for_update)
 
