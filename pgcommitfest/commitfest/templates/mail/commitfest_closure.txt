@@ -9,15 +9,8 @@ You have {{patches|length}} open patch{{patches|length|pluralize:"es"}} that nee
     https://commitfest.postgresql.org/patch/{{poc.patch.id}}/
 {% endfor %}
 
-Please take action on {{patches|length|pluralize:"these patches,this patch"}}:
+Please take action on {{patches|length|pluralize:"these patches,this patch"}} by doing either of the following:
 
 1. If you want to continue working on {{patches|length|pluralize:"them,it"}}, move {{patches|length|pluralize:"them,it"}} to the next commitfest{% if next_cf %}: {{next_cf_url}}{% endif %}
 
 2. If you no longer wish to pursue {{patches|length|pluralize:"these patches,this patch"}}, please close {{patches|length|pluralize:"them,it"}} with an appropriate status (Withdrawn, Returned with feedback, etc.)
-
-{% if next_cf %}The next commitfest is {{next_cf.name}}, which runs from {{next_cf.startdate}} to {{next_cf.enddate}}.{% else %}Please check https://commitfest.postgresql.org/ for upcoming commitfests.{% endif %}
-
-Thank you for your contributions to PostgreSQL!
-
---
-This is an automated message from the PostgreSQL Commitfest application.

@@ -20,6 +20,7 @@ dev = [
     "djhtml",
     "pytest",
     "pytest-django",
+    "freezegun",
 ]
 
 [tool.setuptools.packages.find]

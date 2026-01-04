@@ -17,7 +17,7 @@
 
  <h3>Commitfest closure</h3>
  <p>
-  When a Commitfest closes, patches that have been active recently are automatically moved to the next Commitfest. A patch is considered "active" if it has had email activity in the past 30 days and has not been failing CI for more than 21 days. Patches that are not automatically moved will stay in the closed Commitfest, where they will no longer be picked up by CI. Authors of such patches that have enabled "Notify on all where author" in their profile settings will receive an email notification asking them to either move the patch to the next Commitfest or close it with an appropriate status.
+  When a Commitfest closes, patches that have been active recently are automatically moved to the next Commitfest. A patch is considered "active" if it has had email activity in the past {{auto_move_email_activity_days}} days and has not been failing CI for more than {{auto_move_max_failing_days}} days. Patches that are not automatically moved will stay in the closed Commitfest, where they will no longer be picked up by CI. Authors of such patches that have enabled "Notify on all where author" in their profile settings will receive an email notification asking them to either move the patch to the next Commitfest or close it with an appropriate status.
  </p>
 
  <h2>Patches</h2>
