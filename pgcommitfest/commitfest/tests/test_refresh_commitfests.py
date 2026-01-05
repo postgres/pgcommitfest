@@ -35,6 +35,7 @@ def test_inprogress_cf_closes_when_enddate_passed(commitfests, alice):
     in_progress_cf.refresh_from_db()
     assert in_progress_cf.status == CommitFest.STATUS_CLOSED
 
+    # Patch should be auto-moved
     patch.refresh_from_db()
     assert patch.current_commitfest().id == open_cf.id
 
@@ -83,6 +84,7 @@ def test_open_cf_closes_when_enddate_passed(commitfests, alice):
     ).first()
     assert new_open is not None
 
+    # Patch should be auto-moved
     patch.refresh_from_db()
     assert patch.current_commitfest().id == new_open.id
 
@@ -130,6 +132,7 @@ def test_draft_cf_closes_when_enddate_passed(commitfests, alice):
     assert new_draft is not None
     assert new_draft.startdate > draft_cf.enddate
 
+    # Patch should be auto-moved
     patch.refresh_from_db()
     assert patch.current_commitfest().id == new_draft.id
 

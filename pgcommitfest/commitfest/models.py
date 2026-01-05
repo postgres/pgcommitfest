@@ -191,22 +191,6 @@ class CommitFest(models.Model):
         if not open_pocs:
             return
 
-        # Get the next open commitfest if available
-        next_cf = (
-            CommitFest.objects.filter(
-                status=CommitFest.STATUS_OPEN,
-                draft=self.draft,
-                startdate__gt=self.enddate,
-            )
-            .order_by("startdate")
-            .first()
-        )
-
-        if next_cf:
-            next_cf_url = f"https://commitfest.postgresql.org/{next_cf.id}/"
-        else:
-            next_cf_url = "https://commitfest.postgresql.org/"
-
         # Collect unique authors and their patches
         authors_patches = {}
         for poc in open_pocs:
@@ -230,14 +214,12 @@ class CommitFest(models.Model):
                 settings.NOTIFICATION_FROM,
                 None,
                 email,
-                f"Commitfest {self.name} has closed",
+                f"Commitfest {self.name} has closed and you have unmoved patches",
                 "mail/commitfest_closure.txt",
                 {
                     "user": author,
                     "commitfest": self,
                     "patches": patches,
-                    "next_cf": next_cf,
-                    "next_cf_url": next_cf_url,
                 },
             )
 
