@@ -36,7 +36,7 @@ class UserProfile(models.Model):
     notify_all_author = models.BooleanField(
         null=False,
         blank=False,
-        default=False,
+        default=True,
         verbose_name="Notify on all where author",
     )
     notify_all_reviewer = models.BooleanField(

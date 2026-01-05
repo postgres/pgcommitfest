@@ -12,14 +12,14 @@ from pgcommitfest.userprofile.models import UserProfile
 
 @pytest.fixture
 def alice():
-    """Create test user Alice with notify_all_author enabled."""
+    """Create test user Alice with a profile (uses default notify_all_author=True)."""
     user = User.objects.create_user(
         username="alice",
         first_name="Alice",
         last_name="Anderson",
         email="alice@example.com",
     )
-    UserProfile.objects.create(user=user, notify_all_author=True)
+    UserProfile.objects.create(user=user)
     return user
 
 

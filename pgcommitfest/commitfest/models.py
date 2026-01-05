@@ -202,11 +202,13 @@ class CommitFest(models.Model):
         # Send email to each author who has notifications enabled
         for author, patches in authors_patches.items():
             try:
-                if not author.userprofile.notify_all_author:
+                profile = author.userprofile
+                if not profile.notify_all_author:
                     continue
-                notifyemail = author.userprofile.notifyemail
+                notifyemail = profile.notifyemail
             except UserProfile.DoesNotExist:
-                continue
+                # No profile means use default (notify=True), so continue
+                notifyemail = None
 
             email = notifyemail.email if notifyemail else author.email
 
@@ -813,9 +815,12 @@ class PatchHistory(models.Model):
                     )
                 )
 
-        # Current or previous authors wants all notifications
+        # Current or previous authors wants all notifications (default is True,
+        # so include users without a profile)
         recipients.extend(
-            self.patch.authors.filter(userprofile__notify_all_author=True)
+            self.patch.authors.filter(
+                Q(userprofile__isnull=True) | Q(userprofile__notify_all_author=True)
+            )
         )
 
         for u in set(recipients):
