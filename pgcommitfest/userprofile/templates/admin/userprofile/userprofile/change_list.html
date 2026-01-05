@@ -1,0 +1,41 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+{% if notification_stats %}
+<div style="margin-bottom: 20px; padding: 15px; background: #f8f8f8; border: 1px solid #ddd; border-radius: 4px;">
+    <h3 style="margin-top: 0;">Notification Settings Statistics ({{ notification_stats.total }} profiles)</h3>
+    <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+        <thead>
+            <tr>
+                <th style="text-align: left; padding: 8px; border-bottom: 2px solid #ddd;">Setting</th>
+                <th style="text-align: right; padding: 8px; border-bottom: 2px solid #ddd;">On</th>
+                <th style="text-align: right; padding: 8px; border-bottom: 2px solid #ddd;">Off</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">Notify on all where author</td>
+                <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">{{ notification_stats.author_on }}</td>
+                <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">{{ notification_stats.author_off }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">Notify on all where reviewer</td>
+                <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">{{ notification_stats.reviewer_on }}</td>
+                <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">{{ notification_stats.reviewer_off }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #eee;">Notify on all where committer</td>
+                <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">{{ notification_stats.committer_on }}</td>
+                <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">{{ notification_stats.committer_off }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px;">Show relative timestamps</td>
+                <td style="text-align: right; padding: 8px;">{{ notification_stats.timestamps_on }}</td>
+                <td style="text-align: right; padding: 8px;">{{ notification_stats.timestamps_off }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{{ block.super }}
+{% endblock %}
