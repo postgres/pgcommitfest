@@ -9,3 +9,7 @@ https://commitfest.postgresql.org/patch/{{p.patch.id}}/
 
 
 {%endfor%}
+--
+This is an automated message from the PostgreSQL Commitfest app.
+To manage your notification preferences, visit:
+https://commitfest.postgresql.org/userprofile/
