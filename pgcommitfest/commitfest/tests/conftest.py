@@ -7,17 +7,20 @@ from datetime import date
 import pytest
 
 from pgcommitfest.commitfest.models import CommitFest
+from pgcommitfest.userprofile.models import UserProfile
 
 
 @pytest.fixture
 def alice():
-    """Create test user Alice."""
-    return User.objects.create_user(
+    """Create test user Alice with notify_all_author enabled."""
+    user = User.objects.create_user(
         username="alice",
         first_name="Alice",
         last_name="Anderson",
         email="alice@example.com",
     )
+    UserProfile.objects.create(user=user, notify_all_author=True)
+    return user
 
 
 @pytest.fixture

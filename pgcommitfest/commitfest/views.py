@@ -174,6 +174,8 @@ def help(request):
         "help.html",
         {
             "title": "What is the Commitfest app?",
+            "auto_move_email_activity_days": settings.AUTO_MOVE_EMAIL_ACTIVITY_DAYS,
+            "auto_move_max_failing_days": settings.AUTO_MOVE_MAX_FAILING_DAYS,
         },
     )
 
