@@ -2,6 +2,12 @@
 {%load commitfest %}
 {%block contents%}
 
+ {%if cf.is_closed%}
+  <div class="alert alert-warning" role="alert">
+   <strong>This commitfest is closed.</strong> Open patches in this commitfest are no longer being picked up by CI. If you want CI to run on your patch, move it to an open commitfest.
+  </div>
+ {%endif%}
+
  <button type="button" class="btn btn-secondary active" id="filterButton" onClick="togglePatchFilterButton('filterButton', 'collapseFilters')">Search/filter</button>
  <a class="btn btn-secondary{% if request.GET.reviewer == '-2' %} active{% endif %}" href="?reviewer=-2">No reviewers</a>
  <a class="btn btn-secondary{% if request.GET.author == '-3' %} active{% endif %}" href="?author=-3">My patches</a>

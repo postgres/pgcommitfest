@@ -1,0 +1,14 @@
+Commitfest {{commitfest.name}} has now closed.
+
+You have {{patches|length}} open patch{{patches|length|pluralize:"es"}} that need{{patches|length|pluralize:"s,"}} attention:
+
+{% for poc in patches %}
+  - {{poc.patch.name}}
+    https://commitfest.postgresql.org/patch/{{poc.patch.id}}/
+{% endfor %}
+
+Please take action on {{patches|length|pluralize:"these patches,this patch"}} by doing either of the following:
+
+1. If you want to continue working on {{patches|length|pluralize:"them,it"}}, move {{patches|length|pluralize:"them,it"}} to the next commitfest.
+
+2. If you no longer wish to pursue {{patches|length|pluralize:"these patches,this patch"}}, please close {{patches|length|pluralize:"them,it"}} with an appropriate status (Withdrawn, Returned with feedback, etc.)

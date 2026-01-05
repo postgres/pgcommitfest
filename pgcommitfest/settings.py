@@ -168,6 +168,12 @@ AUTO_CREATE_COMMITFESTS = True
 
 CFBOT_API_URL = "https://cfbot.cputube.org/api"
 
+# Auto-move settings for commitfest closure
+# Patches with email activity within this many days are considered active
+AUTO_MOVE_EMAIL_ACTIVITY_DAYS = 30
+# Patches failing CI for longer than this many days will NOT be auto-moved
+AUTO_MOVE_MAX_FAILING_DAYS = 21
+
 # Load local settings overrides
 try:
     from .local_settings import *  # noqa: F403
