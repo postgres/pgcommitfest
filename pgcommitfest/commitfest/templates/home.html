@@ -174,7 +174,7 @@
      {%with p.cfbot_results as cfb%}
       {%if not cfb %}
        <span class="badge bg-secondary">Not processed</span>
-      {%elif p.needs_rebase_since %}
+      {%elif p.needs_rebase_since and p.status != 4 %}
        <a href="{{cfb.apply_url}}" title="View git apply logs. Needs rebase {% cfsince p.needs_rebase_since %}. {%if p.failing_since and p.failing_since != p.needs_rebase_since %}Failing {% cfsince p.failing_since %}.{%endif%}">
         <span class="badge bg-warning">Needs rebase!</span>
        </a>
