@@ -53,7 +53,7 @@
   {%endifchanged%}
 
   <tr>
-   <td><a href="/patch/{{p.id}}/">{{p.name}}</a></td>
+   <td class="wrap-text"><a href="/patch/{{p.id}}/">{{p.name}}</a></td>
    <td>{{p.id}}</td>
    <td><span class="badge bg-{{p.status|patchstatuslabel}}">{{p.status|patchstatusstring}}</span></td>
    <td style="width: min-content;">
@@ -97,9 +97,9 @@
       {%endif%}
      </td>
     {%endwith%}
-    <td>{{p.author_names|default:''}}</td>
-    <td>{{p.reviewer_names|default:''}}</td>
-    <td>{{p.committer|default:''}}</td>
+    <td class="wrap-text">{{p.author_names|default:''}}</td>
+    <td class="wrap-text">{{p.reviewer_names|default:''}}</td>
+    <td class="wrap-text">{{p.committer|default:''}}</td>
     <td>{{p.num_cfs}}</td>
     <td style="white-space: nowrap;" title="{{p.lastmail}}">{%if p.lastmail and userprofile.show_relative_timestamps %}{% cfwhen p.lastmail %}{%elif p.lastmail %}{{p.lastmail|date:"Y-m-d"}}<br/>{{p.lastmail|date:"H:i"}}{%endif%}</td>
     {%if user.is_staff%}
