@@ -222,3 +222,10 @@ a:hover .badge {
         width: 300px;
     }
 }
+
+/* Allow long text to wrap in table cells */
+.table td.wrap-text {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 300px;
+}
