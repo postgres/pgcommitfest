@@ -44,7 +44,7 @@ def create_missing_tags_and_map_topics(apps, schema_editor):
         "System Administration": "System Administration",
         # 'Miscellaneous' and 'Server Features' are left untagged, because they
         # are too vague.
-        # 'Procedural Languages' has no direct tag equivalent, because new
+        # 'Procedural Languages' has no direct tag equivalent, because now
         # there are tags per language. So there's no clear tag that should be
         # chosen there. Similar for 'Replication & Recovery', which also has
         # separate tags now for logical and physical replication.
