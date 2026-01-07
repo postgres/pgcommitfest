@@ -431,7 +431,7 @@ def patchlist(request, cf, personalized=False):
                     SELECT 1 FROM commitfest_patch_authors cpa WHERE cpa.patch_id=p.id AND cpa.user_id=%(self)s
                 ) AND (
                     poc.status=%(needs_author)s
-                    OR (branch.needs_rebase_since IS NOT NULL AND poc.status != %(committed_status)s)
+                    OR (branch.needs_rebase_since IS NOT NULL AND poc.status=ANY(%(open_statuses)s))
                     OR branch.failing_since + interval '4 days' < now()
                     OR (%(is_committer)s AND poc.status=%(needs_committer)s)
                 )
@@ -451,7 +451,7 @@ def patchlist(request, cf, personalized=False):
         """
         whereparams["needs_author"] = PatchOnCommitFest.STATUS_AUTHOR
         whereparams["needs_committer"] = PatchOnCommitFest.STATUS_COMMITTER
-        whereparams["committed_status"] = PatchOnCommitFest.STATUS_COMMITTED
+        whereparams["open_statuses"] = PatchOnCommitFest.OPEN_STATUSES
         whereparams["closed_status"] = CommitFest.STATUS_CLOSED
         is_committer = bool(Committer.objects.filter(user=request.user, active=True))
         whereparams["is_committer"] = is_committer
@@ -1282,8 +1282,8 @@ def close(request, patchid, status):
     new_status = status_mapping[status]
     poc.set_status(new_status)
 
-    # Clear needs_rebase_since if patch is being marked as committed
-    if new_status == PatchOnCommitFest.STATUS_COMMITTED:
+    # Clear needs_rebase_since if patch is being closed (all closed statuses)
+    if new_status not in PatchOnCommitFest.OPEN_STATUSES:
         try:
             cfbot_branch = poc.patch.cfbot_branch
             if cfbot_branch.needs_rebase_since:
@@ -1650,11 +1650,11 @@ def cfbot_ingest(message):
     # state so we can skip sending notifications if the needs_rebase status did
     # not change.
     needs_save = False
-    # Check if patch is committed - committed patches don't need rebase
-    is_committed = PatchOnCommitFest.objects.filter(
-        patch=patch, status=PatchOnCommitFest.STATUS_COMMITTED
+    # Check if patch has at least one open poc - only open patches can need rebase
+    has_open_poc = PatchOnCommitFest.objects.filter(
+        patch=patch, status__in=PatchOnCommitFest.OPEN_STATUSES
     ).exists()
-    needs_rebase = branch_status["commit_id"] is None and not is_committed
+    needs_rebase = branch_status["commit_id"] is None and has_open_poc
     if bool(branch_in_db.needs_rebase_since) is not needs_rebase:
         if needs_rebase:
             branch_in_db.needs_rebase_since = datetime.now()
