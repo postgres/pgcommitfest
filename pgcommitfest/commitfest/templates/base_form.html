@@ -14,6 +14,35 @@
   {%endif%}
   {%for field in form%}
    {%if not field.is_hidden%}
+    {%if field.name == 'tags' and form.checkbox_tags %}
+     {# Render the tags field with checkbox shortcuts #}
+     <div class="form-group">
+      <label class="control-label">Tags</label>
+      <div class="col-lg-12 controls">
+       {# Checkbox shortcuts for common tags #}
+       <div class="btn-group flex-wrap tag-checkbox-group mb-2" role="group" aria-label="Quick tag selection">
+        <button type="button" class="btn btn-sm btn-outline-secondary" disabled>Shortcuts:</button>
+        {%for tag in form.checkbox_tags%}
+         <input type="checkbox" class="btn-check tag-shortcut-checkbox" data-tag-id="{{tag.id}}" data-tag-name="{{tag.name}}" id="tag_shortcut_{{tag.id}}" autocomplete="off">
+         <label class="btn btn-sm btn-outline-primary d-inline-flex align-items-center" for="tag_shortcut_{{tag.id}}"><span class="tag-color" style="background-color: {{tag.color}}; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; margin-top: 1px;"></span>{{tag.name}}</label>
+        {%endfor%}
+       </div>
+       {# The actual selectize field for all tags #}
+       {{field}}
+       {%if field.help_text%}<br/>{{field.help_text|safe}}{%endif%}
+       {# "No tags apply" checkbox below the selectize (only for new patches) #}
+       {%if form.no_tags_apply %}
+       <div class="form-check mt-2">
+        <input type="checkbox" class="form-check-input" name="no_tags_apply" id="id_no_tags_apply" {% if form.no_tags_apply.value %}checked{% endif %}>
+        <label class="form-check-label" for="id_no_tags_apply">{{form.no_tags_apply.label}}</label>
+        {%if form.no_tags_apply.help_text%}<small class="form-text text-muted d-block">{{form.no_tags_apply.help_text}}</small>{%endif%}
+       </div>
+       {%endif%}
+      </div>
+     </div>
+    {%elif field.name == 'no_tags_apply' %}
+     {# Skip - rendered as part of the tags group above #}
+    {%else%}
     <div class="form-group">
      {{field|label_class:"control-label"}}
      <div class="col-lg-12 controls">
@@ -32,6 +61,7 @@
       {%elif not field.name in form.selectize_fields%}{{field|field_class:"form-control"}}{%else%}{{field}}{%endif%}
       {%if field.help_text%}<br/>{{field.help_text|safe}}{%endif%}</div>
     </div>
+    {%endif%}
    {%else%}
     {{field}}
    {%endif%}
@@ -92,5 +122,63 @@
     $('#searchUserSearchField').focus();
    });
   {%endif%}
+
+  // Tag shortcut checkbox synchronization with selectize
+  (function() {
+   var $tagsSelect = $('#id_tags');
+   if (!$tagsSelect.length || !$tagsSelect[0].selectize) return;
+
+   var selectize = $tagsSelect[0].selectize;
+   var $checkboxes = $('.tag-shortcut-checkbox');
+   var $noTagsCheckbox = $('#id_no_tags_apply');
+
+   // Initialize checkbox state from current selectize values
+   function syncCheckboxesFromSelectize() {
+    var selectedIds = selectize.getValue();
+    if (typeof selectedIds === 'string') {
+     selectedIds = selectedIds ? selectedIds.split(',') : [];
+    }
+    selectedIds = selectedIds.map(function(id) { return String(id); });
+
+    $checkboxes.each(function() {
+     var tagId = String($(this).data('tag-id'));
+     $(this).prop('checked', selectedIds.indexOf(tagId) !== -1);
+    });
+
+    // Uncheck "no tags apply" if any tags are selected
+    if ($noTagsCheckbox.length && selectedIds.length > 0) {
+     $noTagsCheckbox.prop('checked', false);
+    }
+   }
+
+   // Sync on selectize change
+   selectize.on('change', syncCheckboxesFromSelectize);
+
+   // Handle checkbox clicks
+   $checkboxes.on('change', function() {
+    var tagId = String($(this).data('tag-id'));
+    if ($(this).is(':checked')) {
+     selectize.addItem(tagId, true);
+     if ($noTagsCheckbox.length) {
+      $noTagsCheckbox.prop('checked', false);
+     }
+    } else {
+     selectize.removeItem(tagId, true);
+    }
+   });
+
+   // Handle "no tags apply" checkbox (only exists for new patches)
+   if ($noTagsCheckbox.length) {
+    $noTagsCheckbox.on('change', function() {
+     if ($(this).is(':checked')) {
+      selectize.clear(true);
+      $checkboxes.prop('checked', false);
+     }
+    });
+   }
+
+   // Initial sync
+   syncCheckboxesFromSelectize();
+  })();
  </script>
 {%endblock%}

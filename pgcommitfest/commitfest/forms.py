@@ -80,6 +80,10 @@ class CommitFestFilterForm(forms.Form):
             self.fields[f].widget.attrs = {"class": "input-medium"}
 
 
+# Tags that get their own checkbox buttons as shortcuts (also appear in selectize dropdown)
+CHECKBOX_TAG_NAMES = ["Bugfix", "Security", "Performance"]
+
+
 class PatchForm(forms.ModelForm):
     selectize_fields = {
         "authors": "/lookups/user",
@@ -111,6 +115,13 @@ class PatchForm(forms.ModelForm):
 
         self.fields["authors"].widget.attrs["class"] = "add-user-picker"
         self.fields["reviewers"].widget.attrs["class"] = "add-user-picker"
+
+        # Cache checkbox tags for use in JavaScript syncing and template rendering
+        self.checkbox_tags = list(
+            Tag.objects.filter(name__in=CHECKBOX_TAG_NAMES).values(
+                "id", "name", "color"
+            )
+        )
 
         # Selectize multiple fields -- don't pre-populate everything
         for field, url in list(self.selectize_fields.items()):
@@ -157,6 +168,13 @@ class NewPatchForm(PatchForm):
         widget=ThreadPickWidget,
     )
 
+    # "No tags apply" checkbox to force users to explicitly opt out of tagging
+    no_tags_apply = forms.BooleanField(
+        required=False,
+        label="No tags apply",
+        help_text="Check this if none of the tags above apply to this patch",
+    )
+
     def __init__(self, *args, **kwargs):
         request = kwargs.pop("request", None)
         super(NewPatchForm, self).__init__(*args, **kwargs)
@@ -164,6 +182,24 @@ class NewPatchForm(PatchForm):
         if request:
             self.fields["authors"].queryset = User.objects.filter(pk=request.user.id)
             self.fields["authors"].initial = [request.user.id]
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        has_tags = bool(cleaned_data.get("tags"))
+        no_tags = cleaned_data.get("no_tags_apply")
+
+        if no_tags and has_tags:
+            raise ValidationError(
+                "You cannot select 'No tags apply' while also selecting tags."
+            )
+
+        if not no_tags and not has_tags:
+            raise ValidationError(
+                "Please select at least one tag, or check 'No tags apply' if none are applicable."
+            )
+
+        return cleaned_data
 
     def clean_threadmsgid(self):
         try:
