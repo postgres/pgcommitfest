@@ -1259,7 +1259,11 @@ def close(request, patchid, status):
                     request.user,
                 )
 
-        committer = get_object_or_404(Committer, user__username=request.GET["c"])
+        committer_username = request.GET.get("c")
+        if committer_username is None:
+            messages.error(request, "No committer specified.")
+            return HttpResponseRedirect(f"/patch/{patchid}/")
+        committer = get_object_or_404(Committer, user__username=committer_username)
         if committer != poc.patch.committer:
             # Committer changed!
             prevcommitter = poc.patch.committer
