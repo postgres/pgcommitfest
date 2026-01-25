@@ -24,7 +24,7 @@
     <td>
      {%if not cfbot_branch %}
       <span class="badge bg-secondary">Not processed</span></a>
-     {%elif cfbot_branch.needs_rebase_since %}
+     {%elif cfbot_branch.needs_rebase_since and not current_poc.is_closed %}
       <a href="{{cfbot_branch.apply_url}}">
        <span class="badge bg-warning" title="View git apply logs">Needs rebase!</span></a>
       Needs rebase {% cfsince cfbot_branch.needs_rebase_since %}. {%if cfbot_branch.failing_since and cfbot_branch.failing_since != cfbot_branch.needs_rebase_since %}Failing {% cfsince cfbot_branch.failing_since %}. {%endif%}<br>Additional links previous successfully applied patch (outdated):<br>
