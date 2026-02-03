@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             model_name="userprofile",
             name="notify_all_author",
             field=models.BooleanField(
-                default=False, verbose_name="Notify on all where author"
+                default=True, verbose_name="Notify on all where author"
             ),
         ),
         migrations.AddField(
