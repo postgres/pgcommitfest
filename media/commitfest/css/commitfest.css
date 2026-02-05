@@ -227,7 +227,12 @@ a:hover .badge {
 .table td.wrap-text {
     overflow-wrap: break-word;
     word-break: break-word;
+    min-width: 100px;
     max-width: 300px;
+}
+
+.table td.patch-column {
+    min-width: 150px;
 }
 
 /* Make the tags selectize dropdown taller with bottom padding for overlay */

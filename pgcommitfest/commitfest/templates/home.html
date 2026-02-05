@@ -156,7 +156,7 @@
     {%endifchanged%}
    {%endif%}
    <tr>
-    <td class="wrap-text"><a href="/patch/{{p.id}}/">{{p.name}}</a></td>
+    <td class="wrap-text patch-column"><a href="/patch/{{p.id}}/">{{p.name}}</a></td>
     <td>{{p.id}}</td>
     {%if user.is_authenticated %}
      <td><a href="/{{p.cf_id}}/"><span class="badge bg-{{p.cf_status|commitfeststatuslabel}}" title="{{p.cf_status|commitfeststatusstring}}">{{p.cf_name}}</span></a></td>
