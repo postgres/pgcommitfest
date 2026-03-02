@@ -107,10 +107,13 @@ class PatchForm(forms.ModelForm):
         super(PatchForm, self).__init__(*args, **kwargs)
         self.fields["authors"].help_text = "Enter part of name to see list"
         self.fields["reviewers"].help_text = "Enter part of name to see list"
-        self.fields["committer"].label_from_instance = lambda x: "%s %s (%s)" % (
-            x.user.first_name,
-            x.user.last_name,
-            x.user.username,
+        self.fields["committer"].label_from_instance = lambda x: (
+            "%s %s (%s)"
+            % (
+                x.user.first_name,
+                x.user.last_name,
+                x.user.username,
+            )
         )
 
         self.fields["authors"].widget.attrs["class"] = "add-user-picker"
@@ -144,8 +147,8 @@ class PatchForm(forms.ModelForm):
             self.fields[field].queryset = self.fields[field].queryset.filter(
                 pk__in=set(vals)
             )
-            self.fields[field].label_from_instance = (
-                lambda u: f"{u.get_full_name()} ({u.username})"
+            self.fields[field].label_from_instance = lambda u: (
+                f"{u.get_full_name()} ({u.username})"
             )
 
         # Only allow modifying reviewers and committers if the patch is closed.
