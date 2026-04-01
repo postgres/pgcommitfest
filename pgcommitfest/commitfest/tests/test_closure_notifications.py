@@ -463,7 +463,9 @@ def test_send_preclosure_notifications_to_all_involved_roles(
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
 
-    in_progress_cf.send_preclosure_notifications(days_remaining=7)
+    in_progress_cf.send_preclosure_notifications(
+        days_remaining=settings.PRE_CLOSURE_NOTIFICATION_DAYS
+    )
 
     assert QueuedMail.objects.count() == 4
     receivers = set(QueuedMail.objects.values_list("receiver", flat=True))
@@ -483,7 +485,11 @@ def test_preclosure_notifications_are_sent_only_once(alice, in_progress_cf):
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
 
-    in_progress_cf.send_preclosure_notifications(days_remaining=7)
-    in_progress_cf.send_preclosure_notifications(days_remaining=7)
+    in_progress_cf.send_preclosure_notifications(
+        days_remaining=settings.PRE_CLOSURE_NOTIFICATION_DAYS
+    )
+    in_progress_cf.send_preclosure_notifications(
+        days_remaining=settings.PRE_CLOSURE_NOTIFICATION_DAYS
+    )
 
     assert QueuedMail.objects.count() == 1

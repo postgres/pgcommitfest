@@ -173,6 +173,8 @@ CFBOT_API_URL = "https://cfbot.cputube.org/api"
 AUTO_MOVE_EMAIL_ACTIVITY_DAYS = 30
 # Patches failing CI for longer than this many days will NOT be auto-moved
 AUTO_MOVE_MAX_FAILING_DAYS = 21
+# Send pre-closure reminders this many days before an in-progress CF ends
+PRE_CLOSURE_NOTIFICATION_DAYS = 7
 
 # Load local settings overrides
 try:
