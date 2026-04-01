@@ -8,6 +8,7 @@ from pgcommitfest.commitfest.models import (
     Patch,
     PatchOnCommitFest,
 )
+from pgcommitfest.mailqueue.models import QueuedMail
 
 pytestmark = pytest.mark.django_db
 
@@ -156,3 +157,24 @@ def test_no_changes_when_up_to_date(commitfests):
     assert open_cf.status == CommitFest.STATUS_OPEN
     assert draft_cf.status == CommitFest.STATUS_OPEN
     assert CommitFest.objects.count() == initial_cf_count
+
+
+@freeze_time("2024-11-23")
+def test_preclosure_notifications_trigger_7_days_before_close(commitfests, alice):
+    """In-progress CF should send pre-closure notifications exactly once."""
+    in_progress_cf = commitfests["in_progress"]
+    patch = Patch.objects.create(name="Reminder Patch")
+    patch.authors.add(alice)
+    PatchOnCommitFest.objects.create(
+        patch=patch,
+        commitfest=in_progress_cf,
+        enterdate=datetime.now(),
+        status=PatchOnCommitFest.STATUS_REVIEW,
+    )
+
+    CommitFest._refresh_relevant_commitfests(for_update=False)
+    CommitFest._refresh_relevant_commitfests(for_update=False)
+
+    assert QueuedMail.objects.count() == 1
+    in_progress_cf.refresh_from_db()
+    assert in_progress_cf.preclosure_warning_sent_at is not None

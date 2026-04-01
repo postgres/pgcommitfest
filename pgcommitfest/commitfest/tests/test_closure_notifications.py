@@ -8,6 +8,7 @@ import pytest
 
 from pgcommitfest.commitfest.models import (
     CfbotBranch,
+    Committer,
     CommitFest,
     Patch,
     PatchHistory,
@@ -441,3 +442,48 @@ def test_draft_cf_moves_active_patches_to_next_draft(alice, bob):
 
     # No closure email for moved patches
     assert QueuedMail.objects.count() == 0
+
+
+def test_send_preclosure_notifications_to_all_involved_roles(
+    alice, bob, charlie, dave, in_progress_cf
+):
+    """Pre-closure reminder should notify involved users based on role preferences."""
+    UserProfile.objects.create(user=bob, notify_all_reviewer=True)
+    UserProfile.objects.create(user=charlie, notify_all_committer=True)
+    committer = Committer.objects.create(user=charlie)
+
+    patch = Patch.objects.create(name="Preclose Patch", committer=committer)
+    patch.authors.add(alice)
+    patch.reviewers.add(bob)
+    patch.subscribers.add(dave)
+    PatchOnCommitFest.objects.create(
+        patch=patch,
+        commitfest=in_progress_cf,
+        enterdate=datetime.now(),
+        status=PatchOnCommitFest.STATUS_REVIEW,
+    )
+
+    in_progress_cf.send_preclosure_notifications(days_remaining=7)
+
+    assert QueuedMail.objects.count() == 4
+    receivers = set(QueuedMail.objects.values_list("receiver", flat=True))
+    assert receivers == {alice.email, bob.email, charlie.email, dave.email}
+    in_progress_cf.refresh_from_db()
+    assert in_progress_cf.preclosure_warning_sent_at is not None
+
+
+def test_preclosure_notifications_are_sent_only_once(alice, in_progress_cf):
+    """Pre-closure reminder should be idempotent for a commitfest."""
+    patch = Patch.objects.create(name="Single Reminder Patch")
+    patch.authors.add(alice)
+    PatchOnCommitFest.objects.create(
+        patch=patch,
+        commitfest=in_progress_cf,
+        enterdate=datetime.now(),
+        status=PatchOnCommitFest.STATUS_REVIEW,
+    )
+
+    in_progress_cf.send_preclosure_notifications(days_remaining=7)
+    in_progress_cf.send_preclosure_notifications(days_remaining=7)
+
+    assert QueuedMail.objects.count() == 1

@@ -1,0 +1,19 @@
+Commitfest {{commitfest.name}} will auto-close in {{days_remaining}} days.
+
+You are involved in {{patches|length}} open patch{{patches|length|pluralize:"es"}}:
+
+{% for poc in patches %}
+  - {{poc.patch.name}}
+    https://commitfest.postgresql.org/patch/{{poc.patch.id}}/
+{% endfor %}
+
+Please take action on {{patches|length|pluralize:"these patches,this patch"}} before close:
+
+1. Move {{patches|length|pluralize:"them,it"}} to the next commitfest if work should continue.
+
+2. Or close {{patches|length|pluralize:"them,it"}} with an appropriate status (Withdrawn, Returned with feedback, etc.)
+
+--
+This is an automated message from the PostgreSQL Commitfest app.
+To manage your notification preferences, visit:
+https://commitfest.postgresql.org/userprofile/

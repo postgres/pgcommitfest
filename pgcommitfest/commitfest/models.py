@@ -57,6 +57,7 @@ class CommitFest(models.Model):
     startdate = models.DateField(blank=False, null=False)
     enddate = models.DateField(blank=False, null=False)
     draft = models.BooleanField(blank=False, null=False, default=False)
+    preclosure_warning_sent_at = models.DateTimeField(blank=True, null=True)
 
     @property
     def statusstring(self):
@@ -226,10 +227,114 @@ class CommitFest(models.Model):
             )
 
     @staticmethod
+    def _notification_email_for_user(user):
+        try:
+            if user.userprofile and user.userprofile.notifyemail:
+                return user.userprofile.notifyemail.email
+        except UserProfile.DoesNotExist:
+            pass
+        return user.email
+
+    @staticmethod
+    def _wants_role_notification(user, role):
+        try:
+            profile = user.userprofile
+        except UserProfile.DoesNotExist:
+            return role == "author"
+
+        if role == "author":
+            return profile.notify_all_author
+        if role == "reviewer":
+            return profile.notify_all_reviewer
+        if role == "committer":
+            return profile.notify_all_committer
+
+        return False
+
+    def send_preclosure_notifications(self, days_remaining=7):
+        """Send pre-closure reminder notifications to involved users."""
+        if self.preclosure_warning_sent_at:
+            return
+
+        open_pocs = list(
+            self.patchoncommitfest_set.filter(
+                status__in=PatchOnCommitFest.OPEN_STATUSES
+            )
+            .select_related("patch", "patch__committer__user")
+            .prefetch_related(
+                "patch__authors",
+                "patch__reviewers",
+                "patch__subscribers",
+            )
+        )
+        if not open_pocs:
+            return
+
+        recipients_patches = {}
+        for poc in open_pocs:
+            patch = poc.patch
+            recipients = set()
+
+            for author in patch.authors.all():
+                if self._wants_role_notification(author, "author"):
+                    recipients.add(author)
+
+            for reviewer in patch.reviewers.all():
+                if self._wants_role_notification(reviewer, "reviewer"):
+                    recipients.add(reviewer)
+
+            if patch.committer and self._wants_role_notification(
+                patch.committer.user, "committer"
+            ):
+                recipients.add(patch.committer.user)
+
+            recipients.update(patch.subscribers.all())
+
+            for recipient in recipients:
+                if recipient.id not in recipients_patches:
+                    recipients_patches[recipient.id] = {
+                        "user": recipient,
+                        "patches": {},
+                    }
+                recipients_patches[recipient.id]["patches"][patch.id] = poc
+
+        if not recipients_patches:
+            return
+
+        for payload in recipients_patches.values():
+            user = payload["user"]
+            patches = list(payload["patches"].values())
+            send_template_mail(
+                settings.NOTIFICATION_FROM,
+                None,
+                self._notification_email_for_user(user),
+                (
+                    f"Commitfest {self.name} closes in {days_remaining} days "
+                    "and your patches need attention"
+                ),
+                "mail/commitfest_preclosure_warning.txt",
+                {
+                    "user": user,
+                    "commitfest": self,
+                    "patches": patches,
+                    "days_remaining": days_remaining,
+                },
+            )
+
+        self.preclosure_warning_sent_at = datetime.now(timezone.utc)
+        self.save(update_fields=["preclosure_warning_sent_at"])
+
+    @staticmethod
     def _are_relevant_commitfests_up_to_date(cfs, current_date):
         inprogress_cf = cfs["in_progress"]
 
         if inprogress_cf and inprogress_cf.enddate < current_date:
+            return False
+        if (
+            inprogress_cf
+            and inprogress_cf.enddate == current_date + timedelta(days=7)
+            and not inprogress_cf.preclosure_warning_sent_at
+        ):
             return False
 
         if cfs["open"].startdate <= current_date:
@@ -261,6 +366,11 @@ class CommitFest(models.Model):
                 inprogress_cf.save()
                 inprogress_cf.auto_move_active_patches()
                 inprogress_cf.send_closure_notifications()
+            elif (
+                inprogress_cf
+                and inprogress_cf.enddate == current_date + timedelta(days=7)
+            ):
+                inprogress_cf.send_preclosure_notifications(days_remaining=7)
 
             open_cf = cfs["open"]
 
