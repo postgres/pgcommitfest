@@ -202,3 +202,44 @@ def test_preclosure_notifications_trigger_on_first_check_inside_window(
     assert "closes in 6 days" in mail.fullmsg
     in_progress_cf.refresh_from_db()
     assert in_progress_cf.preclosure_warning_sent_at is not None
+
+
+def test_changing_enddate_clears_preclosure_warning_and_allows_resend(
+    commitfests, alice
+):
+    """Moving the close date should clear the reminder timestamp and reopen the flow."""
+    in_progress_cf = commitfests["in_progress"]
+    patch = Patch.objects.create(name="Rescheduled Reminder Patch")
+    patch.authors.add(alice)
+    PatchOnCommitFest.objects.create(
+        patch=patch,
+        commitfest=in_progress_cf,
+        enterdate=datetime.now(),
+        status=PatchOnCommitFest.STATUS_REVIEW,
+    )
+
+    with freeze_time("2024-11-24"):
+        CommitFest._refresh_relevant_commitfests(for_update=False)
+
+    assert QueuedMail.objects.count() == 1
+    in_progress_cf.refresh_from_db()
+    assert in_progress_cf.preclosure_warning_sent_at is not None
+
+    in_progress_cf.enddate = datetime(2024, 12, 7).date()
+    in_progress_cf.save(update_fields=["enddate"])
+    in_progress_cf.refresh_from_db()
+    assert in_progress_cf.preclosure_warning_sent_at is None
+
+    with freeze_time("2024-11-24"):
+        CommitFest._refresh_relevant_commitfests(for_update=False)
+
+    assert QueuedMail.objects.count() == 1
+
+    with freeze_time("2024-11-30"):
+        CommitFest._refresh_relevant_commitfests(for_update=False)
+
+    assert QueuedMail.objects.count() == 2
+    mail = QueuedMail.objects.order_by("-id").first()
+    assert "closes in 7 days" in mail.fullmsg
+    in_progress_cf.refresh_from_db()
+    assert in_progress_cf.preclosure_warning_sent_at is not None

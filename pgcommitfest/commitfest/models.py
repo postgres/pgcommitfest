@@ -125,6 +125,24 @@ class CommitFest(models.Model):
             and self.preclosure_warning_date <= current_date <= self.enddate
         )
 
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get("update_fields")
+        update_fields_set = set(update_fields) if update_fields is not None else None
+
+        enddate_is_updating = update_fields_set is None or "enddate" in update_fields_set
+        if self.pk and enddate_is_updating:
+            # I don't love adding a query here, but it seems like the best way to get the old enddate.
+            old_enddate = (
+                type(self).objects.filter(pk=self.pk).values_list("enddate", flat=True).first()
+            )
+            if old_enddate is not None and old_enddate != self.enddate:
+                self.preclosure_warning_sent_at = None
+                if update_fields_set is not None:
+                    update_fields_set.add("preclosure_warning_sent_at")
+                    kwargs["update_fields"] = update_fields_set
+
+        super().save(*args, **kwargs)
+
     def to_json(self):
         return {
             "id": self.id,
