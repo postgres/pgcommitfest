@@ -57,10 +57,11 @@ def undo_pg19_final_close(apps, schema_editor):
         # deletion must happen first because poc_enforce_maxoneoutcome_idx
         # only allows one non-moved poc per patch.
         original_status = new_poc.status
+        original_leavedate = new_poc.leavedate
         new_poc.delete()
 
         old_poc.status = original_status
-        old_poc.leavedate = None
+        old_poc.leavedate = original_leavedate
         old_poc.save()
 
     # Delete the PatchHistory entries for these moves
