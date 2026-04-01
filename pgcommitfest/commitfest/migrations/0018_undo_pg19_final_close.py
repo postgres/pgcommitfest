@@ -52,13 +52,16 @@ def undo_pg19_final_close(apps, schema_editor):
         if new_poc is None:
             continue
 
-        # Restore the old poc to its original status
-        old_poc.status = new_poc.status
+        # Read the original status from the destination poc (move preserves
+        # status), then delete it before restoring the source poc. The
+        # deletion must happen first because poc_enforce_maxoneoutcome_idx
+        # only allows one non-moved poc per patch.
+        original_status = new_poc.status
+        new_poc.delete()
+
+        old_poc.status = original_status
         old_poc.leavedate = None
         old_poc.save()
-
-        # Remove the new poc that was created by the move
-        new_poc.delete()
 
     # Delete the PatchHistory entries for these moves
     moved_histories.delete()
