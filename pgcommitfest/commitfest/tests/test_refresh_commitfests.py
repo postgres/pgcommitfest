@@ -178,3 +178,27 @@ def test_preclosure_notifications_trigger_7_days_before_close(commitfests, alice
     assert QueuedMail.objects.count() == 1
     in_progress_cf.refresh_from_db()
     assert in_progress_cf.preclosure_warning_sent_at is not None
+
+
+@freeze_time("2024-11-24")
+def test_preclosure_notifications_trigger_on_first_check_inside_window(
+    commitfests, alice
+):
+    """The reminder should still be sent if the site is first hit after the window opens."""
+    in_progress_cf = commitfests["in_progress"]
+    patch = Patch.objects.create(name="Late Reminder Patch")
+    patch.authors.add(alice)
+    PatchOnCommitFest.objects.create(
+        patch=patch,
+        commitfest=in_progress_cf,
+        enterdate=datetime.now(),
+        status=PatchOnCommitFest.STATUS_REVIEW,
+    )
+
+    CommitFest._refresh_relevant_commitfests(for_update=False)
+
+    assert QueuedMail.objects.count() == 1
+    mail = QueuedMail.objects.get()
+    assert "closes in 6 days" in mail.fullmsg
+    in_progress_cf.refresh_from_db()
+    assert in_progress_cf.preclosure_warning_sent_at is not None

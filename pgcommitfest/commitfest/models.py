@@ -102,6 +102,28 @@ class CommitFest(models.Model):
     def is_in_progress(self):
         return self.status == self.STATUS_INPROGRESS
 
+    @property
+    def preclosure_warning_date(self):
+        return self.enddate - timedelta(days=settings.PRE_CLOSURE_NOTIFICATION_DAYS)
+
+    @staticmethod
+    def _current_date():
+        return datetime.now(timezone.utc).date()
+
+    def days_until_close(self, current_date=None):
+        if current_date is None:
+            current_date = self._current_date()
+        return (self.enddate - current_date).days
+
+    def should_send_preclosure_warning(self, current_date=None):
+        if current_date is None:
+            current_date = self._current_date()
+        return (
+            self.is_in_progress
+            and not self.preclosure_warning_sent_at
+            and self.preclosure_warning_date <= current_date <= self.enddate
+        )
+
     def to_json(self):
         return {
             "id": self.id,
@@ -254,7 +276,7 @@ class CommitFest(models.Model):
     def send_preclosure_notifications(self, days_remaining=None):
         """Send pre-closure reminder notifications to involved users."""
         if days_remaining is None:
-            days_remaining = settings.PRE_CLOSURE_NOTIFICATION_DAYS
+            days_remaining = self.days_until_close()
 
         if self.preclosure_warning_sent_at:
             return
@@ -330,15 +352,10 @@ class CommitFest(models.Model):
     @staticmethod
     def _are_relevant_commitfests_up_to_date(cfs, current_date):
         inprogress_cf = cfs["in_progress"]
-        reminder_days = settings.PRE_CLOSURE_NOTIFICATION_DAYS
 
         if inprogress_cf and inprogress_cf.enddate < current_date:
             return False
-        if (
-            inprogress_cf
-            and inprogress_cf.enddate == current_date + timedelta(days=reminder_days)
-            and not inprogress_cf.preclosure_warning_sent_at
-        ):
+        if inprogress_cf and inprogress_cf.should_send_preclosure_warning():
             return False
 
         if cfs["open"].startdate <= current_date:
@@ -352,7 +369,7 @@ class CommitFest(models.Model):
     @classmethod
     def _refresh_relevant_commitfests(cls, for_update):
         cfs = CommitFest.relevant_commitfests(for_update=for_update, refresh=False)
-        current_date = datetime.now(timezone.utc).date()
+        current_date = cls._current_date()
 
         if cls._are_relevant_commitfests_up_to_date(cfs, current_date):
             return cfs
@@ -365,17 +382,15 @@ class CommitFest(models.Model):
                 return cfs
 
             inprogress_cf = cfs["in_progress"]
-            reminder_days = settings.PRE_CLOSURE_NOTIFICATION_DAYS
             if inprogress_cf and inprogress_cf.enddate < current_date:
                 inprogress_cf.status = CommitFest.STATUS_CLOSED
                 inprogress_cf.save()
                 inprogress_cf.auto_move_active_patches()
                 inprogress_cf.send_closure_notifications()
-            elif (
-                inprogress_cf
-                and inprogress_cf.enddate == current_date + timedelta(days=reminder_days)
-            ):
-                inprogress_cf.send_preclosure_notifications(days_remaining=reminder_days)
+            elif inprogress_cf and inprogress_cf.should_send_preclosure_warning():
+                inprogress_cf.send_preclosure_notifications(
+                    days_remaining=inprogress_cf.days_until_close()
+                )
 
             open_cf = cfs["open"]
 
