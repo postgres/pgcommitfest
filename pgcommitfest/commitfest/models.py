@@ -4,7 +4,8 @@ from django.db import models, transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
+from typing import Literal
 
 from pgcommitfest.mailqueue.util import send_template_mail
 from pgcommitfest.userprofile.models import UserProfile
@@ -103,19 +104,19 @@ class CommitFest(models.Model):
         return self.status == self.STATUS_INPROGRESS
 
     @property
-    def preclosure_warning_date(self):
+    def preclosure_warning_date(self) -> date:
         return self.enddate - timedelta(days=settings.PRE_CLOSURE_NOTIFICATION_DAYS)
 
     @staticmethod
-    def _current_date():
+    def _current_date() -> date:
         return datetime.now(timezone.utc).date()
 
-    def days_until_close(self, current_date=None):
+    def days_until_close(self, current_date: date | None = None) -> int:
         if current_date is None:
             current_date = self._current_date()
         return (self.enddate - current_date).days
 
-    def should_send_preclosure_warning(self, current_date=None):
+    def should_send_preclosure_warning(self, current_date: date | None = None) -> bool:
         if current_date is None:
             current_date = self._current_date()
         return (
@@ -249,7 +250,7 @@ class CommitFest(models.Model):
             )
 
     @staticmethod
-    def _notification_email_for_user(user):
+    def _notification_email_for_user(user: User) -> str:
         try:
             if user.userprofile and user.userprofile.notifyemail:
                 return user.userprofile.notifyemail.email
@@ -258,7 +259,9 @@ class CommitFest(models.Model):
         return user.email
 
     @staticmethod
-    def _wants_role_notification(user, role):
+    def _wants_role_notification(
+        user: User, role: Literal["author", "reviewer", "committer"]
+    ) -> bool:
         try:
             profile = user.userprofile
         except UserProfile.DoesNotExist:
@@ -273,7 +276,7 @@ class CommitFest(models.Model):
 
         return False
 
-    def send_preclosure_notifications(self, days_remaining=None):
+    def send_preclosure_notifications(self, days_remaining: int | None = None) -> None:
         """Send pre-closure reminder notifications to involved users."""
         if days_remaining is None:
             days_remaining = self.days_until_close()
