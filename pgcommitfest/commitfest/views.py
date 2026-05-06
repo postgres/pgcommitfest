@@ -1355,6 +1355,31 @@ def reviewer(request, patchid, status):
 
 @login_required
 @transaction.atomic
+def remove_all_reviewers(request, patchid):
+    patch = get_object_or_404(Patch, pk=patchid)
+
+    if not patch.can_remove_all_reviewers:
+        return HttpResponseForbidden(
+            "Removing reviewers is only allowed for PGConf.dev patches."
+        )
+
+    prevreviewers = list(patch.reviewers.all())
+    if not prevreviewers:
+        return HttpResponseRedirect(f"/patch/{patchid}/")
+
+    patch.reviewers.clear()
+    patch.set_modified()
+    patch.save()
+    PatchHistory(
+        patch=patch,
+        by=request.user,
+        what="Removed all reviewers",
+    ).save_and_notify(prevreviewers=prevreviewers)
+    return HttpResponseRedirect(f"/patch/{patchid}/")
+
+
+@login_required
+@transaction.atomic
 def committer(request, patchid, status):
     patch = get_object_or_404(Patch, pk=patchid)
 

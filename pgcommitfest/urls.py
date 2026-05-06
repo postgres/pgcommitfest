@@ -35,6 +35,7 @@ urlpatterns = [
     re_path(r"^patch/(\d+)/close/(reject|withdrawn|feedback|committed)/$", views.close),
     re_path(r"^patch/(\d+)/move/$", views.move),
     re_path(r"^patch/(\d+)/reviewer/(become|remove)/$", views.reviewer),
+    re_path(r"^patch/(\d+)/reviewer/remove_all/$", views.remove_all_reviewers),
     re_path(r"^patch/(\d+)/committer/(become|remove)/$", views.committer),
     re_path(r"^patch/(\d+)/(un)?subscribe/$", views.subscribe),
     re_path(r"^patch/(\d+)/(comment|review)/", views.comment),

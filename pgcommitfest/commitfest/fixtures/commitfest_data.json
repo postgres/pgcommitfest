@@ -354,6 +354,15 @@
     }
 },
 {
+    "model": "commitfest.tag",
+    "pk": 30,
+    "fields": {
+        "name": "PGConf.dev",
+        "color": "#336791",
+        "description": "part of the PGConf.dev in-person commitfest — see https://wiki.postgresql.org/wiki/PGConf.dev_2026_In-Person_Commitfest"
+    }
+},
+{
     "model": "commitfest.patch",
     "pk": 1,
     "fields": {

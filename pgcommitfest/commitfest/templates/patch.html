@@ -119,7 +119,11 @@
    </tr>
    <tr>
     <th>Reviewers</th>
-    <td>{{patch.reviewers_string}}<a href="reviewer/{{is_reviewer|yesno:"remove,become"}}/" class="btn btn-secondary float-end">{{is_reviewer|yesno:"Remove from reviewers,Become reviewer"}}</a></td>
+    <td>
+     {{patch.reviewers_string}}
+     {%if is_reviewer%}<a href="reviewer/remove/" class="btn btn-secondary float-end">Remove from reviewers</a>{%else%}<a href="reviewer/become/" class="btn btn-secondary float-end">Become reviewer</a>{%endif%}
+     {%if patch.can_remove_all_reviewers and patch.reviewers.all%}<a href="reviewer/remove_all/" class="btn btn-secondary float-end me-1">Remove all reviewers</a>{%endif%}
+    </td>
    </tr>
    <tr>
     <th>Committer</th>

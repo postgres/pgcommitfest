@@ -536,6 +536,10 @@ class Patch(models.Model, DiffableModel):
             PatchOnCommitFest, Q(patch=self) & ~Q(status=PatchOnCommitFest.STATUS_MOVED)
         )
 
+    @property
+    def can_remove_all_reviewers(self):
+        return self.tags.filter(name="PGConf.dev").exists()
+
     # Some accessors
     @property
     def authors_string(self):
