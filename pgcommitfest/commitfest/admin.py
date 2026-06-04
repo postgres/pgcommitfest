@@ -68,6 +68,19 @@ class TagAdmin(admin.ModelAdmin):
     }
 
 
+class CfbotBranchAdmin(admin.ModelAdmin):
+    # Without this the patch field is rendered as a dropdown, for which every
+    # patch in the database gets fetched and rendered as an <option>. That
+    # makes the page extremely slow to load. With raw_id_fields it's rendered
+    # as a simple text input containing the patch id instead.
+    raw_id_fields = ("patch",)
+
+
+class CfbotTaskAdmin(admin.ModelAdmin):
+    # See CfbotBranchAdmin for why raw_id_fields is used here.
+    raw_id_fields = ("patch",)
+
+
 admin.site.register(Committer, CommitterAdmin)
 admin.site.register(CommitFest)
 admin.site.register(Tag, TagAdmin)
@@ -75,8 +88,8 @@ admin.site.register(Topic)
 admin.site.register(Patch, PatchAdmin)
 admin.site.register(PatchHistory)
 admin.site.register(TargetVersion)
-admin.site.register(CfbotBranch)
-admin.site.register(CfbotTask)
+admin.site.register(CfbotBranch, CfbotBranchAdmin)
+admin.site.register(CfbotTask, CfbotTaskAdmin)
 
 admin.site.register(MailThread, MailThreadAdmin)
 admin.site.register(MailThreadAttachment, MailThreadAttachmentAdmin)
