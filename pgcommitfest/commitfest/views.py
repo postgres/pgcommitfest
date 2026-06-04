@@ -1600,7 +1600,7 @@ def cfbot_ingest(message):
             branch_status["branch_name"],
             branch_status["commit_id"],
             branch_status["apply_url"],
-            branch_status["build_url"],
+            branch_status.get("build_url", ""),
             branch_status["status"],
             branch_status["created"],
             branch_status["modified"],
@@ -1642,7 +1642,7 @@ def cfbot_ingest(message):
                         WHERE commitfest_cfbottask.modified < EXCLUDED.modified""",
                 (
                     task_status["task_id"],
-                    task_status["task_url"],
+                    task_status.get("task_url", ""),
                     task_status["task_name"],
                     patch_id,
                     branch_id,
