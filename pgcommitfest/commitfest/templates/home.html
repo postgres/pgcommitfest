@@ -180,7 +180,9 @@
        </a>
       {%else%}
        <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{p.id}}~1...cf/{{p.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
-       <a href="{{cfb.build_url}}"
+       {# Until cfbot has seen the branch's first build there is no build_url, #}
+       {# in that case we show the status icon and counters without a link. #}
+       {%if cfb.build_url%}<a href="{{cfb.build_url}}"{%else%}<span{%endif%}
           title="View CI history. {%if p.failing_since%}Failing {% cfsince p.failing_since %}. {%endif%}{%if cfb.failed_task_names %}Failed jobs: {{cfb.failed_task_names}}{%endif%}">
         {%if cfb.branch_status == 'failed' or cfb.branch_status == 'timeout' or cfb.failed_non_formatting > 0 %}
          <img src="/media/commitfest/new_failure.svg"/>
@@ -194,7 +196,7 @@
         <span class="run-counters">
          {{cfb.completed}}/{{cfb.total}}
         </span>
-       </a>
+       {%if cfb.build_url%}</a>{%else%}</span>{%endif%}
       {%endif%}
       </td>
       <td>

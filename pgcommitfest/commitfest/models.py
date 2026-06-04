@@ -932,8 +932,9 @@ class CfbotBranch(models.Model):
     commit_id = models.TextField(null=True, blank=True)
     apply_url = models.TextField(null=False)
     # URL of the CI build for this branch. Sent by cfbot so we don't have to
-    # know which CI provider it uses.
-    build_url = models.TextField(null=False)
+    # know which CI provider it uses. It's null until cfbot hears about the
+    # branch's first build, and "timeout" branches might never get one.
+    build_url = models.TextField(null=True, blank=True)
     # Actually a postgres enum column
     status = models.TextField(choices=STATUS_CHOICES, null=False)
     needs_rebase_since = models.DateTimeField(null=True, blank=True)
