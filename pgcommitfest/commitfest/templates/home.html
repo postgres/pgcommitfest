@@ -183,19 +183,19 @@
        {# Until cfbot has seen the branch's first build there is no build_url, #}
        {# in that case we show the status icon and counters without a link. #}
        {%if cfb.build_url%}<a href="{{cfb.build_url}}"{%else%}<span{%endif%}
-          title="View CI history. {%if p.failing_since%}Failing {% cfsince p.failing_since %}. {%endif%}{%if cfb.failed_task_names %}Failed jobs: {{cfb.failed_task_names}}{%endif%}">
-        {%if cfb.branch_status == 'failed' or cfb.branch_status == 'timeout' or cfb.failed_non_formatting > 0 %}
-         <img src="/media/commitfest/new_failure.svg"/>
-        {%elif cfb.failed > 0 %}
-         <img src="/media/commitfest/formatting_failure.svg"/>
-        {%elif cfb.completed < cfb.total  %}
-         <img src="/media/commitfest/running.svg"/>
-        {%else%}
-         <img src="/media/commitfest/new_success.svg"/>
-        {%endif%}
-        <span class="run-counters">
-         {{cfb.completed}}/{{cfb.total}}
-        </span>
+                             title="View CI history. {%if p.failing_since%}Failing {% cfsince p.failing_since %}. {%endif%}{%if cfb.failed_task_names %}Failed jobs: {{cfb.failed_task_names}}{%endif%}">
+       {%if cfb.branch_status == 'failed' or cfb.branch_status == 'timeout' or cfb.failed_non_formatting > 0 %}
+        <img src="/media/commitfest/new_failure.svg"/>
+       {%elif cfb.failed > 0 %}
+        <img src="/media/commitfest/formatting_failure.svg"/>
+       {%elif cfb.completed < cfb.total  %}
+        <img src="/media/commitfest/running.svg"/>
+       {%else%}
+        <img src="/media/commitfest/new_success.svg"/>
+       {%endif%}
+       <span class="run-counters">
+        {{cfb.completed}}/{{cfb.total}}
+       </span>
        {%if cfb.build_url%}</a>{%else%}</span>{%endif%}
       {%endif%}
       </td>
