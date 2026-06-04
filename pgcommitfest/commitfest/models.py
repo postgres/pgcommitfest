@@ -931,6 +931,9 @@ class CfbotBranch(models.Model):
     branch_name = models.TextField(null=False)
     commit_id = models.TextField(null=True, blank=True)
     apply_url = models.TextField(null=False)
+    # URL of the CI build for this branch. Sent by cfbot so we don't have to
+    # know which CI provider it uses.
+    build_url = models.TextField(null=False)
     # Actually a postgres enum column
     status = models.TextField(choices=STATUS_CHOICES, null=False)
     needs_rebase_since = models.DateTimeField(null=True, blank=True)
@@ -978,6 +981,9 @@ class CfbotTask(models.Model):
     # CI provider might use e.g. UUIDs, we prefer to consider the format of the
     # ID opaque and store it as text.
     task_id = models.TextField()
+    # URL of the task in the CI system. Sent by cfbot so we don't have to know
+    # which CI provider it uses.
+    task_url = models.TextField(null=False)
     task_name = models.TextField(null=False)
     patch = models.ForeignKey(
         Patch, on_delete=models.CASCADE, related_name="cfbot_tasks"

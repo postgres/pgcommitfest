@@ -290,6 +290,7 @@ def test_no_auto_move_when_failing_too_long(alice, in_progress_cf, open_cf):
         branch_id=1,
         branch_name="test-branch",
         apply_url="https://example.com",
+        build_url="https://example.com/build/1",
         status="failed",
         failing_since=datetime.now()
         - timedelta(days=settings.AUTO_MOVE_MAX_FAILING_DAYS + 10),
@@ -329,6 +330,7 @@ def test_auto_move_when_failing_within_threshold(alice, in_progress_cf, open_cf)
         branch_id=2,
         branch_name="test-branch-2",
         apply_url="https://example.com",
+        build_url="https://example.com/build/2",
         status="failed",
         failing_since=datetime.now()
         - timedelta(days=settings.AUTO_MOVE_MAX_FAILING_DAYS - 5),

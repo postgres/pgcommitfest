@@ -29,26 +29,26 @@
        <span class="badge bg-warning" title="View git apply logs">Needs rebase!</span></a>
       Needs rebase {% cfsince cfbot_branch.needs_rebase_since %}. {%if cfbot_branch.failing_since and cfbot_branch.failing_since != cfbot_branch.needs_rebase_since %}Failing {% cfsince cfbot_branch.failing_since %}. {%endif%}<br>Additional links previous successfully applied patch (outdated):<br>
       <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" title="View previous successfully applied patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
-      <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
+      <a href="{{cfbot_branch.build_url}}">
        <span class="badge bg-secondary">Summary</span></a>
      {%else%}
       <a href="https://github.com/postgresql-cfbot/postgresql/compare/cf/{{patch.id}}~1...cf/{{patch.id}}" title="View last patch set on GitHub"><img class="github-logo" src="/media/commitfest/github-mark.svg"/></a>
-      <a href="https://cirrus-ci.com/github/postgresql-cfbot/postgresql/cf%2F{{patch.id}}">
+      <a href="{{cfbot_branch.build_url}}">
        <span class="badge bg-secondary">Summary</span></a>
       {%for c in cfbot_tasks %}
        {%if c.status == 'COMPLETED'%}
-        <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_success.svg"/></a>
+        <a href="{{c.task_url}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_success.svg"/></a>
        {%elif c.status == 'PAUSED'%}
-        <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/paused.svg"/></a>
+        <a href="{{c.task_url}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/paused.svg"/></a>
        {%elif c.status == 'CREATED' or c.status == 'SCHEDULED' %}
-        <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/waiting_to_start.svg"/></a>
+        <a href="{{c.task_url}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/waiting_to_start.svg"/></a>
        {%elif c.status == 'EXECUTING' %}
-        <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/running.svg"/></a>
+        <a href="{{c.task_url}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/running.svg"/></a>
        {%else %}
         {%if c.task_name == 'FormattingCheck' %}
-         <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/formatting_failure.svg"/></a>
+         <a href="{{c.task_url}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/formatting_failure.svg"/></a>
         {%else%}
-         <a href="https://cirrus-ci.com/task/{{c.task_id}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_failure.svg"/></a>
+         <a href="{{c.task_url}}" title="{{c.task_name}}: {{c.status}}"><img src="/media/commitfest/new_failure.svg"/></a>
         {%endif%}
        {%endif%}
       {%endfor%}

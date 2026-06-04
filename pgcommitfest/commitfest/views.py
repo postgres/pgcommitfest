@@ -575,6 +575,7 @@ branch.failing_since,
             string_agg(task.task_name, ', ') FILTER (WHERE task.status in ('ABORTED', 'ERRORED', 'FAILED')) as failed_task_names,
             branch.status as branch_status,
             branch.apply_url,
+            branch.build_url,
             branch.patch_count,
             branch.all_additions,
             branch.all_deletions
@@ -1567,13 +1568,13 @@ def cfbot_ingest(message):
     cursor.execute(
         """INSERT INTO commitfest_cfbotbranch (patch_id, branch_id,
                                                 branch_name, commit_id,
-                                                apply_url, status,
+                                                apply_url, build_url, status,
                                                 created, modified,
                                                 version, patch_count,
                                                 first_additions, first_deletions,
                                                 all_additions, all_deletions
                                                 )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (patch_id) DO UPDATE
                         SET status = EXCLUDED.status,
                             modified = EXCLUDED.modified,
@@ -1581,6 +1582,7 @@ def cfbot_ingest(message):
                             branch_name = EXCLUDED.branch_name,
                             commit_id = EXCLUDED.commit_id,
                             apply_url = EXCLUDED.apply_url,
+                            build_url = EXCLUDED.build_url,
                             created = EXCLUDED.created,
                             version = EXCLUDED.version,
                             patch_count = EXCLUDED.patch_count,
@@ -1598,6 +1600,7 @@ def cfbot_ingest(message):
             branch_status["branch_name"],
             branch_status["commit_id"],
             branch_status["apply_url"],
+            branch_status["build_url"],
             branch_status["status"],
             branch_status["created"],
             branch_status["modified"],
@@ -1625,12 +1628,13 @@ def cfbot_ingest(message):
         task_status = message["task_status"]
         if task_status["status"] in [x[0] for x in CfbotTask.STATUS_CHOICES]:
             cursor.execute(
-                """INSERT INTO commitfest_cfbottask (task_id, task_name, patch_id, branch_id,
+                """INSERT INTO commitfest_cfbottask (task_id, task_url, task_name, patch_id, branch_id,
                                                 position, status,
                                                 created, modified)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                         ON CONFLICT (branch_id, position) DO UPDATE
                             SET task_id = EXCLUDED.task_id,
+                                task_url = EXCLUDED.task_url,
                                 task_name = EXCLUDED.task_name,
                                 status = EXCLUDED.status,
                                 created = EXCLUDED.created,
@@ -1638,6 +1642,7 @@ def cfbot_ingest(message):
                         WHERE commitfest_cfbottask.modified < EXCLUDED.modified""",
                 (
                     task_status["task_id"],
+                    task_status["task_url"],
                     task_status["task_name"],
                     patch_id,
                     branch_id,
