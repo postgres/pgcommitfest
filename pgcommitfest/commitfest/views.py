@@ -917,6 +917,10 @@ def patch(request, patchid):
             "committers": committers,
             "attachnow": "attachthreadnow" in request.GET,
             "title": patch.name,
+            "description": (
+                "PostgreSQL patch by %s in the %s commitfest."
+                % (patch.authors_string or "unknown author", cf.title)
+            ),
             "breadcrumbs": [
                 {"title": cf.title, "href": "/%s/" % cf.pk},
             ],

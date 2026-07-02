@@ -5,6 +5,12 @@
  <html>
   <head>
    <title>{{title|default:'Commitfest' }}</title>
+   <meta name="description" content="{{description|default:'The PostgreSQL Commitfest app tracks patches and reviews as part of the PostgreSQL development process.'}}" />
+   <meta property="og:title" content="{{title|default:'Commitfest'}}" />
+   <meta property="og:description" content="{{description|default:'The PostgreSQL Commitfest app tracks patches and reviews as part of the PostgreSQL development process.'}}" />
+   <meta property="og:type" content="website" />
+   <meta property="og:site_name" content="PostgreSQL Commitfest" />
+   <meta property="og:url" content="{{request.build_absolute_uri}}" />
    <link rel="stylesheet" href="/media/commitfest/css/jquery-ui.css" type="text/css">
    <link rel="stylesheet" href="/media/commitfest/css/bootstrap.css?v=5.3.7" />
    <link rel="stylesheet" href="/media/commitfest/css/bootstrap-icons.css" />
