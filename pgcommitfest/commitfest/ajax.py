@@ -195,7 +195,7 @@ def parse_and_add_attachments(threadinfo, mailthread):
             # One or more attachments. For now, we're only actually going
             # to store and process the first one, even though the API gets
             # us all of them.
-            MailThreadAttachment.objects.get_or_create(
+            MailThreadAttachment.objects.update_or_create(
                 mailthread=mailthread,
                 messageid=t["msgid"],
                 defaults={
