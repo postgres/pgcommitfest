@@ -9,6 +9,7 @@ from django.http import (
     HttpResponse,
     HttpResponseForbidden,
     HttpResponseRedirect,
+    JsonResponse,
 )
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -177,6 +178,146 @@ def help(request):
             "auto_move_email_activity_days": settings.AUTO_MOVE_EMAIL_ACTIVITY_DAYS,
             "auto_move_max_failing_days": settings.AUTO_MOVE_MAX_FAILING_DAYS,
         },
+    )
+
+
+def contrib_card(request, handle=None):
+    return render(
+        request,
+        "contrib_card.html",
+        {"title": "Postgres Contributor Card", "q": handle or ""},
+    )
+
+
+def contrib_card_lookup(request):
+    """Find contributors (patch authors) matching a name/handle query.
+
+    Returns the same {"values": [{"id", "value"}]} shape the standalone page
+    used to consume from commitfest.postgresql.org, but sourced from the local
+    database.
+    """
+    q = (request.GET.get("q") or "").strip()
+    if not q:
+        return JsonResponse({"values": []})
+
+    users = (
+        User.objects.filter(
+            Q(is_active=True),
+            Q(username__icontains=q)
+            | Q(first_name__icontains=q)
+            | Q(last_name__icontains=q),
+        )
+        .filter(patch_author__isnull=False)
+        .distinct()
+        .order_by("username")[:20]
+    )
+    return JsonResponse(
+        {
+            "values": [
+                {
+                    "id": u.id,
+                    "value": f"{u.get_full_name() or u.username} ({u.username})",
+                }
+                for u in users
+            ]
+        }
+    )
+
+
+def contrib_card_stats(request):
+    """Aggregate a contributor's patch stats directly from the database.
+
+    Produces the stats structure the card template renders: totals, focus-area
+    tags, shipped-in versions, and recent patches.
+    """
+    user = get_object_or_404(User, pk=request.GET.get("id"))
+
+    patches = (
+        Patch.objects.filter(authors=user)
+        .prefetch_related("tags", "patchoncommitfest_set")
+        .select_related("targetversion")
+        .distinct()
+    )
+
+    status_label = dict(PatchOnCommitFest._STATUS_CHOICES)
+
+    total = committed = active = 0
+    cfs = set()
+    tag_counts = {}
+    versions = {}
+    rows = []
+
+    for p in patches:
+        total += 1
+        pocs = list(p.patchoncommitfest_set.all())
+        for poc in pocs:
+            cfs.add(poc.commitfest_id)
+
+        is_committed = any(
+            poc.status == PatchOnCommitFest.STATUS_COMMITTED for poc in pocs
+        )
+        # Overall status: a committed patch stays committed; otherwise use the
+        # status of the most recently entered commitfest.
+        if is_committed:
+            status_int = PatchOnCommitFest.STATUS_COMMITTED
+        elif pocs:
+            status_int = max(pocs, key=lambda poc: poc.enterdate).status
+        else:
+            status_int = None
+
+        if is_committed:
+            committed += 1
+        elif status_int in PatchOnCommitFest.OPEN_STATUSES:
+            active += 1
+
+        for tag in p.tags.all():
+            tag_counts[tag.name] = tag_counts.get(tag.name, 0) + 1
+
+        version = (
+            p.targetversion.version if (is_committed and p.targetversion_id) else None
+        )
+        if version:
+            versions[version] = versions.get(version, 0) + 1
+
+        rows.append(
+            {
+                "title": p.name,
+                "status": status_label.get(status_int, "Unknown"),
+                "version": version,
+                "recency": p.lastmail or p.modified or p.created,
+            }
+        )
+
+    rows.sort(key=lambda r: r["recency"], reverse=True)
+    recent = [
+        {"title": r["title"], "status": r["status"], "version": r["version"]}
+        for r in rows[:8]
+    ]
+
+    top_tags = sorted(tag_counts.items(), key=lambda kv: kv[1], reverse=True)[:6]
+
+    def version_key(v):
+        parts = v.split(".")
+        major = int(parts[0]) if parts[0].isdigit() else 0
+        minor = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 99
+        return major * 100 + minor
+
+    version_list = sorted(
+        versions.items(), key=lambda kv: version_key(kv[0]), reverse=True
+    )
+
+    return JsonResponse(
+        {
+            "name": user.get_full_name() or user.username,
+            "handle": user.username,
+            "totalPatches": total,
+            "committed": committed,
+            "active": active,
+            "cfsActive": len(cfs),
+            "topTags": top_tags,
+            "recent": recent,
+            "versions": version_list,
+        }
     )
 
 
