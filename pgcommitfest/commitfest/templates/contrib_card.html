@@ -1,0 +1,226 @@
+{%extends "base.html"%}
+
+{%block extrahead%}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+  <style>
+  /* Everything is scoped under .cc-page so it can't leak into the rest of the
+     Commitfest site chrome (Bootstrap, nav, breadcrumbs, etc). */
+  /* Full-bleed: break out of the Bootstrap container so the dark section spans
+     the whole viewport width and fills the page below the site header. */
+    .cc-page{position:relative;width:100vw;margin-left:calc(50% - 50vw);
+      min-height:calc(100vh - 170px);padding:40px 24px;
+      background:radial-gradient(120% 100% at 50% 0%,#10243a 0%,#0a1826 55%,#071019 100%);
+      font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:#eaf1f7}
+    .cc-page *{box-sizing:border-box}
+  /* The page title lives inside the dark block, so hide the default one that
+     base.html renders above the content (the breadcrumb still shows it). */
+    .container-fluid > h1{display:none}
+    .cc-page .shell{max-width:520px;margin:0 auto}
+    .cc-page .cc-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    .cc-page .cc-title{margin:2px 0 0;font-size:26px;font-weight:800;letter-spacing:-.5px;color:#eaf1f7}
+    .cc-page .lead{font-size:13px;color:#9db8d0;margin:0 0 16px;line-height:1.5}
+    .cc-page .row{display:flex;gap:8px;margin-bottom:12px}
+    .cc-page input{flex:1;padding:12px 14px;border-radius:10px;border:1px solid #24425f;background:#0d1f31;
+      color:#eaf1f7;font-size:15px;outline:none}
+    .cc-page input:focus{border-color:#5b9bd5}
+    .cc-page button{padding:0 20px;border-radius:10px;border:none;cursor:pointer;background:#f5b301;
+      color:#0a1826;font-weight:800;font-size:15px}
+    .cc-page button:disabled{opacity:.5;cursor:default}
+    .cc-page .statusbar{display:flex;align-items:center;gap:10px;font-size:13px;color:#9db8d0;margin-bottom:12px}
+    .cc-page .track{flex:1;height:5px;background:#173049;border-radius:5px;overflow:hidden}
+    .cc-page .fill{height:100%;width:0;background:#f5b301;transition:width .2s}
+    .cc-page .err{background:#3a1a1a;border:1px solid #6b2b2b;color:#f4b4b4;padding:12px 14px;border-radius:10px;
+      font-size:13px;margin-bottom:12px;line-height:1.55}
+    .cc-page .matches{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+    .cc-page .match{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:10px;
+      border:1px solid #24425f;background:#0d1f31;color:#eaf1f7;cursor:pointer;text-align:left}
+    .cc-page .match:hover{border-color:#5b9bd5}
+    .cc-page .match .n{font-weight:700;font-size:15px}
+    .cc-page .match .h{font-size:12px;color:#5b9bd5}
+    .cc-page .actions{display:flex;gap:8px;margin:14px 0 0}
+    .cc-page .ghost{background:#0d1f31;border:1px solid #24547f;color:#eaf1f7;font-weight:700;font-size:13px;padding:10px 16px}
+    .cc-page .foot{font-size:11px;color:#5f7d97;line-height:1.6;margin-top:18px}
+    .cc-page .foot a{color:#5b9bd5;text-decoration:none}
+    .cc-page .foot a:hover{text-decoration:underline}
+
+  /* ---- card ---- */
+  /* Set color explicitly: Bootstrap's own .card rule forces a dark text color,
+     which otherwise makes the name and tag labels unreadable on the dark card. */
+    .cc-page .card{position:relative;overflow:hidden;border-radius:18px;padding:26px;margin-top:18px;color:#eaf1f7;
+      background:linear-gradient(160deg,#123354 0%,#0c2137 100%);border:1px solid #24547f;
+      box-shadow:0 24px 60px -20px rgba(0,0,0,.6)}
+    .cc-page .glow{position:absolute;top:-80px;right:-60px;width:220px;height:220px;
+      background:radial-gradient(circle,rgba(245,179,1,.18),transparent 70%);pointer-events:none}
+    .cc-page .chead{display:flex;align-items:center;gap:14px;margin-bottom:22px;position:relative}
+    .cc-page .eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#5b9bd5;font-weight:700}
+    .cc-page .cname{font-size:22px;font-weight:800;letter-spacing:-.3px;color:#eaf1f7}
+    .cc-page .chandle{font-size:13px;color:#5b9bd5;margin-top:2px}
+    .cc-page .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+    .cc-page .stat{background:#0a1c2e;border:1px solid #1c3c59;border-radius:12px;padding:14px 8px;text-align:center}
+    .cc-page .statN{font-size:25px;font-weight:800;line-height:1}
+    .cc-page .statL{font-size:10px;color:#8fabc4;margin-top:6px;text-transform:uppercase;letter-spacing:.6px}
+    .cc-page .block{margin-bottom:20px}.cc-page .block:last-child{margin-bottom:0}
+    .cc-page .bl{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#5b9bd5;font-weight:700;margin-bottom:10px}
+    .cc-page .tags{display:flex;flex-wrap:wrap;gap:8px}
+    .cc-page .tag{display:inline-flex;align-items:center;gap:6px;background:#0a1c2e;border:1px solid #24547f;
+      border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;color:#eaf1f7}
+    .cc-page .tagN{background:#f5b301;color:#0a1826;border-radius:999px;padding:0 6px;font-size:11px;font-weight:800}
+    .cc-page .ri{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #16324c}
+    .cc-page .dot{width:8px;height:8px;border-radius:999px;flex-shrink:0}
+    .cc-page .rt{flex:1;font-size:13px;color:#dbe7f2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .cc-page .rs{font-size:11px;color:#8fabc4;flex-shrink:0}
+    .cc-page .verB{font-size:10px;font-weight:700;color:#0a1826;background:#5b9bd5;border-radius:999px;padding:1px 7px;flex-shrink:0}
+    .cc-page .cfoot{margin-top:20px;padding-top:14px;border-top:1px solid #16324c;font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#5f7d97;text-align:center}
+  </style>
+{%endblock%}
+
+{%block contents%}
+  <div class="cc-page" data-q="{{ q|default:'' }}">
+    <div class="shell">
+      <header class="cc-head">
+        <img src="/media/commitfest/logo.svg" width="40" height="40" alt="PostgreSQL">
+        <div>
+          <div class="eyebrow">PostgreSQL · Commitfest</div>
+          <h1 class="cc-title">Postgres Contributor Card</h1>
+        </div>
+      </header>
+      <p class="lead">Generate a shareable contributor card from this Commitfest instance's data, patches, commits, focus areas, and the versions they shipped in.</p>
+
+      <div class="row">
+        <input id="q" placeholder="Commitfest handle or name" autocomplete="off">
+        <button id="go">Find</button>
+      </div>
+
+      <div id="status" style="display:none" class="statusbar">
+        <span id="statusText"></span>
+        <div class="track"><div id="fill" class="fill"></div></div>
+      </div>
+      <div id="err" style="display:none" class="err"></div>
+      <div id="matches" class="matches"></div>
+      <div id="cardWrap"></div>
+      <div id="actions" style="display:none" class="actions">
+        <button class="ghost" id="dlPng">Download PNG</button>
+        <button class="ghost" id="copyLink">Copy link</button>
+      </div>
+
+      <div class="foot">
+        Powered by Commitfest
+      </div>
+    </div>
+  </div>
+{%endblock%}
+
+{%block morescript%}
+  <script>
+// Wrapped in an IIFE so nothing (notably the $ helper) leaks into the global
+// scope and shadows the site's jQuery / bootstrap scripts.
+    (function(){
+      async function getJSON(url){
+        const r = await fetch(url, {headers:{"Accept":"application/json"}});
+        if(!r.ok) throw new Error("HTTP "+r.status);
+        return r.json();
+      }
+
+// ---- parsing ----
+      function parseLookup(d){
+        return (d.values||[]).map(v=>{
+          const m = v.value.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+          return {id:v.id, name:m?m[1].trim():v.value, handle:m?m[2]:""};
+        });
+      }
+
+// ---- rendering ----
+      const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+      function cardHtml(person,stats){
+        const dot=s=>s==="Committed"?"#4ade80":s==="Ready for Committer"?"#fbbf24":"#60a5fa";
+        const cell=(n,l,a)=>`<div class="stat"><div class="statN" style="color:${a?"#f5b301":"#eaf1f7"}">${n}</div><div class="statL">${l}</div></div>`;
+        const tags=stats.topTags.map(([t,n])=>`<span class="tag">${esc(t)}<span class="tagN">${n}</span></span>`).join("");
+        const versions=(stats.versions||[]).map(([v,n])=>`<span class="tag">PG ${v}<span class="tagN">${n}</span></span>`).join("");
+        const recent=stats.recent.map(p=>`<div class="ri"><span class="dot" style="background:${dot(p.status)}"></span><span class="rt">${esc(p.title)}</span>${p.version?`<span class="verB">PG ${esc(p.version)}</span>`:""}<span class="rs">${esc(p.status)}</span></div>`).join("");
+  return `<div class="card"><div class="glow"></div>
+          <div class="chead">
+          <img src="/media/commitfest/logo.svg" width="46" height="46" alt="PostgreSQL">
+          <div style="flex:1"><div class="eyebrow">PostgreSQL · Commitfest</div><div class="cname">${esc(person.name)}</div>${person.handle?`<div class="chandle">@${esc(person.handle)}</div>`:""}</div>
+          </div>
+          <div class="grid">${cell(stats.totalPatches,"Patches",1)}${cell(stats.committed,"Committed")}${cell(stats.active,"Active")}${cell(stats.cfsActive,"Commitfests")}</div>
+          ${versions?`<div class="block"><div class="bl">Shipped in</div><div class="tags">${versions}</div></div>`:""}
+          ${tags?`<div class="block"><div class="bl">Focus areas</div><div class="tags">${tags}</div></div>`:""}
+          ${recent?`<div class="block"><div class="bl">Recent patches</div>${recent}</div>`:""}
+          <div class="cfoot">Powered by Commitfest</div>
+          </div>`;
+}
+// ---- ui glue ----
+const $=id=>document.getElementById(id);
+function setStatus(txt,pct){ $("status").style.display="flex"; $("statusText").textContent=txt; if(pct!=null)$("fill").style.width=pct+"%"; }
+function hideStatus(){ $("status").style.display="none"; $("fill").style.width="0"; }
+function showErr(m){ $("err").style.display="block"; $("err").textContent=m; }
+function clearErr(){ $("err").style.display="none"; }
+
+async function find(){
+  clearErr(); $("matches").innerHTML=""; $("cardWrap").innerHTML=""; $("actions").style.display="none";
+  const q=$("q").value.trim(); if(!q) return;
+  // Reflect the search in the address bar as a pretty, shareable path.
+  history.replaceState(null,"","/contrib-card/"+encodeURIComponent(q));
+  $("go").disabled=true; setStatus("Looking up contributor…");
+  try{
+    const found=parseLookup(await getJSON(`/contrib-card/lookup/?q=${encodeURIComponent(q)}`));
+    hideStatus();
+    if(!found.length){ showErr(`No contributor found for "${q}".`); return; }
+    if(found.length===1){ build(found[0]); return; }
+    $("matches").innerHTML=`<div style="font-size:12px;color:#9db8d0">Select a contributor</div>`+
+      found.map((m,i)=>`<button class="match" data-i="${i}"><span class="n">${esc(m.name)}</span><span class="h">@${esc(m.handle)} · id ${m.id}</span></button>`).join("");
+    [...document.querySelectorAll(".cc-page .match")].forEach(b=>b.onclick=()=>{ $("matches").innerHTML=""; build(found[+b.dataset.i]); });
+  }catch(e){
+    hideStatus();
+    showErr(`Lookup failed (${e.message}).`);
+  }finally{ $("go").disabled=false; }
+}
+
+async function build(person){
+  $("matches").innerHTML="";
+  setStatus("Building card…");
+  let stats;
+  try{ stats=await getJSON(`/contrib-card/stats/?id=${encodeURIComponent(person.id)}`); }
+  catch(e){ hideStatus(); showErr(`Failed to load stats (${e.message}).`); return; }
+      hideStatus();
+  // The database is authoritative for the display name/handle.
+      person={id:person.id, name:stats.name||person.name, handle:stats.handle||person.handle};
+      $("cardWrap").innerHTML=cardHtml(person,stats);
+      $("actions").style.display="flex";
+
+      const cardEl=()=>$("cardWrap").querySelector(".card");
+      const fname=ext=>(person.handle||"contributor")+"-card."+ext;
+      const save=(dataUrl,ext)=>{ const a=document.createElement("a"); a.href=dataUrl; a.download=fname(ext); a.click(); };
+
+  // High-resolution PNG: render at 3x on an opaque background.
+      $("dlPng").onclick=async()=>{
+        const btn=$("dlPng"), label=btn.textContent; btn.textContent="Rendering…"; btn.disabled=true;
+        try{
+          save(await htmlToImage.toPng(cardEl(),{pixelRatio:3, backgroundColor:"#0a1826", style:{margin:"0"}}),"png");
+        }catch(e){ showErr("PNG export failed: "+e.message); }
+        finally{ btn.textContent=label; btn.disabled=false; }
+      };
+
+  // Shareable link that re-runs this exact search for anyone who opens it.
+      const shareUrl=()=>location.origin+"/contrib-card/"+encodeURIComponent(person.handle||person.name);
+      $("copyLink").onclick=async()=>{
+        const btn=$("copyLink");
+        try{ await navigator.clipboard.writeText(shareUrl()); btn.textContent="Link copied!"; }
+        catch{ showErr("Clipboard blocked — link: "+shareUrl()); btn.textContent="Copy link"; }
+        setTimeout(()=>btn.textContent="Copy link",1600);
+      };
+    }
+
+      $("go").onclick=find;
+      $("q").addEventListener("keydown",e=>{ if(e.key==="Enter") find(); });
+
+// Auto-run support: the handle comes from the path (/contrib-card/<handle>,
+// injected server-side into data-q).
+      (function initFromUrl(){
+        const el=document.querySelector(".cc-page");
+        const q=el?el.dataset.q:"";
+        if(q){ $("q").value=q; find(); }
+      })();
+    })();
+  </script>
+{%endblock%}
