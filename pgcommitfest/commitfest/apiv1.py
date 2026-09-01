@@ -36,6 +36,11 @@ def api_response(payload, status=200, content_type="application/json"):
     return response
 
 
+def all_commitfests(request):
+    """Return all commitfests, including closed ones."""
+    return api_response({"commitfests": list(CommitFest.objects.order_by("id"))})
+
+
 def commitfestst_that_need_ci(request):
     cfs = CommitFest.relevant_commitfests()
 
