@@ -12,6 +12,70 @@ from pgcommitfest.commitfest.models import (
 pytestmark = pytest.mark.django_db
 
 
+def test_commitfests_endpoint(client, commitfests):
+    """Test the /api/v1/commitfests endpoint returns all commitfests."""
+    response = client.get("/api/v1/commitfests")
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/json"
+    assert response["Access-Control-Allow-Origin"] == "*"
+
+    data = json.loads(response.content)
+
+    expected = [
+        {
+            "id": commitfests["open"].id,
+            "name": "2025-01",
+            "status": "Open",
+            "draft": False,
+            "startdate": "2025-01-01",
+            "enddate": "2025-01-31",
+        },
+        {
+            "id": commitfests["in_progress"].id,
+            "name": "2024-11",
+            "status": "In Progress",
+            "draft": False,
+            "startdate": "2024-11-01",
+            "enddate": "2024-11-30",
+        },
+        {
+            "id": commitfests["recent_previous"].id,
+            "name": "2024-09",
+            "status": "Closed",
+            "draft": False,
+            "startdate": "2024-09-01",
+            "enddate": "2024-09-30",
+        },
+        {
+            "id": commitfests["old_previous"].id,
+            "name": "2024-07",
+            "status": "Closed",
+            "draft": False,
+            "startdate": "2024-07-01",
+            "enddate": "2024-07-31",
+        },
+        {
+            "id": commitfests["draft"].id,
+            "name": "2025-03-draft",
+            "status": "Open",
+            "draft": True,
+            "startdate": "2025-03-01",
+            "enddate": "2025-03-31",
+        },
+    ]
+
+    assert data == {"commitfests": sorted(expected, key=lambda cf: cf["id"])}
+
+
+def test_commitfests_endpoint_empty(client):
+    """Test the /api/v1/commitfests endpoint with no commitfests."""
+    response = client.get("/api/v1/commitfests")
+
+    assert response.status_code == 200
+    assert json.loads(response.content) == {"commitfests": []}
+
+
 def test_needs_ci_endpoint(client, commitfests):
     """Test the /api/v1/commitfests/needs_ci endpoint returns correct data."""
     response = client.get("/api/v1/commitfests/needs_ci")
@@ -30,6 +94,7 @@ def test_needs_ci_endpoint(client, commitfests):
                 "id": commitfests["open"].id,
                 "name": "2025-01",
                 "status": "Open",
+                "draft": False,
                 "startdate": "2025-01-01",
                 "enddate": "2025-01-31",
             },
@@ -37,6 +102,7 @@ def test_needs_ci_endpoint(client, commitfests):
                 "id": commitfests["in_progress"].id,
                 "name": "2024-11",
                 "status": "In Progress",
+                "draft": False,
                 "startdate": "2024-11-01",
                 "enddate": "2024-11-30",
             },
@@ -44,6 +110,7 @@ def test_needs_ci_endpoint(client, commitfests):
                 "id": commitfests["draft"].id,
                 "name": "2025-03-draft",
                 "status": "Open",
+                "draft": True,
                 "startdate": "2025-03-01",
                 "enddate": "2025-03-31",
             },

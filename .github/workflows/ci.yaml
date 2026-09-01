@@ -14,10 +14,13 @@ jobs:
 
       - name: Run ruff check
         uses: astral-sh/ruff-action@v2
+        with:
+          version: 0.15.20
 
       - name: Run ruff format --check
         uses: astral-sh/ruff-action@v2
         with:
+          version: 0.15.20
           args: "format --check"
 
       - name: Setup Biome
