@@ -106,6 +106,7 @@ class CommitFest(models.Model):
             "id": self.id,
             "name": self.name,
             "status": self.statusstring,
+            "draft": self.draft,
             "startdate": self.startdate.isoformat(),
             "enddate": self.enddate.isoformat(),
         }
