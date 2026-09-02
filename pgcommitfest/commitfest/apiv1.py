@@ -1,3 +1,4 @@
+from django.db.models import Exists, OuterRef, Prefetch
 from django.http import (
     HttpResponse,
 )
@@ -8,6 +9,8 @@ from datetime import date, datetime, timedelta, timezone
 
 from .models import (
     CommitFest,
+    MailThread,
+    MailThreadAttachment,
     Patch,
     PatchOnCommitFest,
 )
@@ -55,13 +58,42 @@ def commitfestst_that_need_ci(request):
     return api_response({"commitfests": cfs})
 
 
+def with_has_attachment(threads):
+    """Annotate a MailThread queryset with has_attachment.
+
+    Doing this as an annotation rather than checking each thread's attachments
+    separately keeps the number of queries constant.
+    """
+    return threads.annotate(
+        has_attachment=Exists(
+            MailThreadAttachment.objects.filter(mailthread=OuterRef("pk"))
+        )
+    )
+
+
+def mailthread_json(thread):
+    return {
+        "messageid": thread.messageid,
+        "subject": thread.subject,
+        "latest_message_id": thread.latestmsgid,
+        "latest_message_time": thread.latestmessage,
+        "has_attachment": thread.has_attachment,
+    }
+
+
 def commitfest_patches(request, cfid):
     """Return all patches for a commitfest.
 
     This endpoint provides the data that cfbot previously scraped from the
     commitfest HTML page.
+
+    Threads for every patch can be included with ?include=threads. Unknown
+    tokens are ignored.
     """
     cf = get_object_or_404(CommitFest, pk=cfid)
+
+    include = set(request.GET.get("include", "").split(","))
+    include_threads = "threads" in include
 
     pocs = (
         PatchOnCommitFest.objects.filter(commitfest=cf)
@@ -70,19 +102,30 @@ def commitfest_patches(request, cfid):
         .order_by("patch__id")
     )
 
+    if include_threads:
+        pocs = pocs.prefetch_related(
+            Prefetch(
+                "patch__mailthread_set",
+                queryset=with_has_attachment(MailThread.objects.all()),
+            )
+        )
+
     patches = []
     for poc in pocs:
         patch = poc.patch
         authors = [f"{a.first_name} {a.last_name}" for a in patch.authors.all()]
-        patches.append(
-            {
-                "id": patch.id,
-                "name": patch.name,
-                "status": poc.statusstring,
-                "authors": authors,
-                "last_email_time": patch.lastmail,
-            }
-        )
+        entry = {
+            "id": patch.id,
+            "name": patch.name,
+            "status": poc.statusstring,
+            "authors": authors,
+            "last_email_time": patch.lastmail,
+            "enterdate": poc.enterdate,
+            "leavedate": poc.leavedate,
+        }
+        if include_threads:
+            entry["threads"] = [mailthread_json(t) for t in patch.mailthread_set.all()]
+        patches.append(entry)
 
     return api_response(
         {
@@ -100,18 +143,9 @@ def patch_threads(request, patch_id):
     """
     patch = get_object_or_404(Patch, pk=patch_id)
 
-    threads = []
-    for thread in patch.mailthread_set.all():
-        latest_attachment = thread.mailthreadattachment_set.first()
-        threads.append(
-            {
-                "messageid": thread.messageid,
-                "subject": thread.subject,
-                "latest_message_id": thread.latestmsgid,
-                "latest_message_time": thread.latestmessage,
-                "has_attachment": latest_attachment is not None,
-            }
-        )
+    threads = [
+        mailthread_json(t) for t in with_has_attachment(patch.mailthread_set.all())
+    ]
 
     return api_response(
         {
