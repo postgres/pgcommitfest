@@ -16,6 +16,33 @@ from pgcommitfest.commitfest.models import (
 pytestmark = pytest.mark.django_db
 
 
+def create_patch_on_cf(commitfest, name, author):
+    """Create a patch and put it on a commitfest."""
+    patch = Patch.objects.create(name=name)
+    patch.authors.add(author)
+    PatchOnCommitFest.objects.create(
+        patch=patch,
+        commitfest=commitfest,
+        enterdate=datetime(2025, 1, 1, tzinfo=timezone.utc),
+        status=PatchOnCommitFest.STATUS_REVIEW,
+    )
+    return patch
+
+
+def create_thread(messageid, subject, firstmessage, latestmessage, latestmsgid):
+    """Create a mail thread."""
+    return MailThread.objects.create(
+        messageid=messageid,
+        subject=subject,
+        firstmessage=firstmessage,
+        firstauthor="alice@example.com",
+        latestmessage=latestmessage,
+        latestauthor="bob@example.com",
+        latestsubject=f"Re: {subject}",
+        latestmsgid=latestmsgid,
+    )
+
+
 def test_commitfests_endpoint(client, commitfests):
     """Test the /api/v1/commitfests endpoint returns all commitfests."""
     response = client.get("/api/v1/commitfests")
@@ -147,8 +174,7 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
         patch=patch2,
         commitfest=open_cf,
         enterdate=datetime(2025, 1, 2, 8, 0, 0, tzinfo=timezone.utc),
-        # A leavedate is only allowed for statuses that close the patch out of
-        # the commitfest, per the status_and_leavedate_correlation constraint.
+        # leavedate is only allowed on statuses that close the patch out
         leavedate=datetime(2025, 1, 20, 16, 45, 0, tzinfo=timezone.utc),
         status=PatchOnCommitFest.STATUS_COMMITTED,
     )
@@ -240,52 +266,25 @@ def test_patch_threads_endpoint_not_found(client, commitfests):
     assert response.status_code == 404
 
 
-def create_patch_on_cf(commitfest, name, author):
-    """Create a patch and put it on a commitfest."""
-    patch = Patch.objects.create(name=name)
-    patch.authors.add(author)
-    PatchOnCommitFest.objects.create(
-        patch=patch,
-        commitfest=commitfest,
-        enterdate=datetime(2025, 1, 1, tzinfo=timezone.utc),
-        status=PatchOnCommitFest.STATUS_REVIEW,
-    )
-    return patch
-
-
-def create_thread(messageid, subject, firstmessage, latestmessage, latestmsgid):
-    """Create a mail thread."""
-    return MailThread.objects.create(
-        messageid=messageid,
-        subject=subject,
-        firstmessage=firstmessage,
-        firstauthor="alice@example.com",
-        latestmessage=latestmessage,
-        latestauthor="bob@example.com",
-        latestsubject=f"Re: {subject}",
-        latestmsgid=latestmsgid,
-    )
-
-
 def test_commitfest_patches_include_threads(client, open_cf, alice):
     """Test ?include=threads inlines the same thread data as the patch endpoint."""
     patch1 = create_patch_on_cf(open_cf, "Add feature X", alice)
     patch2 = create_patch_on_cf(open_cf, "Fix bug Y", alice)
 
-    # Created out of order, to check they come back oldest-first
+    # Created out of order; they come back oldest-first
     thread2 = create_thread(
-        "second@example.com",
-        "[PATCH] Add feature X v2",
-        datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
-        datetime(2025, 1, 12, 14, 30, 0, tzinfo=timezone.utc),
-        "second-latest@example.com",
+        messageid="second@example.com",
+        subject="[PATCH] Add feature X v2",
+        firstmessage=datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
+        latestmessage=datetime(2025, 1, 12, 14, 30, 0, tzinfo=timezone.utc),
+        latestmsgid="second-latest@example.com",
     )
     thread1 = create_thread(
-        "first@example.com",
-        "[PATCH] Add feature X v1",
-        datetime(2025, 1, 5, 9, 0, 0, tzinfo=timezone.utc),
-        datetime(2025, 1, 6, 11, 0, 0, tzinfo=timezone.utc),
-        "first-latest@example.com",
+        messageid="first@example.com",
+        subject="[PATCH] Add feature X v1",
+        firstmessage=datetime(2025, 1, 5, 9, 0, 0, tzinfo=timezone.utc),
+        latestmessage=datetime(2025, 1, 6, 11, 0, 0, tzinfo=timezone.utc),
+        latestmsgid="first-latest@example.com",
     )
     patch1.mailthread_set.add(thread1, thread2)
 
@@ -334,11 +333,11 @@ def test_commitfest_patches_no_threads_by_default(client, open_cf, alice):
     patch = create_patch_on_cf(open_cf, "Add feature X", alice)
     patch.mailthread_set.add(
         create_thread(
-            "abc123@example.com",
-            "[PATCH] Add feature X",
-            datetime(2025, 1, 5, 9, 0, 0, tzinfo=timezone.utc),
-            datetime(2025, 1, 6, 11, 0, 0, tzinfo=timezone.utc),
-            "def456@example.com",
+            messageid="abc123@example.com",
+            subject="[PATCH] Add feature X",
+            firstmessage=datetime(2025, 1, 5, 9, 0, 0, tzinfo=timezone.utc),
+            latestmessage=datetime(2025, 1, 6, 11, 0, 0, tzinfo=timezone.utc),
+            latestmsgid="def456@example.com",
         )
     )
 
@@ -360,11 +359,11 @@ def test_commitfest_patches_include_unknown_token(client, open_cf, alice):
     patch = create_patch_on_cf(open_cf, "Add feature X", alice)
     patch.mailthread_set.add(
         create_thread(
-            "abc123@example.com",
-            "[PATCH] Add feature X",
-            datetime(2025, 1, 5, 9, 0, 0, tzinfo=timezone.utc),
-            datetime(2025, 1, 6, 11, 0, 0, tzinfo=timezone.utc),
-            "def456@example.com",
+            messageid="abc123@example.com",
+            subject="[PATCH] Add feature X",
+            firstmessage=datetime(2025, 1, 5, 9, 0, 0, tzinfo=timezone.utc),
+            latestmessage=datetime(2025, 1, 6, 11, 0, 0, tzinfo=timezone.utc),
+            latestmsgid="def456@example.com",
         )
     )
 
@@ -385,11 +384,11 @@ def test_commitfest_patches_include_threads_query_count(client, open_cf, alice):
         patch = create_patch_on_cf(open_cf, f"Patch {i}", alice)
         patch.mailthread_set.add(
             create_thread(
-                f"thread{i}@example.com",
-                f"[PATCH] Patch {i}",
-                datetime(2025, 1, 5, 9, 0, 0, tzinfo=timezone.utc),
-                datetime(2025, 1, 6, 11, 0, 0, tzinfo=timezone.utc),
-                f"thread{i}-latest@example.com",
+                messageid=f"thread{i}@example.com",
+                subject=f"[PATCH] Patch {i}",
+                firstmessage=datetime(2025, 1, 5, 9, 0, 0, tzinfo=timezone.utc),
+                latestmessage=datetime(2025, 1, 6, 11, 0, 0, tzinfo=timezone.utc),
+                latestmsgid=f"thread{i}-latest@example.com",
             )
         )
 
@@ -408,6 +407,5 @@ def test_commitfest_patches_include_threads_query_count(client, open_cf, alice):
     assert len(data["patches"]) == 5
     assert all(len(p["threads"]) == 1 for p in data["patches"])
 
-    # The threads for all patches are fetched by a single extra query. If they
-    # were fetched per patch this would be 5 extra queries, not 1.
+    # One extra query for all patches, not one per patch
     assert len(with_threads) == len(without_threads) + 1
