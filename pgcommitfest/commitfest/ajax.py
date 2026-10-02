@@ -87,13 +87,19 @@ def getThreads(request):
     else:
         attachonly = 0
 
-    # Make a JSON api call to the archives server
+    # Make a JSON api call to the archives server for each list. A message
+    # that was sent to more than one list is only returned once.
     params = {"n": 100, "a": attachonly}
     if search:
         params["s"] = search
 
-    r = _archivesAPI("/list/pgsql-hackers/latest.json", params)
-    return sorted(r, key=lambda x: x["date"], reverse=True)
+    messages = {}
+    for listname in settings.ARCHIVES_SEARCH_LISTS:
+        for m in _archivesAPI("/list/%s/latest.json" % listname, params):
+            messages.setdefault(m["msgid"], m)
+
+    r = sorted(messages.values(), key=lambda x: x["date"], reverse=True)
+    return r[: params["n"]]
 
 
 def getMessages(request):

@@ -157,6 +157,8 @@ ARCHIVES_SERVER = "localhost"
 ARCHIVES_PORT = "8001"
 ARCHIVES_HOST = "archives.postgresql.org"  # Host: header to send
 ARCHIVES_APIKEY = None
+# Mailing lists searched when attaching a thread to a patch
+ARCHIVES_SEARCH_LISTS = ["pgsql-hackers", "pgsql-bugs"]
 
 # Email address to pgsql-hackers. Set to something local to test maybe?
 HACKERS_EMAIL = "pgsql-hackers-testing@localhost"
