@@ -11,6 +11,10 @@ from pgcommitfest.userprofile.models import UserProfile
 
 from .util import DiffableModel
 
+# Patches with one of these tags are always moved to the next commitfest when
+# their commitfest closes.
+AUTO_MOVE_ALWAYS_TAG_NAMES = ["Bugfix"]
+
 
 # We have few enough of these, and it's really the only thing we
 # need to extend from the user model, so just create a separate
@@ -114,10 +118,15 @@ class CommitFest(models.Model):
     def _should_auto_move_patch(self, patch, current_date):
         """Determine if a patch should be automatically moved to the next commitfest.
 
-        A patch qualifies for auto-move if it both:
+        A patch tagged as a bug fix is always moved, so that it doesn't get
+        lost in a closed commitfest. Any other patch qualifies for auto-move
+        if it both:
         1. Has had email activity within the configured number of days
         2. Hasn't been failing CI for longer than the configured threshold
         """
+        if any(tag.name in AUTO_MOVE_ALWAYS_TAG_NAMES for tag in patch.tags.all()):
+            return True
+
         activity_cutoff = current_date - timedelta(
             days=settings.AUTO_MOVE_EMAIL_ACTIVITY_DAYS
         )
@@ -148,8 +157,8 @@ class CommitFest(models.Model):
     def auto_move_active_patches(self):
         """Automatically move active patches to the next commitfest.
 
-        A patch is moved if it has recent email activity and hasn't been
-        failing CI for too long.
+        A patch is moved if it is tagged as a bug fix, or if it has recent
+        email activity and hasn't been failing CI for too long.
         """
         current_date = datetime.now()
 
@@ -170,9 +179,13 @@ class CommitFest(models.Model):
             ).order_by("startdate")[0]
 
         # Get all patches with open status in this commitfest
-        open_pocs = self.patchoncommitfest_set.filter(
-            status__in=PatchOnCommitFest.OPEN_STATUSES
-        ).select_related("patch")
+        open_pocs = (
+            self.patchoncommitfest_set.filter(
+                status__in=PatchOnCommitFest.OPEN_STATUSES
+            )
+            .select_related("patch")
+            .prefetch_related("patch__tags")
+        )
 
         for poc in open_pocs:
             if self._should_auto_move_patch(poc.patch, current_date):
