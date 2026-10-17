@@ -507,6 +507,16 @@ def patchlist(request, cf, personalized=False):
         orderby_str = "poc.commitfest_id, lastmail DESC"
     elif sortkey == -8:
         orderby_str = "poc.commitfest_id DESC, lastmail"
+    elif sortkey == 9 and not personalized:
+        orderby_str = (
+            "committer.last_name NULLS LAST, committer.first_name NULLS LAST, "
+            "committer.username NULLS LAST, p.id"
+        )
+    elif sortkey == -9 and not personalized:
+        orderby_str = (
+            "committer.last_name DESC NULLS LAST, committer.first_name DESC NULLS LAST, "
+            "committer.username DESC NULLS LAST, p.id"
+        )
     else:
         if personalized:
             # First we sort by group_name, to have the grouping work.
