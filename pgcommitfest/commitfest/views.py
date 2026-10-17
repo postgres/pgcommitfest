@@ -1008,9 +1008,10 @@ def newpatch(request, cfid):
             ).save()
             # Now add the thread
             try:
-                doAttachThread(
-                    cf, patch, form.cleaned_data["threadmsgid"], request.user
-                )
+                with transaction.atomic():
+                    doAttachThread(
+                        cf, patch, form.cleaned_data["threadmsgid"], request.user
+                    )
                 return HttpResponseRedirect("/patch/%s/" % (patch.id,))
             except Http404:
                 # Thread not found!
