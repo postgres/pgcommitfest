@@ -1,6 +1,6 @@
 from django.db import connection
 
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -8,6 +8,8 @@ import pytest
 from pgcommitfest.commitfest.models import MailThread, Patch
 
 pytestmark = pytest.mark.django_db
+
+MSGID = "test-thread@example.com"
 
 
 def _fail_with_database_error(*args, **kwargs):
@@ -17,90 +19,49 @@ def _fail_with_database_error(*args, **kwargs):
         cursor.execute("SELECT 1/0")
 
 
-@pytest.mark.parametrize(
-    "failure",
-    [RuntimeError("Simulated failure"), _fail_with_database_error],
-    ids=["python-error", "database-error"],
-)
-def test_newpatch_does_not_leave_orphan_thread(
-    client, alice, open_cf, in_progress_cf, recent_closed_cf, failure
+@pytest.mark.parametrize("fail", [False, True], ids=["success", "database-error"])
+def test_newpatch_thread_attach(
+    client, alice, open_cf, in_progress_cf, recent_closed_cf, fail
 ):
     client.force_login(alice)
-
     message = {
-        "msgid": "test-thread@example.com",
-        "date": datetime(2025, 1, 10, 12),
+        "msgid": MSGID,
+        "date": datetime(2025, 1, 10, 12, tzinfo=timezone.utc),
         "from": "author@example.com",
         "subj": "[PATCH] Test",
         "atts": [],
     }
 
     with (
-        patch(
-            "pgcommitfest.commitfest.forms._archivesAPI",
-            return_value=[message],
-        ),
-        patch(
-            "pgcommitfest.commitfest.ajax._archivesAPI",
-            return_value=[message],
-        ),
+        patch("pgcommitfest.commitfest.forms._archivesAPI", return_value=[message]),
+        patch("pgcommitfest.commitfest.ajax._archivesAPI", return_value=[message]),
         patch(
             "pgcommitfest.commitfest.ajax.parse_and_add_attachments",
-            side_effect=failure,
-        ) as failure_mock,
+            side_effect=_fail_with_database_error if fail else None,
+        ) as attachments_mock,
     ):
         response = client.post(
             f"/{open_cf.pk}/new/",
             {
                 "name": "Transaction test",
-                "threadmsgid": "test-thread@example.com",
+                "threadmsgid": MSGID,
                 "no_tags_apply": "on",
                 "authors": [str(alice.pk)],
             },
         )
 
-    failure_mock.assert_called_once()
-    assert response.status_code == 200
-    assert not Patch.objects.filter(name="Transaction test").exists()
-    assert not MailThread.objects.filter(messageid="test-thread@example.com").exists()
-
-
-def test_newpatch_creates_patch_and_attaches_thread(
-    client, alice, open_cf, in_progress_cf, recent_closed_cf
-):
-    client.force_login(alice)
-
-    message = {
-        "msgid": "success-thread@example.com",
-        "date": datetime(2025, 1, 10, 12),
-        "from": "author@example.com",
-        "subj": "[PATCH] Success",
-        "atts": [],
-    }
-
-    with (
-        patch(
-            "pgcommitfest.commitfest.forms._archivesAPI",
-            return_value=[message],
-        ),
-        patch(
-            "pgcommitfest.commitfest.ajax._archivesAPI",
-            return_value=[message],
-        ),
-    ):
-        response = client.post(
-            f"/{open_cf.pk}/new/",
-            {
-                "name": "Successful transaction test",
-                "threadmsgid": "success-thread@example.com",
-                "no_tags_apply": "on",
-                "authors": [str(alice.pk)],
-            },
+    attachments_mock.assert_called_once()
+    if fail:
+        # The form is re-rendered with an error and nothing is left behind
+        assert response.status_code == 200
+        assert not Patch.objects.filter(name="Transaction test").exists()
+        assert not MailThread.objects.filter(messageid=MSGID).exists()
+    else:
+        created_patch = Patch.objects.get(name="Transaction test")
+        assert response.status_code == 302
+        assert response["Location"] == f"/patch/{created_patch.pk}/"
+        assert (
+            MailThread.objects.get(messageid=MSGID)
+            .patches.filter(pk=created_patch.pk)
+            .exists()
         )
-
-    created_patch = Patch.objects.get(name="Successful transaction test")
-    thread = MailThread.objects.get(messageid="success-thread@example.com")
-
-    assert response.status_code == 302
-    assert response["Location"] == f"/patch/{created_patch.pk}/"
-    assert thread.patches.filter(pk=created_patch.pk).exists()
