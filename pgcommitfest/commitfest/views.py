@@ -409,10 +409,12 @@ def patchlist(request, cf, personalized=False):
         whereclauses.append("poc.status=ANY(%(openstatuses)s)")
     else:
         whereclauses.append("poc.commitfest_id=%(cid)s")
-        # Exclude "Moved to other CF" patches from draft commitfests
+        # Draft commitfests only show open patches. Filtering here instead of
+        # in the template keeps the template's table open/close logic, which
+        # relies on forloop.first/last, simple. This also excludes "Moved to
+        # other CF" patches, which are not interesting in a draft commitfest.
         if cf.draft:
-            whereclauses.append("poc.status != %(status_moved)s")
-            whereparams["status_moved"] = PatchOnCommitFest.STATUS_MOVED
+            whereclauses.append("poc.status=ANY(%(openstatuses)s)")
 
     if personalized:
         # For now we can just order by these names in descending order, because
@@ -620,14 +622,14 @@ def commitfest(request, cfid):
     if patch_list.redirect:
         return patch_list.redirect
 
-    # Generate patch status summary.
-    # Exclude "Moved to other CF" status from draft commitfests
-    status_filter = "AND poc.status != %(status_moved)s" if cf.draft else ""
+    # Generate patch status summary. Draft commitfests only list open
+    # patches, so only summarize those too.
+    status_filter = "AND poc.status = ANY(%(openstatuses)s)" if cf.draft else ""
     curs.execute(
         f"SELECT ps.status, ps.statusstring, count(*) FROM commitfest_patchoncommitfest poc INNER JOIN commitfest_patchstatus ps ON ps.status=poc.status WHERE commitfest_id=%(id)s {status_filter} GROUP BY ps.status ORDER BY ps.sortkey",
         {
             "id": cf.id,
-            "status_moved": PatchOnCommitFest.STATUS_MOVED,
+            "openstatuses": PatchOnCommitFest.OPEN_STATUSES,
         },
     )
     statussummary = curs.fetchall()
