@@ -198,9 +198,9 @@ def archive(request):
 
 def commitfests_ics(_: HttpRequest) -> HttpResponse:
     """
-    Calendar feed of all commitfests in iCalendar format (RFC 5545).
+    Calendar feed of all non-draft commitfests in iCalendar format (RFC 5545).
     """
-    commitfests = CommitFest.objects.order_by("startdate")
+    commitfests = CommitFest.objects.filter(draft=False).order_by("startdate")
 
     response = HttpResponse(
         calendar(commitfests).to_ical(), content_type="text/calendar; charset=utf-8"

@@ -18,9 +18,11 @@ pytestmark = pytest.mark.django_db
 
 def test_commitfests_ics(client, commitfests: dict[str, CommitFest]):
     """
-    Every commitfest, regardless of status, shows up as an all-day VEVENT with
-    DTEND being the day after enddate (exclusive).
+    Every non-draft commitfest, regardless of status, shows up as an all-day
+    VEVENT with DTEND being the day after enddate (exclusive).
     """
+    commitfests = {k: cf for k, cf in commitfests.items() if not cf.draft}
+
     response = client.get("/commitfests.ics")
     assert response.status_code == 200
     assert response["Content-Type"] == "text/calendar; charset=utf-8"
