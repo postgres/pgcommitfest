@@ -18,9 +18,9 @@ def _pg_error(pgcode):
 @pytest.mark.parametrize(
     "pgcode,failures,expected_calls",
     [
-        ("40001", 2, 3),  # serialization failure, recovers
+        ("40001", 1, 2),  # serialization failure, recovers
         ("40P01", 1, 2),  # deadlock, recovers
-        ("40001", 99, 5),  # persistent failure, gives up after 5 attempts
+        ("40001", 99, 2),  # persistent failure, gives up after one retry
         ("57014", 99, 1),  # query_canceled is not transient, no retry
     ],
 )

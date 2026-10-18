@@ -77,19 +77,16 @@ def retry_on_serialization_failure(view_func):
 
     @functools.wraps(view_func)
     def wrapper(*args, **kwargs):
-        # A handful of attempts is plenty: the refresh only writes once per
-        # rollover, so after the first one commits there is nothing left to
-        # conflict with.
-        last_attempt = 4
-        for attempt in range(last_attempt + 1):
-            try:
-                return view_func(*args, **kwargs)
-            except OperationalError as e:
-                if (
-                    attempt == last_attempt
-                    or getattr(e.__cause__, "pgcode", None) not in RETRYABLE_PGCODES
-                ):
-                    raise
+        try:
+            return view_func(*args, **kwargs)
+        except OperationalError as e:
+            if getattr(e.__cause__, "pgcode", None) not in RETRYABLE_PGCODES:
+                raise
+        # A single retry is enough: the refresh only writes once per rollover,
+        # so after the winning request commits there is nothing left to
+        # conflict with. If the retry fails anyway, something else is going on
+        # and we'd rather surface the error than keep hammering the database.
+        return view_func(*args, **kwargs)
 
     return wrapper
 
