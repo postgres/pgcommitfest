@@ -637,6 +637,14 @@ class Patch(models.Model, DiffableModel):
 
         return new_poc
 
+    def to_json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "authors": [f"{a.first_name} {a.last_name}" for a in self.authors.all()],
+            "last_email_time": self.lastmail,
+        }
+
     def __str__(self):
         return self.name
 
@@ -713,6 +721,14 @@ class PatchOnCommitFest(models.Model):
     @property
     def statusstring(self):
         return [v for k, v in self._STATUS_CHOICES if k == self.status][0]
+
+    def to_json(self):
+        return {
+            **self.patch.to_json(),
+            "status": self.statusstring,
+            "enterdate": self.enterdate,
+            "leavedate": self.leavedate,
+        }
 
     @classmethod
     def current_for_patch(cls, patch_id):

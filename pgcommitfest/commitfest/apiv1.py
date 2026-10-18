@@ -102,19 +102,9 @@ def commitfest_patches(request, cfid):
 
     patches = []
     for poc in pocs:
-        patch = poc.patch
-        authors = [f"{a.first_name} {a.last_name}" for a in patch.authors.all()]
-        entry = {
-            "id": patch.id,
-            "name": patch.name,
-            "status": poc.statusstring,
-            "authors": authors,
-            "last_email_time": patch.lastmail,
-            "enterdate": poc.enterdate,
-            "leavedate": poc.leavedate,
-        }
+        entry = poc.to_json()
         if include_threads:
-            entry["threads"] = [t.to_json() for t in patch.mailthread_set.all()]
+            entry["threads"] = [t.to_json() for t in poc.patch.mailthread_set.all()]
         patches.append(entry)
 
     return api_response(
