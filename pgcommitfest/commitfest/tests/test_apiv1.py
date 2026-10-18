@@ -16,33 +16,6 @@ from pgcommitfest.commitfest.models import (
 pytestmark = pytest.mark.django_db
 
 
-def create_patch_on_cf(commitfest, name, author):
-    """Create a patch and put it on a commitfest."""
-    patch = Patch.objects.create(name=name)
-    patch.authors.add(author)
-    PatchOnCommitFest.objects.create(
-        patch=patch,
-        commitfest=commitfest,
-        enterdate=datetime(2025, 1, 1, tzinfo=timezone.utc),
-        status=PatchOnCommitFest.STATUS_REVIEW,
-    )
-    return patch
-
-
-def create_thread(messageid, subject, firstmessage, latestmessage, latestmsgid):
-    """Create a mail thread."""
-    return MailThread.objects.create(
-        messageid=messageid,
-        subject=subject,
-        firstmessage=firstmessage,
-        firstauthor="alice@example.com",
-        latestmessage=latestmessage,
-        latestauthor="bob@example.com",
-        latestsubject=f"Re: {subject}",
-        latestmsgid=latestmsgid,
-    )
-
-
 def test_commitfests_endpoint(client, commitfests):
     """Test the /api/v1/commitfests endpoint returns all commitfests."""
     response = client.get("/api/v1/commitfests")
@@ -179,7 +152,30 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
         status=PatchOnCommitFest.STATUS_COMMITTED,
     )
 
-    response = client.get(f"/api/v1/commitfests/{open_cf.id}/patches")
+    thread = MailThread.objects.create(
+        messageid="abc123@example.com",
+        subject="[PATCH] Add feature X",
+        firstmessage=datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
+        firstauthor="alice@example.com",
+        latestmessage=datetime(2025, 1, 12, 14, 30, 0, tzinfo=timezone.utc),
+        latestauthor="bob@example.com",
+        latestsubject="Re: [PATCH] Add feature X",
+        latestmsgid="def456@example.com",
+    )
+    patch1.mailthread_set.add(thread)
+    MailThreadAttachment.objects.create(
+        mailthread=thread,
+        messageid="abc123@example.com",
+        attachmentid=1,
+        filename="v1.patch",
+        date=datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
+        author="alice@example.com",
+        ispatch=True,
+    )
+
+    url = f"/api/v1/commitfests/{open_cf.id}/patches"
+    with CaptureQueriesContext(connection) as without_threads:
+        response = client.get(url)
 
     assert response.status_code == 200
     assert response["Content-Type"] == "application/json"
@@ -209,6 +205,29 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
     assert p2["enterdate"] == "2025-01-02T08:00:00+00:00"
     assert p2["leavedate"] == "2025-01-20T16:45:00+00:00"
 
+    # Threads are opt-in, and unknown include tokens are ignored
+    assert "threads" not in p1
+    response = client.get(f"{url}?include=bogus")
+    assert "threads" not in json.loads(response.content)["patches"][0]
+
+    with CaptureQueriesContext(connection) as with_threads:
+        response = client.get(f"{url}?include=bogus,threads")
+
+    assert response.status_code == 200
+    p1, p2 = json.loads(response.content)["patches"]
+    assert p1["threads"] == [
+        {
+            "messageid": "abc123@example.com",
+            "subject": "[PATCH] Add feature X",
+            "latest_message_id": "def456@example.com",
+            "latest_message_time": "2025-01-12T14:30:00+00:00",
+            "has_attachment": True,
+        }
+    ]
+    assert p2["threads"] == []
+    # A single prefetch query for all patches, not one per patch
+    assert len(with_threads) == len(without_threads) + 1
+
 
 def test_commitfest_patches_endpoint_not_found(client, commitfests):
     """Test the patches endpoint returns 404 for non-existent commitfest."""
@@ -224,7 +243,7 @@ def test_patch_threads_endpoint(client, open_cf, alice):
     PatchOnCommitFest.objects.create(
         patch=patch,
         commitfest=open_cf,
-        enterdate=datetime.now(),
+        enterdate=datetime(2025, 1, 1, tzinfo=timezone.utc),
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
 
@@ -264,148 +283,3 @@ def test_patch_threads_endpoint_not_found(client, commitfests):
     """Test the threads endpoint returns 404 for non-existent patch."""
     response = client.get("/api/v1/patches/99999/threads")
     assert response.status_code == 404
-
-
-def test_commitfest_patches_include_threads(client, open_cf, alice):
-    """Test ?include=threads inlines the same thread data as the patch endpoint."""
-    patch1 = create_patch_on_cf(open_cf, "Add feature X", alice)
-    patch2 = create_patch_on_cf(open_cf, "Fix bug Y", alice)
-
-    # Created out of order; they come back oldest-first
-    thread2 = create_thread(
-        messageid="second@example.com",
-        subject="[PATCH] Add feature X v2",
-        firstmessage=datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
-        latestmessage=datetime(2025, 1, 12, 14, 30, 0, tzinfo=timezone.utc),
-        latestmsgid="second-latest@example.com",
-    )
-    thread1 = create_thread(
-        messageid="first@example.com",
-        subject="[PATCH] Add feature X v1",
-        firstmessage=datetime(2025, 1, 5, 9, 0, 0, tzinfo=timezone.utc),
-        latestmessage=datetime(2025, 1, 6, 11, 0, 0, tzinfo=timezone.utc),
-        latestmsgid="first-latest@example.com",
-    )
-    patch1.mailthread_set.add(thread1, thread2)
-
-    MailThreadAttachment.objects.create(
-        mailthread=thread2,
-        messageid="second@example.com",
-        attachmentid=1,
-        filename="v2.patch",
-        date=datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
-        author="alice@example.com",
-        ispatch=True,
-    )
-
-    response = client.get(f"/api/v1/commitfests/{open_cf.id}/patches?include=threads")
-
-    assert response.status_code == 200
-
-    data = json.loads(response.content)
-
-    p1, p2 = data["patches"]
-    assert p1["id"] == patch1.id
-    assert p1["threads"] == [
-        {
-            "messageid": "first@example.com",
-            "subject": "[PATCH] Add feature X v1",
-            "latest_message_id": "first-latest@example.com",
-            "latest_message_time": "2025-01-06T11:00:00+00:00",
-            "has_attachment": False,
-        },
-        {
-            "messageid": "second@example.com",
-            "subject": "[PATCH] Add feature X v2",
-            "latest_message_id": "second-latest@example.com",
-            "latest_message_time": "2025-01-12T14:30:00+00:00",
-            "has_attachment": True,
-        },
-    ]
-
-    # A patch without threads still gets the key
-    assert p2["id"] == patch2.id
-    assert p2["threads"] == []
-
-
-def test_commitfest_patches_no_threads_by_default(client, open_cf, alice):
-    """Test threads are only included when asked for."""
-    patch = create_patch_on_cf(open_cf, "Add feature X", alice)
-    patch.mailthread_set.add(
-        create_thread(
-            messageid="abc123@example.com",
-            subject="[PATCH] Add feature X",
-            firstmessage=datetime(2025, 1, 5, 9, 0, 0, tzinfo=timezone.utc),
-            latestmessage=datetime(2025, 1, 6, 11, 0, 0, tzinfo=timezone.utc),
-            latestmsgid="def456@example.com",
-        )
-    )
-
-    for url in (
-        f"/api/v1/commitfests/{open_cf.id}/patches",
-        f"/api/v1/commitfests/{open_cf.id}/patches?include=bogus",
-    ):
-        response = client.get(url)
-
-        assert response.status_code == 200
-
-        data = json.loads(response.content)
-
-        assert "threads" not in data["patches"][0]
-
-
-def test_commitfest_patches_include_unknown_token(client, open_cf, alice):
-    """Test unknown include tokens are ignored, rather than rejecting the request."""
-    patch = create_patch_on_cf(open_cf, "Add feature X", alice)
-    patch.mailthread_set.add(
-        create_thread(
-            messageid="abc123@example.com",
-            subject="[PATCH] Add feature X",
-            firstmessage=datetime(2025, 1, 5, 9, 0, 0, tzinfo=timezone.utc),
-            latestmessage=datetime(2025, 1, 6, 11, 0, 0, tzinfo=timezone.utc),
-            latestmsgid="def456@example.com",
-        )
-    )
-
-    response = client.get(
-        f"/api/v1/commitfests/{open_cf.id}/patches?include=bogus,threads"
-    )
-
-    assert response.status_code == 200
-
-    data = json.loads(response.content)
-
-    assert len(data["patches"][0]["threads"]) == 1
-
-
-def test_commitfest_patches_include_threads_query_count(client, open_cf, alice):
-    """Test including threads costs a fixed number of queries, not one per patch."""
-    for i in range(5):
-        patch = create_patch_on_cf(open_cf, f"Patch {i}", alice)
-        patch.mailthread_set.add(
-            create_thread(
-                messageid=f"thread{i}@example.com",
-                subject=f"[PATCH] Patch {i}",
-                firstmessage=datetime(2025, 1, 5, 9, 0, 0, tzinfo=timezone.utc),
-                latestmessage=datetime(2025, 1, 6, 11, 0, 0, tzinfo=timezone.utc),
-                latestmsgid=f"thread{i}-latest@example.com",
-            )
-        )
-
-    url = f"/api/v1/commitfests/{open_cf.id}/patches"
-
-    with CaptureQueriesContext(connection) as without_threads:
-        client.get(url)
-
-    with CaptureQueriesContext(connection) as with_threads:
-        response = client.get(f"{url}?include=threads")
-
-    assert response.status_code == 200
-
-    data = json.loads(response.content)
-
-    assert len(data["patches"]) == 5
-    assert all(len(p["threads"]) == 1 for p in data["patches"])
-
-    # One extra query for all patches, not one per patch
-    assert len(with_threads) == len(without_threads) + 1
