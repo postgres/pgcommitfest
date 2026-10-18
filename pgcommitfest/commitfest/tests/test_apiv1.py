@@ -211,7 +211,7 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
     assert "threads" not in json.loads(response.content)["patches"][0]
 
     with CaptureQueriesContext(connection) as with_threads:
-        response = client.get(f"{url}?include=bogus,threads")
+        response = client.get(f"{url}?include=bogus, threads")
 
     assert response.status_code == 200
     p1, p2 = json.loads(response.content)["patches"]

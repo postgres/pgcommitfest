@@ -92,7 +92,7 @@ def commitfest_patches(request, cfid):
     """
     cf = get_object_or_404(CommitFest, pk=cfid)
 
-    include = set(request.GET.get("include", "").split(","))
+    include = {i.strip() for i in request.GET.get("include", "").split(",")}
     include_threads = "threads" in include
 
     pocs = (
