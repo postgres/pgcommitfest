@@ -854,8 +854,10 @@ class MailThreadQuerySet(models.QuerySet):
         # An annotation rather than checking each thread's attachments
         # separately keeps the number of queries constant when listing many
         # threads.
+        # The annotation can't be called has_attachment, because Django would
+        # then try to assign to the MailThread.has_attachment property.
         return self.annotate(
-            has_attachment=Exists(
+            _has_attachment=Exists(
                 MailThreadAttachment.objects.filter(mailthread=OuterRef("pk"))
             )
         )
@@ -885,9 +887,15 @@ class MailThread(models.Model):
     def __str__(self):
         return self.subject
 
+    @property
+    def has_attachment(self):
+        # Use the value from with_has_attachment() when the thread was fetched
+        # that way, so listing many threads doesn't need a query per thread.
+        if hasattr(self, "_has_attachment"):
+            return self._has_attachment
+        return self.mailthreadattachment_set.exists()
+
     def to_json(self):
-        # Only works on threads fetched with with_has_attachment(), since
-        # has_attachment is an annotation, not a field.
         return {
             "messageid": self.messageid,
             "subject": self.subject,
