@@ -508,14 +508,16 @@ def patchlist(request, cf, personalized=False):
     elif sortkey == -8:
         orderby_str = "poc.commitfest_id DESC, lastmail"
     elif sortkey == 9 and not personalized:
+        # PostgreSQL sorts NULLs last when ascending and first when
+        # descending, so patches without a committer end up at the bottom in
+        # this order and at the top in the reverse one.
         orderby_str = (
-            "committer.last_name NULLS LAST, committer.first_name NULLS LAST, "
-            "committer.username NULLS LAST, p.id"
+            "committer.last_name, committer.first_name, committer.username, p.id"
         )
     elif sortkey == -9 and not personalized:
         orderby_str = (
-            "committer.last_name DESC NULLS LAST, committer.first_name DESC NULLS LAST, "
-            "committer.username DESC NULLS LAST, p.id"
+            "committer.last_name DESC, committer.first_name DESC, "
+            "committer.username DESC, p.id DESC"
         )
     else:
         if personalized:
