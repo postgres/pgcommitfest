@@ -94,7 +94,7 @@ def getThreads(request):
         params["s"] = search
 
     messages = {}
-    for listname in settings.ARCHIVES_SEARCH_LISTS:
+    for listname in ("pgsql-hackers", "pgsql-bugs"):
         for m in _archivesAPI("/list/%s/latest.json" % listname, params):
             messages.setdefault(m["msgid"], m)
 
