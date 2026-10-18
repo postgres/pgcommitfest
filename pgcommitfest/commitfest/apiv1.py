@@ -71,16 +71,6 @@ def with_has_attachment(threads):
     )
 
 
-def mailthread_json(thread):
-    return {
-        "messageid": thread.messageid,
-        "subject": thread.subject,
-        "latest_message_id": thread.latestmsgid,
-        "latest_message_time": thread.latestmessage,
-        "has_attachment": thread.has_attachment,
-    }
-
-
 def commitfest_patches(request, cfid):
     """Return all patches for a commitfest.
 
@@ -124,7 +114,7 @@ def commitfest_patches(request, cfid):
             "leavedate": poc.leavedate,
         }
         if include_threads:
-            entry["threads"] = [mailthread_json(t) for t in patch.mailthread_set.all()]
+            entry["threads"] = [t.to_json() for t in patch.mailthread_set.all()]
         patches.append(entry)
 
     return api_response(
@@ -143,9 +133,7 @@ def patch_threads(request, patch_id):
     """
     patch = get_object_or_404(Patch, pk=patch_id)
 
-    threads = [
-        mailthread_json(t) for t in with_has_attachment(patch.mailthread_set.all())
-    ]
+    threads = [t.to_json() for t in with_has_attachment(patch.mailthread_set.all())]
 
     return api_response(
         {

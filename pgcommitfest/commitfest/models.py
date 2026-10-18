@@ -855,6 +855,18 @@ class MailThread(models.Model):
     def __str__(self):
         return self.subject
 
+    def to_json(self):
+        # has_attachment is not a field. It needs to be annotated on the
+        # queryset (see with_has_attachment in apiv1.py), so that listing many
+        # threads doesn't need a query per thread.
+        return {
+            "messageid": self.messageid,
+            "subject": self.subject,
+            "latest_message_id": self.latestmsgid,
+            "latest_message_time": self.latestmessage,
+            "has_attachment": self.has_attachment,
+        }
+
     class Meta:
         ordering = ("firstmessage",)
 
