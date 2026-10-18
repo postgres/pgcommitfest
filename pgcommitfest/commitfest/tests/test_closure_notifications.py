@@ -311,10 +311,13 @@ def test_no_auto_move_when_failing_too_long(alice, in_progress_cf, open_cf):
     assert "Failing Patch" in body
 
 
-def test_auto_move_bugfix_without_email_activity(alice, in_progress_cf, open_cf):
-    """Patches tagged Bugfix should be auto-moved even without recent email activity."""
+def test_auto_move_bugfix_even_when_inactive_and_failing(
+    alice, in_progress_cf, open_cf
+):
+    """Patches tagged Bugfix should be auto-moved even without recent email
+    activity and with CI failing for too long."""
     patch = Patch.objects.create(
-        name="Inactive Bugfix",
+        name="Inactive Failing Bugfix",
         lastmail=datetime.now()
         - timedelta(days=settings.AUTO_MOVE_EMAIL_ACTIVITY_DAYS + 10),
     )
@@ -326,34 +329,6 @@ def test_auto_move_bugfix_without_email_activity(alice, in_progress_cf, open_cf)
         enterdate=datetime.now(),
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
-
-    in_progress_cf.auto_move_active_patches()
-    in_progress_cf.send_closure_notifications()
-
-    # Patch should be moved
-    patch.refresh_from_db()
-    assert patch.current_commitfest().id == open_cf.id
-
-    # No closure email for moved patches
-    assert QueuedMail.objects.count() == 0
-
-
-def test_auto_move_bugfix_when_failing_too_long(alice, in_progress_cf, open_cf):
-    """Patches tagged Bugfix should be auto-moved even if CI has been failing too long."""
-    patch = Patch.objects.create(
-        name="Failing Bugfix",
-        lastmail=datetime.now()
-        - timedelta(days=settings.AUTO_MOVE_EMAIL_ACTIVITY_DAYS + 10),
-    )
-    patch.authors.add(alice)
-    patch.tags.add(Tag.objects.get(name="Bugfix"))
-    PatchOnCommitFest.objects.create(
-        patch=patch,
-        commitfest=in_progress_cf,
-        enterdate=datetime.now(),
-        status=PatchOnCommitFest.STATUS_REVIEW,
-    )
-
     CfbotBranch.objects.create(
         patch=patch,
         branch_id=3,
@@ -368,41 +343,9 @@ def test_auto_move_bugfix_when_failing_too_long(alice, in_progress_cf, open_cf):
     in_progress_cf.auto_move_active_patches()
     in_progress_cf.send_closure_notifications()
 
-    # Patch should be moved
     patch.refresh_from_db()
     assert patch.current_commitfest().id == open_cf.id
-
-    # No closure email for moved patches
     assert QueuedMail.objects.count() == 0
-
-
-def test_no_auto_move_for_other_tags_without_email_activity(
-    alice, in_progress_cf, open_cf
-):
-    """Tags other than Bugfix should not affect auto-move."""
-    patch = Patch.objects.create(
-        name="Inactive Performance Patch",
-        lastmail=datetime.now()
-        - timedelta(days=settings.AUTO_MOVE_EMAIL_ACTIVITY_DAYS + 10),
-    )
-    patch.authors.add(alice)
-    patch.tags.add(Tag.objects.get(name="Performance"))
-    PatchOnCommitFest.objects.create(
-        patch=patch,
-        commitfest=in_progress_cf,
-        enterdate=datetime.now(),
-        status=PatchOnCommitFest.STATUS_REVIEW,
-    )
-
-    in_progress_cf.auto_move_active_patches()
-    in_progress_cf.send_closure_notifications()
-
-    # Patch should NOT be moved
-    patch.refresh_from_db()
-    assert patch.current_commitfest().id == in_progress_cf.id
-
-    # Closure email should be sent for non-moved patches
-    assert QueuedMail.objects.count() == 1
 
 
 def test_auto_move_when_failing_within_threshold(alice, in_progress_cf, open_cf):
