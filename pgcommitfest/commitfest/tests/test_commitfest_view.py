@@ -37,3 +37,5 @@ def test_closed_patches_hidden_in_draft(client, commitfests, draft):
     assert ("Closed patches" in content) is not draft
     committed_summary = f'href="?status={PatchOnCommitFest.STATUS_COMMITTED}"'
     assert (committed_summary in content) is not draft
+    committed_option = f'<option value="{PatchOnCommitFest.STATUS_COMMITTED}">'
+    assert (committed_option in content) is not draft

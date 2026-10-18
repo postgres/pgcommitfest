@@ -38,7 +38,13 @@ class CommitFestFilterForm(forms.Form):
 
         self.fields["sortkey"].widget = forms.HiddenInput()
 
-        c = [(-1, "* All")] + list(PatchOnCommitFest._STATUS_CHOICES)
+        # Draft commitfests only list open patches, so filtering on a closed
+        # status would always come back empty.
+        if commitfest and commitfest.draft:
+            statuses = PatchOnCommitFest.OPEN_STATUS_CHOICES()
+        else:
+            statuses = PatchOnCommitFest._STATUS_CHOICES
+        c = [(-1, "* All")] + list(statuses)
         self.fields["status"] = forms.ChoiceField(choices=c, required=False)
 
         userchoices = [(-1, "* All"), (-2, "* None"), (-3, "* Yourself")]
