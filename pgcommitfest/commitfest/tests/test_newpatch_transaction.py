@@ -1,3 +1,5 @@
+from django.db import connection
+
 from datetime import datetime
 from unittest.mock import patch
 
@@ -8,8 +10,20 @@ from pgcommitfest.commitfest.models import MailThread, Patch
 pytestmark = pytest.mark.django_db
 
 
+def _fail_with_database_error(*args, **kwargs):
+    # A real failing query, not just a raised exception, so that PostgreSQL
+    # aborts the transaction and any further query in it would fail too.
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT 1/0")
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [RuntimeError("Simulated failure"), _fail_with_database_error],
+    ids=["python-error", "database-error"],
+)
 def test_newpatch_does_not_leave_orphan_thread(
-    client, alice, open_cf, in_progress_cf, recent_closed_cf
+    client, alice, open_cf, in_progress_cf, recent_closed_cf, failure
 ):
     client.force_login(alice)
 
@@ -32,7 +46,7 @@ def test_newpatch_does_not_leave_orphan_thread(
         ),
         patch(
             "pgcommitfest.commitfest.ajax.parse_and_add_attachments",
-            side_effect=RuntimeError("Simulated failure"),
+            side_effect=failure,
         ) as failure_mock,
     ):
         response = client.post(

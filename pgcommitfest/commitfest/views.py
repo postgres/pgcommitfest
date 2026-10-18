@@ -989,7 +989,6 @@ def patchform(request, patchid):
 
 
 @login_required
-@transaction.atomic
 def newpatch(request, cfid):
     cf = get_object_or_404(CommitFest, pk=cfid)
     if not cf.status == CommitFest.STATUS_OPEN and not request.user.is_staff:
@@ -998,17 +997,21 @@ def newpatch(request, cfid):
     if request.method == "POST":
         form = NewPatchForm(data=request.POST)
         if form.is_valid():
-            patch = form.save()
-            poc = PatchOnCommitFest(
-                patch=patch, commitfest=cf, enterdate=datetime.now()
-            )
-            poc.save()
-            PatchHistory(
-                patch=patch, by=request.user, what="Created patch record"
-            ).save()
-            # Now add the thread
+            # The exception handlers are deliberately outside the atomic
+            # block. That way a failure to attach the thread rolls back the
+            # patch and everything else created here, and we can still run
+            # the queries needed to re-render the form with an error, even
+            # if the failure was a database error that aborted the
+            # transaction.
             try:
                 with transaction.atomic():
+                    patch = form.save()
+                    PatchOnCommitFest(
+                        patch=patch, commitfest=cf, enterdate=datetime.now()
+                    ).save()
+                    PatchHistory(
+                        patch=patch, by=request.user, what="Created patch record"
+                    ).save()
                     doAttachThread(
                         cf, patch, form.cleaned_data["threadmsgid"], request.user
                     )
@@ -1023,9 +1026,6 @@ def newpatch(request, cfid):
                 form._errors["threadmsgid"] = form.error_class(
                     ("An error occurred looking up the thread in the archives.",)
                 )
-            # In this case, we have created a patch - delete it. This causes a agp in id's, but it should
-            # not happen very often. If we successfully attached to it, we will have already returned.
-            patch.delete()
     else:
         form = NewPatchForm(request=request)
 
