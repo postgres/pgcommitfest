@@ -1,4 +1,4 @@
-from django.db.models import Exists, OuterRef, Prefetch
+from django.db.models import Prefetch
 from django.http import (
     HttpResponse,
 )
@@ -10,7 +10,6 @@ from datetime import date, datetime, timedelta, timezone
 from .models import (
     CommitFest,
     MailThread,
-    MailThreadAttachment,
     Patch,
     PatchOnCommitFest,
 )
@@ -58,19 +57,6 @@ def commitfestst_that_need_ci(request):
     return api_response({"commitfests": cfs})
 
 
-def with_has_attachment(threads):
-    """Annotate a MailThread queryset with has_attachment.
-
-    Doing this as an annotation rather than checking each thread's attachments
-    separately keeps the number of queries constant.
-    """
-    return threads.annotate(
-        has_attachment=Exists(
-            MailThreadAttachment.objects.filter(mailthread=OuterRef("pk"))
-        )
-    )
-
-
 def commitfest_patches(request, cfid):
     """Return all patches for a commitfest.
 
@@ -96,7 +82,7 @@ def commitfest_patches(request, cfid):
         pocs = pocs.prefetch_related(
             Prefetch(
                 "patch__mailthread_set",
-                queryset=with_has_attachment(MailThread.objects.all()),
+                queryset=MailThread.objects.with_has_attachment(),
             )
         )
 
@@ -123,7 +109,7 @@ def patch_threads(request, patch_id):
     """
     patch = get_object_or_404(Patch, pk=patch_id)
 
-    threads = [t.to_json() for t in with_has_attachment(patch.mailthread_set.all())]
+    threads = [t.to_json() for t in patch.mailthread_set.with_has_attachment()]
 
     return api_response(
         {

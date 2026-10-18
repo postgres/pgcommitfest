@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.shortcuts import get_object_or_404
 
 from datetime import datetime, timedelta, timezone
@@ -849,6 +849,18 @@ class PatchHistory(models.Model):
                 PendingNotification(history=self, user=u).save()
 
 
+class MailThreadQuerySet(models.QuerySet):
+    def with_has_attachment(self):
+        # An annotation rather than checking each thread's attachments
+        # separately keeps the number of queries constant when listing many
+        # threads.
+        return self.annotate(
+            has_attachment=Exists(
+                MailThreadAttachment.objects.filter(mailthread=OuterRef("pk"))
+            )
+        )
+
+
 class MailThread(models.Model):
     # This class tracks mail threads from the main postgresql.org
     # mailinglist archives. For each thread, we store *one* messageid.
@@ -868,13 +880,14 @@ class MailThread(models.Model):
     latestsubject = models.CharField(max_length=500, null=False, blank=False)
     latestmsgid = models.CharField(max_length=1000, null=False, blank=False)
 
+    objects = MailThreadQuerySet.as_manager()
+
     def __str__(self):
         return self.subject
 
     def to_json(self):
-        # has_attachment is not a field. It needs to be annotated on the
-        # queryset (see with_has_attachment in apiv1.py), so that listing many
-        # threads doesn't need a query per thread.
+        # Only works on threads fetched with with_has_attachment(), since
+        # has_attachment is an annotation, not a field.
         return {
             "messageid": self.messageid,
             "subject": self.subject,
