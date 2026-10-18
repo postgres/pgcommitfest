@@ -988,6 +988,10 @@ def patchform(request, patchid):
     )
 
 
+class _ThreadAttachFailed(Exception):
+    pass
+
+
 @login_required
 def newpatch(request, cfid):
     cf = get_object_or_404(CommitFest, pk=cfid)
@@ -997,12 +1001,14 @@ def newpatch(request, cfid):
     if request.method == "POST":
         form = NewPatchForm(data=request.POST)
         if form.is_valid():
-            # The exception handlers are deliberately outside the atomic
-            # block. That way a failure to attach the thread rolls back the
-            # patch and everything else created here, and we can still run
-            # the queries needed to re-render the form with an error, even
-            # if the failure was a database error that aborted the
-            # transaction.
+            # A failure to attach the thread is re-raised as
+            # _ThreadAttachFailed so that it still propagates out of the
+            # atomic block, which rolls back the patch and everything else
+            # created here. The form error is only set after leaving the
+            # block, so the queries needed to re-render the form still work
+            # even if the failure was a database error that aborted the
+            # transaction. Failures in the other statements are not caught
+            # here, so they still result in a logged 500.
             try:
                 with transaction.atomic():
                     patch = form.save()
@@ -1012,20 +1018,22 @@ def newpatch(request, cfid):
                     PatchHistory(
                         patch=patch, by=request.user, what="Created patch record"
                     ).save()
-                    doAttachThread(
-                        cf, patch, form.cleaned_data["threadmsgid"], request.user
-                    )
+                    try:
+                        doAttachThread(
+                            cf, patch, form.cleaned_data["threadmsgid"], request.user
+                        )
+                    except Http404 as e:
+                        # This is a horrible breakage of API layers
+                        raise _ThreadAttachFailed(
+                            "Selected thread did not exist in the archives"
+                        ) from e
+                    except Exception as e:
+                        raise _ThreadAttachFailed(
+                            "An error occurred looking up the thread in the archives."
+                        ) from e
                 return HttpResponseRedirect("/patch/%s/" % (patch.id,))
-            except Http404:
-                # Thread not found!
-                # This is a horrible breakage of API layers
-                form._errors["threadmsgid"] = form.error_class(
-                    ("Selected thread did not exist in the archives",)
-                )
-            except Exception:
-                form._errors["threadmsgid"] = form.error_class(
-                    ("An error occurred looking up the thread in the archives.",)
-                )
+            except _ThreadAttachFailed as e:
+                form._errors["threadmsgid"] = form.error_class((str(e),))
     else:
         form = NewPatchForm(request=request)
 

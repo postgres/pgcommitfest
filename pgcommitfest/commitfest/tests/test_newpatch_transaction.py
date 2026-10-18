@@ -54,6 +54,7 @@ def test_newpatch_thread_attach(
     if fail:
         # The form is re-rendered with an error and nothing is left behind
         assert response.status_code == 200
+        assert b"An error occurred looking up the thread" in response.content
         assert not Patch.objects.filter(name="Transaction test").exists()
         assert not MailThread.objects.filter(messageid=MSGID).exists()
     else:
