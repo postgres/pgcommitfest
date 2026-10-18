@@ -90,7 +90,7 @@ def commitfest_patches(request, cfid):
     for poc in pocs:
         entry = poc.to_json()
         if include_threads:
-            entry["threads"] = [t.to_json() for t in poc.patch.mailthread_set.all()]
+            entry["threads"] = list(poc.patch.mailthread_set.all())
         patches.append(entry)
 
     return api_response(
@@ -109,7 +109,7 @@ def patch_threads(request, patch_id):
     """
     patch = get_object_or_404(Patch, pk=patch_id)
 
-    threads = [t.to_json() for t in patch.mailthread_set.with_has_attachment()]
+    threads = list(patch.mailthread_set.with_has_attachment())
 
     return api_response(
         {
