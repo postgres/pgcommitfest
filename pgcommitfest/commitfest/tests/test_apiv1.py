@@ -174,7 +174,7 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
     )
 
     url = f"/api/v1/commitfests/{open_cf.id}/patches"
-    with CaptureQueriesContext(connection) as without_threads:
+    with CaptureQueriesContext(connection) as queries_without_threads:
         response = client.get(url)
 
     assert response.status_code == 200
@@ -208,7 +208,7 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
     # Threads are opt-in
     assert "threads" not in p1
 
-    with CaptureQueriesContext(connection) as with_threads:
+    with CaptureQueriesContext(connection) as queries_with_threads:
         response = client.get(f"{url}?include=threads")
 
     assert response.status_code == 200
@@ -224,7 +224,7 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
     ]
     assert p2["threads"] == []
     # A single prefetch query for all patches, not one per patch
-    assert len(with_threads) == len(without_threads) + 1
+    assert len(queries_with_threads) == len(queries_without_threads) + 1
 
 
 def test_commitfest_patches_endpoint_include_parsing(client, open_cf):
