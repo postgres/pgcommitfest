@@ -1,4 +1,4 @@
-from django.db.models import Prefetch
+from django.db.models import Prefetch, QuerySet
 from django.http import (
     HttpResponse,
 )
@@ -26,6 +26,9 @@ def datetime_serializer(obj):
     if hasattr(obj, "to_json"):
         return obj.to_json()
 
+    if isinstance(obj, QuerySet):
+        return list(obj)
+
     raise TypeError(f"Type {type(obj)} not serializable to JSON")
 
 
@@ -40,7 +43,7 @@ def api_response(payload, status=200, content_type="application/json"):
 
 def all_commitfests(request):
     """Return all commitfests, including closed ones."""
-    return api_response({"commitfests": list(CommitFest.objects.order_by("id"))})
+    return api_response({"commitfests": CommitFest.objects.order_by("id")})
 
 
 def commitfestst_that_need_ci(request):
@@ -90,7 +93,7 @@ def commitfest_patches(request, cfid):
     for poc in pocs:
         entry = poc.to_json()
         if include_threads:
-            entry["threads"] = list(poc.patch.mailthread_set.all())
+            entry["threads"] = poc.patch.mailthread_set.all()
         patches.append(entry)
 
     return api_response(
@@ -109,7 +112,7 @@ def patch_threads(request, patch_id):
     """
     patch = get_object_or_404(Patch, pk=patch_id)
 
-    threads = list(patch.mailthread_set.with_has_attachment())
+    threads = patch.mailthread_set.with_has_attachment()
 
     return api_response(
         {
