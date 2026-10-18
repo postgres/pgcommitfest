@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db import connection, transaction
+from django.db import OperationalError, connection, transaction
 from django.db.models import Count, Q
 from django.http import (
     Http404,
@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 import collections
+import functools
 import hmac
 import json
 import urllib
@@ -48,6 +49,47 @@ from .models import (
     UserInputError,
 )
 
+# PostgreSQL SQLSTATEs for transient conflicts that are safe to retry once the
+# aborted transaction has been rolled back: serialization_failure and
+# deadlock_detected.
+RETRYABLE_PGCODES = {"40001", "40P01"}
+
+
+def retry_on_serialization_failure(view_func):
+    """Re-run a view when its transaction hits a serialization failure.
+
+    A few views (home, commitfest) run the whole request at REPEATABLE READ so
+    that all of their queries observe a single consistent snapshot. Rendering
+    also triggers the lazy, roughly-once-a-month commitfest refresh in
+    CommitFest.relevant_commitfests(), which locks and updates rows with
+    SELECT ... FOR UPDATE. When two such requests race during a rollover, the
+    one that loses the race cannot re-read the newer row under REPEATABLE READ,
+    so PostgreSQL aborts it with "could not serialize access due to concurrent
+    update" (SQLSTATE 40001) instead of blocking and continuing.
+
+    Once that happens the transaction is dead, so the only way to recover is to
+    roll it back and run the view again from scratch. That is why this decorator
+    has to sit *outside* transaction.atomic: each attempt then runs in a brand
+    new transaction with a fresh snapshot. By the time we retry, the request
+    that won the race has already committed the refresh, so the cheap
+    up-to-date check short-circuits and the retry neither writes nor conflicts.
+    """
+
+    @functools.wraps(view_func)
+    def wrapper(*args, **kwargs):
+        try:
+            return view_func(*args, **kwargs)
+        except OperationalError as e:
+            if getattr(e.__cause__, "pgcode", None) not in RETRYABLE_PGCODES:
+                raise
+        # A single retry is enough: the refresh only writes once per rollover,
+        # so after the winning request commits there is nothing left to
+        # conflict with. If the retry fails anyway, something else is going on
+        # and we'd rather surface the error than keep hammering the database.
+        return view_func(*args, **kwargs)
+
+    return wrapper
+
 
 def get_tags_data():
     """Generate JSON data for enhanced selectize dropdown with tag colors and descriptions."""
@@ -64,6 +106,7 @@ def get_tags_data():
     )
 
 
+@retry_on_serialization_failure
 @transaction.atomic
 def home(request):
     curs = connection.cursor()
@@ -619,6 +662,7 @@ ORDER BY is_open DESC, {orderby_str}""",
     )
 
 
+@retry_on_serialization_failure
 @transaction.atomic
 def commitfest(request, cfid):
     curs = connection.cursor()
