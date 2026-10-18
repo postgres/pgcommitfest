@@ -6,6 +6,7 @@ readme = "README.md"
 license = "PostgreSQL"
 dependencies = [
     "django>=5.2,<6.0",
+    "icalendar",
     "psycopg2",
     "simplejson",
     "requests",

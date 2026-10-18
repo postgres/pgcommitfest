@@ -24,6 +24,7 @@ urlpatterns = [
     re_path(r"^commitfest_history/$", views.commitfest_history),
     re_path(r"^me/$", views.me_legacy_redirect),
     re_path(r"^archive/$", views.archive),
+    re_path(r"^commitfests\.ics$", views.commitfests_ics),
     re_path(r"^activity(?P<rss>\.rss)?/", views.activity),
     re_path(r"^(\d+)/$", views.commitfest),
     re_path(r"^(open|inprogress|current|draft)/(.*)$", views.redir),

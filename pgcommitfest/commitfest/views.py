@@ -6,6 +6,7 @@ from django.db import connection, transaction
 from django.db.models import Count, Q
 from django.http import (
     Http404,
+    HttpRequest,
     HttpResponse,
     HttpResponseForbidden,
     HttpResponseRedirect,
@@ -27,7 +28,7 @@ from pgcommitfest.userprofile.models import UserProfile
 from pgcommitfest.userprofile.util import UserWrapper
 
 from .ajax import _archivesAPI, doAttachThread, refresh_single_thread
-from .feeds import ActivityFeed
+from .feeds import ActivityFeed, calendar
 from .forms import (
     BulkEmailForm,
     CommentForm,
@@ -193,6 +194,19 @@ def archive(request):
             "header_activity_link": "activity/",
         },
     )
+
+
+def commitfests_ics(_: HttpRequest) -> HttpResponse:
+    """
+    Calendar feed of all non-draft commitfests in iCalendar format (RFC 5545).
+    """
+    commitfests = CommitFest.objects.filter(draft=False).order_by("startdate")
+
+    response = HttpResponse(
+        calendar(commitfests).to_ical(), content_type="text/calendar; charset=utf-8"
+    )
+    response["Content-Disposition"] = 'inline; filename="commitfests.ics"'
+    return response
 
 
 def activity(request, cfid=None, rss=None):

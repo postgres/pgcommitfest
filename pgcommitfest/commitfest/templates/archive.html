@@ -1,9 +1,9 @@
 {%extends "base.html"%}
 {%block contents%}
+ <p><a href="/commitfests.ics">Subscribe to Commitfest dates (ICS)</a></p>
  <ul>
   {%for c in commitfests%}
    <li><a href="/{{c.id}}/">{{c}}</a> ({{c.statusstring}}{%if c.startdate%} - {{c.periodstring}}{%endif%})</li>
   {%endfor%}
  </ul>
 {%endblock%}
-
