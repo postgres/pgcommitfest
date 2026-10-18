@@ -292,7 +292,7 @@ PatchList = collections.namedtuple(
 )
 
 
-def patchlist(request, cf, personalized=False):
+def patchlist(request, cf, personalized=False, include_committer_filter=False):
     # Build a dynamic filter based on the filtering options entered
     whereclauses = []
     whereparams = {}
@@ -390,6 +390,23 @@ def patchlist(request, cf, personalized=False):
             except ValueError:
                 # int() failed -- so just ignore this filter
                 pass
+
+    if include_committer_filter and request.GET.get("committer", "-1") != "-1":
+        try:
+            committer_id = int(request.GET["committer"])
+        except ValueError:
+            # int() failed -- so just ignore this filter
+            committer_id = None
+        # Also ignore committers without patches in this commitfest, since
+        # those can't be selected in the filter form.
+        if (
+            committer_id is not None
+            and Patch.objects.filter(
+                committer_id=committer_id, patchoncommitfest__commitfest=cf
+            ).exists()
+        ):
+            whereparams["committer"] = committer_id
+            whereclauses.append("p.committer_id=%(committer)s")
 
     if request.GET.get("text", "") != "":
         whereclauses.append("p.name ILIKE '%%' || %(txt)s || '%%'")
@@ -507,6 +524,16 @@ def patchlist(request, cf, personalized=False):
         orderby_str = "poc.commitfest_id, lastmail DESC"
     elif sortkey == -8:
         orderby_str = "poc.commitfest_id DESC, lastmail"
+    elif sortkey == 9 and not personalized:
+        orderby_str = (
+            "committer.last_name NULLS LAST, committer.first_name NULLS LAST, "
+            "committer.username NULLS LAST, p.id"
+        )
+    elif sortkey == -9 and not personalized:
+        orderby_str = (
+            "committer.last_name DESC NULLS LAST, committer.first_name DESC NULLS LAST, "
+            "committer.username DESC NULLS LAST, p.id"
+        )
     else:
         if personalized:
             # First we sort by group_name, to have the grouping work.
@@ -617,7 +644,7 @@ def commitfest(request, cfid):
     # Find ourselves
     cf = get_object_or_404(CommitFest, pk=cfid)
 
-    patch_list = patchlist(request, cf)
+    patch_list = patchlist(request, cf, include_committer_filter=True)
     if patch_list.redirect:
         return patch_list.redirect
 
@@ -636,7 +663,9 @@ def commitfest(request, cfid):
 
     # Generates a fairly expensive query, which we shouldn't do unless
     # the user is logged in. XXX: Figure out how to avoid doing that..
-    form = CommitFestFilterForm(request.GET, commitfest=cf)
+    form = CommitFestFilterForm(
+        request.GET, commitfest=cf, include_committer_filter=True
+    )
 
     return render(
         request,

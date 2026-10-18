@@ -5,7 +5,14 @@ from django.forms.widgets import HiddenInput
 from django.http import Http404
 
 from .ajax import _archivesAPI
-from .models import MailThread, Patch, PatchOnCommitFest, Tag, TargetVersion
+from .models import (
+    Committer,
+    MailThread,
+    Patch,
+    PatchOnCommitFest,
+    Tag,
+    TargetVersion,
+)
 from .widgets import ThreadPickWidget
 
 
@@ -22,9 +29,12 @@ class CommitFestFilterForm(forms.Form):
     tag = forms.MultipleChoiceField(required=False, label="Tag (type to search)")
     author = forms.ChoiceField(required=False, label="Author (type to search)")
     reviewer = forms.ChoiceField(required=False, label="Reviewer (type to search)")
+    committer = forms.ChoiceField(required=False, label="Committer")
     sortkey = forms.IntegerField(required=False)
 
-    def __init__(self, data, commitfest=None, *args, **kwargs):
+    def __init__(
+        self, data, commitfest=None, *args, include_committer_filter=False, **kwargs
+    ):
         super(CommitFestFilterForm, self).__init__(data, *args, **kwargs)
         self.commitfest = commitfest
 
@@ -78,6 +88,26 @@ class CommitFestFilterForm(forms.Form):
             "reviewer",
         ):
             self.fields[f].widget.attrs = {"class": "input-medium"}
+
+        # The committer filter is only supported on the page of a single
+        # commitfest, so other pages that share this form don't get it. The
+        # list of committers in a commitfest is short, so a plain dropdown is
+        # fine. It's sorted by first name, to match how the names are shown.
+        if include_committer_filter:
+            committers = (
+                Committer.objects.filter(
+                    patch__patchoncommitfest__commitfest=commitfest
+                )
+                .select_related("user")
+                .distinct()
+                .order_by("user__first_name", "user__last_name", "user__username")
+            )
+            self.fields["committer"].choices = [(-1, "* All")] + [
+                (c.user_id, c.fullname) for c in committers
+            ]
+            self.fields["committer"].widget.attrs = {"class": "input-medium"}
+        else:
+            del self.fields["committer"]
 
 
 # Tags that get their own checkbox buttons as shortcuts (also appear in selectize dropdown)
