@@ -1000,8 +1000,11 @@ def patchform(request, patchid):
     )
 
 
+class ThreadAttachFailed(Exception):
+    pass
+
+
 @login_required
-@transaction.atomic
 def newpatch(request, cfid):
     cf = get_object_or_404(CommitFest, pk=cfid)
     if not cf.status == CommitFest.STATUS_OPEN and not request.user.is_staff:
@@ -1010,33 +1013,39 @@ def newpatch(request, cfid):
     if request.method == "POST":
         form = NewPatchForm(data=request.POST)
         if form.is_valid():
-            patch = form.save()
-            poc = PatchOnCommitFest(
-                patch=patch, commitfest=cf, enterdate=datetime.now()
-            )
-            poc.save()
-            PatchHistory(
-                patch=patch, by=request.user, what="Created patch record"
-            ).save()
-            # Now add the thread
+            # A failure to attach the thread is re-raised as
+            # ThreadAttachFailed so that it still propagates out of the
+            # atomic block, which rolls back the patch and everything else
+            # created here. The form error is only set after leaving the
+            # block, so the queries needed to re-render the form still work
+            # even if the failure was a database error that aborted the
+            # transaction. Failures in the other statements are not caught
+            # here, so they still result in a logged 500.
             try:
-                doAttachThread(
-                    cf, patch, form.cleaned_data["threadmsgid"], request.user
-                )
+                with transaction.atomic():
+                    patch = form.save()
+                    PatchOnCommitFest(
+                        patch=patch, commitfest=cf, enterdate=datetime.now()
+                    ).save()
+                    PatchHistory(
+                        patch=patch, by=request.user, what="Created patch record"
+                    ).save()
+                    try:
+                        doAttachThread(
+                            cf, patch, form.cleaned_data["threadmsgid"], request.user
+                        )
+                    except Http404 as e:
+                        # This is a horrible breakage of API layers
+                        raise ThreadAttachFailed(
+                            "Selected thread did not exist in the archives"
+                        ) from e
+                    except Exception as e:
+                        raise ThreadAttachFailed(
+                            "An error occurred looking up the thread in the archives."
+                        ) from e
                 return HttpResponseRedirect("/patch/%s/" % (patch.id,))
-            except Http404:
-                # Thread not found!
-                # This is a horrible breakage of API layers
-                form._errors["threadmsgid"] = form.error_class(
-                    ("Selected thread did not exist in the archives",)
-                )
-            except Exception:
-                form._errors["threadmsgid"] = form.error_class(
-                    ("An error occurred looking up the thread in the archives.",)
-                )
-            # In this case, we have created a patch - delete it. This causes a agp in id's, but it should
-            # not happen very often. If we successfully attached to it, we will have already returned.
-            patch.delete()
+            except ThreadAttachFailed as e:
+                form._errors["threadmsgid"] = form.error_class((str(e),))
     else:
         form = NewPatchForm(request=request)
 
