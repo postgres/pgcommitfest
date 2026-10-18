@@ -988,7 +988,7 @@ def patchform(request, patchid):
     )
 
 
-class _ThreadAttachFailed(Exception):
+class ThreadAttachFailed(Exception):
     pass
 
 
@@ -1002,7 +1002,7 @@ def newpatch(request, cfid):
         form = NewPatchForm(data=request.POST)
         if form.is_valid():
             # A failure to attach the thread is re-raised as
-            # _ThreadAttachFailed so that it still propagates out of the
+            # ThreadAttachFailed so that it still propagates out of the
             # atomic block, which rolls back the patch and everything else
             # created here. The form error is only set after leaving the
             # block, so the queries needed to re-render the form still work
@@ -1024,15 +1024,15 @@ def newpatch(request, cfid):
                         )
                     except Http404 as e:
                         # This is a horrible breakage of API layers
-                        raise _ThreadAttachFailed(
+                        raise ThreadAttachFailed(
                             "Selected thread did not exist in the archives"
                         ) from e
                     except Exception as e:
-                        raise _ThreadAttachFailed(
+                        raise ThreadAttachFailed(
                             "An error occurred looking up the thread in the archives."
                         ) from e
                 return HttpResponseRedirect("/patch/%s/" % (patch.id,))
-            except _ThreadAttachFailed as e:
+            except ThreadAttachFailed as e:
                 form._errors["threadmsgid"] = form.error_class((str(e),))
     else:
         form = NewPatchForm(request=request)
