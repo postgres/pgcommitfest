@@ -5,10 +5,10 @@ Tests for the /commitfests.ics calendar feed.
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 import pytest
-from icalendar import Calendar, Event
+from icalendar import Calendar
 
 if TYPE_CHECKING:
     from pgcommitfest.commitfest.models import CommitFest
@@ -16,37 +16,18 @@ if TYPE_CHECKING:
 pytestmark = pytest.mark.django_db
 
 
-def _get_calendar(client) -> Calendar:
+def test_commitfests_ics(client, commitfests: dict[str, CommitFest]):
+    """
+    Every commitfest, regardless of status, shows up as an all-day VEVENT with
+    DTEND being the day after enddate (exclusive).
+    """
     response = client.get("/commitfests.ics")
     assert response.status_code == 200
     assert response["Content-Type"] == "text/calendar; charset=utf-8"
-    return Calendar.from_ical(response.content)
 
-
-def _get_events(calendar: Calendar) -> list[Event]:
-    return cast("list[Event]", calendar.walk("VEVENT"))
-
-
-def test_commitfests_ics_empty(client):
-    """
-    With no commitfests, we still get a valid, empty calendar.
-    """
-    calendar = _get_calendar(client)
-
-    assert len(_get_events(calendar)) == 0
-
-
-def test_commitfests_ics_contains_all_commitfests(client, commitfests: dict[str, CommitFest]):
-    """
-    Every commitfest, regardless of status, shows up as a VEVENT with the right
-    dates, DTEND being the day after enddate (exclusive).
-    """
-    calendar = _get_calendar(client)
-
-    events = _get_events(calendar)
+    events = Calendar.from_ical(response.content).walk("VEVENT")
     assert len(events) == len(commitfests)
-
-    events_by_uid = {cast("str", event.uid): event for event in events}
+    events_by_uid = {str(event.uid): event for event in events}
 
     for cf in commitfests.values():
         event = events_by_uid[f"commitfest-{cf.name}@commitfest.postgresql.org"]

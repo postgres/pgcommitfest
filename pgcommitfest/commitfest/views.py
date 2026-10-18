@@ -203,8 +203,7 @@ def commitfests_ics(_: HttpRequest) -> HttpResponse:
     commitfests = CommitFest.objects.order_by("startdate")
 
     response = HttpResponse(
-        calendar(commitfests).to_ical(),
-        content_type="text/calendar; charset=utf-8"
+        calendar(commitfests).to_ical(), content_type="text/calendar; charset=utf-8"
     )
     response["Content-Disposition"] = 'inline; filename="commitfests.ics"'
     return response

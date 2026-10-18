@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from django.contrib.syndication.views import Feed
 
-from collections.abc import Iterable
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
