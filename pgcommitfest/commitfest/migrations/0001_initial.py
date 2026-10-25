@@ -315,10 +315,10 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name="patchoncommitfest",
-            unique_together=set([("patch", "commitfest")]),
+            unique_together={("patch", "commitfest")},
         ),
         migrations.AlterUniqueTogether(
             name="mailthreadattachment",
-            unique_together=set([("mailthread", "messageid")]),
+            unique_together={("mailthread", "messageid")},
         ),
     ]
