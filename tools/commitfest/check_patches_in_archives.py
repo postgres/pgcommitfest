@@ -47,8 +47,8 @@ if __name__ == "__main__":
     # should generally not be a problem because it's not going to be
     # downloading a lot...
     for a in MailThreadAttachment.objects.filter(ispatch__isnull=True):
-        url = "/message-id/attachment/%s/attach" % a.attachmentid
-        logging.debug("Checking attachment %s" % a.attachmentid)
+        url = f"/message-id/attachment/{a.attachmentid}/attach"
+        logging.debug(f"Checking attachment {a.attachmentid}")
 
         resp = requests.get(
             "http{0}://{1}:{2}{3}".format(
@@ -64,12 +64,12 @@ if __name__ == "__main__":
         )
 
         if resp.status_code != 200:
-            logging.error("Failed to get %s: %s" % (url, resp.status_code))
+            logging.error(f"Failed to get {url}: {resp.status_code}")
             continue
 
         # Attempt to identify the file using magic information
         mtype = mag.buffer(resp.content)
-        logging.debug("Detected MIME type is %s" % mtype)
+        logging.debug(f"Detected MIME type is {mtype}")
 
         # We don't support gzipped or tar:ed patches or anything like
         # that at this point - just plain patches.
@@ -77,7 +77,7 @@ if __name__ == "__main__":
             a.ispatch = True
         else:
             a.ispatch = False
-        logging.info("Attachment %s is patch: %s" % (a.id, a.ispatch))
+        logging.info(f"Attachment {a.id} is patch: {a.ispatch}")
         a.save()
 
     connection.close()

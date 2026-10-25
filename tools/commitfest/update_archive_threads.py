@@ -36,7 +36,7 @@ if __name__ == "__main__":
     for thread in MailThread.objects.filter(
         patches__commitfests__status__in=(1, 2, 3)
     ).distinct():
-        logging.debug("Checking %s in the archives" % thread.messageid)
+        logging.debug(f"Checking {thread.messageid} in the archives")
         refresh_single_thread(thread)
 
     connection.close()

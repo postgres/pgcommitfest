@@ -30,11 +30,7 @@ class Committer(models.Model):
 
     @property
     def fullname(self):
-        return "%s %s (%s)" % (
-            self.user.first_name,
-            self.user.last_name,
-            self.user.username,
-        )
+        return f"{self.user.first_name} {self.user.last_name} ({self.user.username})"
 
     class Meta:
         ordering = ("user__last_name", "user__first_name")
@@ -83,7 +79,7 @@ class CommitFest(models.Model):
 
     @property
     def title(self):
-        return "Commitfest %s" % self.name
+        return f"Commitfest {self.name}"
 
     @property
     def is_closed(self):
@@ -558,17 +554,14 @@ class Patch(models.Model, DiffableModel):
     @property
     def authors_string(self):
         return ", ".join(
-            [
-                "%s %s (%s)" % (a.first_name, a.last_name, a.username)
-                for a in self.authors.all()
-            ]
+            [f"{a.first_name} {a.last_name} ({a.username})" for a in self.authors.all()]
         )
 
     @property
     def reviewers_string(self):
         return ", ".join(
             [
-                "%s %s (%s)" % (a.first_name, a.last_name, a.username)
+                f"{a.first_name} {a.last_name} ({a.username})"
                 for a in self.reviewers.all()
             ]
         )
@@ -791,10 +784,10 @@ class PatchHistory(models.Model):
         if self.by_cfbot:
             return "CFbot"
 
-        return "%s %s (%s)" % (self.by.first_name, self.by.last_name, self.by.username)
+        return f"{self.by.first_name} {self.by.last_name} ({self.by.username})"
 
     def __str__(self):
-        return "%s - %s" % (self.patch.name, self.date)
+        return f"{self.patch.name} - {self.date}"
 
     class Meta:
         ordering = ("-date",)
@@ -952,11 +945,7 @@ class MailThreadAnnotation(models.Model):
 
     @property
     def user_string(self):
-        return "%s %s (%s)" % (
-            self.user.first_name,
-            self.user.last_name,
-            self.user.username,
-        )
+        return f"{self.user.first_name} {self.user.last_name} ({self.user.username})"
 
     class Meta:
         ordering = ("date",)

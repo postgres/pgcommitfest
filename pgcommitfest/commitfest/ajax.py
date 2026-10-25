@@ -69,13 +69,13 @@ def _archivesAPI(suburl, params=None):
         if resp.status_code != 200:
             if resp.status_code == 404:
                 raise Http404()
-            raise Exception("JSON call failed: %s" % resp.status_code)
+            raise Exception(f"JSON call failed: {resp.status_code}")
 
         return resp.json()
     except Http404:
         raise
     except Exception as e:
-        raise Http503("Failed to communicate with archives backend: %s" % e)
+        raise Http503(f"Failed to communicate with archives backend: {e}")
 
 
 def getThreads(request):
@@ -93,7 +93,7 @@ def getThreads(request):
 
     messages = {}
     for listname in ("pgsql-hackers", "pgsql-bugs"):
-        for m in _archivesAPI("/list/%s/latest.json" % listname, params):
+        for m in _archivesAPI(f"/list/{listname}/latest.json", params):
             messages.setdefault(m["msgid"], m)
 
     r = sorted(messages.values(), key=lambda x: x["date"], reverse=True)
@@ -108,13 +108,13 @@ def getMessages(request):
     thread = MailThread.objects.get(pk=threadid)
 
     # Always make a call over to the archives api
-    r = _archivesAPI("/message-id.json/%s" % thread.messageid)
+    r = _archivesAPI(f"/message-id.json/{thread.messageid}")
     return sorted(r, key=lambda x: x["date"], reverse=True)
 
 
 def refresh_single_thread(thread):
     r = sorted(
-        _archivesAPI("/message-id.json/%s" % thread.messageid), key=lambda x: x["date"]
+        _archivesAPI(f"/message-id.json/{thread.messageid}"), key=lambda x: x["date"]
     )
     if thread.latestmsgid != r[-1]["msgid"]:
         # There is now a newer mail in the thread!
@@ -146,7 +146,7 @@ def annotateMessage(request):
     # Get the subject, author and date from the archives
     # We only have an API call to get the whole thread right now, so
     # do that, and then find our entry in it.
-    r = _archivesAPI("/message-id.json/%s" % thread.messageid)
+    r = _archivesAPI(f"/message-id.json/{thread.messageid}")
     for m in r:
         if m["msgid"] == msgid:
             annotation = MailThreadAnnotation(
@@ -164,8 +164,7 @@ def annotateMessage(request):
                 PatchHistory(
                     patch=p,
                     by=request.user,
-                    what='Added annotation "%s" to %s'
-                    % (textwrap.shorten(msg, 100), msgid),
+                    what=f'Added annotation "{textwrap.shorten(msg, 100)}" to {msgid}',
                 ).save_and_notify()
                 p.set_modified()
                 p.save()
@@ -182,8 +181,7 @@ def deleteAnnotation(request):
         PatchHistory(
             patch=p,
             by=request.user,
-            what='Deleted annotation "%s" from %s'
-            % (annotation.annotationtext, annotation.msgid),
+            what=f'Deleted annotation "{annotation.annotationtext}" from {annotation.msgid}',
         ).save_and_notify()
         p.set_modified()
         p.save()
@@ -224,7 +222,7 @@ def attachThread(request):
 
 def doAttachThread(cf, patch, msgid, user):
     # Note! Must be called in an open transaction!
-    r = sorted(_archivesAPI("/message-id.json/%s" % msgid), key=lambda x: x["date"])
+    r = sorted(_archivesAPI(f"/message-id.json/{msgid}"), key=lambda x: x["date"])
     # We have the full thread metadata - using the first and last entry,
     # construct a new mailthread in our own model.
     # First, though, check if it's already there.
@@ -262,7 +260,7 @@ def doAttachThread(cf, patch, msgid, user):
         parse_and_add_attachments(r, m)
 
     PatchHistory(
-        patch=patch, by=user, what="Attached mail thread %s" % r[0]["msgid"]
+        patch=patch, by=user, what=f"Attached mail thread {r[0]['msgid']}"
     ).save_and_notify()
     patch.update_lastmail()
     patch.set_modified()
@@ -281,7 +279,7 @@ def detachThread(request):
     PatchHistory(
         patch=patch,
         by=request.user,
-        what="Detached mail thread %s" % request.POST["msg"],
+        what=f"Detached mail thread {request.POST['msg']}",
     ).save_and_notify()
     patch.update_lastmail()
     patch.set_modified()

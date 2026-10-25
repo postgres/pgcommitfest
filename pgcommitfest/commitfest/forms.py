@@ -108,12 +108,7 @@ class PatchForm(forms.ModelForm):
         self.fields["authors"].help_text = "Enter part of name to see list"
         self.fields["reviewers"].help_text = "Enter part of name to see list"
         self.fields["committer"].label_from_instance = lambda x: (
-            "%s %s (%s)"
-            % (
-                x.user.first_name,
-                x.user.last_name,
-                x.user.username,
-            )
+            f"{x.user.first_name} {x.user.last_name} ({x.user.username})"
         )
 
         self.fields["authors"].widget.attrs["class"] = "add-user-picker"
@@ -206,7 +201,7 @@ class NewPatchForm(PatchForm):
 
     def clean_threadmsgid(self):
         try:
-            _archivesAPI("/message-id.json/%s" % self.cleaned_data["threadmsgid"])
+            _archivesAPI(f"/message-id.json/{self.cleaned_data['threadmsgid']}")
         except Http404:
             raise ValidationError("Message not found in archives")
         except Exception:

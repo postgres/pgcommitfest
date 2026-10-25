@@ -11,8 +11,7 @@ def _msg(msgid, date):
 
 def test_get_threads_searches_hackers_and_bugs():
     hackers = [
-        _msg("h%d" % i, "2026-01-01T%02d:%02d:00" % (i // 60, i % 60))
-        for i in range(100)
+        _msg(f"h{i}", f"2026-01-01T{i // 60:02d}:{i % 60:02d}:00") for i in range(100)
     ]
     # b1 is newer than everything on hackers, h99 was sent to both lists
     bugs = [_msg("b1", "2026-01-02T00:00:00"), hackers[99]]
@@ -33,6 +32,4 @@ def test_get_threads_searches_hackers_and_bugs():
     ]
     # Merged newest first, h99 deduplicated, and capped at 100 so the oldest
     # message (h0) is dropped.
-    assert [m["msgid"] for m in result] == ["b1"] + [
-        "h%d" % i for i in range(99, 0, -1)
-    ]
+    assert [m["msgid"] for m in result] == ["b1"] + [f"h{i}" for i in range(99, 0, -1)]

@@ -284,7 +284,7 @@ def activity(request, cfid=None, rss=None):
                 "rss_alternate_title": "PostgreSQL Commitfest Activity Log",
                 "breadcrumbs": cf
                 and [
-                    {"title": cf.title, "href": "/%s/" % cf.pk},
+                    {"title": cf.title, "href": f"/{cf.pk}/"},
                 ]
                 or None,
             },
@@ -384,7 +384,7 @@ def patchlist(request, cf, personalized=False):
                     has_filter=False,
                     sortkey=0,
                     redirect=HttpResponseRedirect(
-                        "%s?next=%s" % (settings.LOGIN_URL, request.path)
+                        f"{settings.LOGIN_URL}?next={request.path}"
                     ),
                 )
             whereclauses.append(
@@ -414,7 +414,7 @@ def patchlist(request, cf, personalized=False):
                     has_filter=False,
                     sortkey=0,
                     redirect=HttpResponseRedirect(
-                        "%s?next=%s" % (settings.LOGIN_URL, request.path)
+                        f"{settings.LOGIN_URL}?next={request.path}"
                     ),
                 )
             whereclauses.append(
@@ -971,11 +971,11 @@ def patch(request, patchid):
             "attachnow": "attachthreadnow" in request.GET,
             "title": patch.name,
             "description": (
-                "PostgreSQL patch by %s in the %s commitfest."
-                % (patch.authors_string or "unknown author", cf.title)
+                f"PostgreSQL patch by {patch.authors_string or 'unknown author'} "
+                f"in the {cf.title} commitfest."
             ),
             "breadcrumbs": [
-                {"title": cf.title, "href": "/%s/" % cf.pk},
+                {"title": cf.title, "href": f"/{cf.pk}/"},
             ],
             "userprofile": getattr(request.user, "userprofile", UserProfile()),
             "cfs": CommitFest.relevant_commitfests(),
@@ -1011,7 +1011,7 @@ def patchform(request, patchid):
                 PatchHistory(
                     patch=patch,
                     by=request.user,
-                    what="Changed %s to %s" % (field, value),
+                    what=f"Changed {field} to {value}",
                 ).save_and_notify(
                     prevcommitter=prevcommitter,
                     prevreviewers=prevreviewers,
@@ -1019,7 +1019,7 @@ def patchform(request, patchid):
                 )
             r.set_modified()
             r.save()
-            return HttpResponseRedirect("../../%s/" % r.pk)
+            return HttpResponseRedirect(f"../../{r.pk}/")
         # Else fall through and render the page again
     else:
         form = PatchForm(instance=patch)
@@ -1034,8 +1034,8 @@ def patchform(request, patchid):
             "title": "Edit patch",
             "tags_data": get_tags_data(),
             "breadcrumbs": [
-                {"title": cf.title, "href": "/%s/" % cf.pk},
-                {"title": "View patch", "href": "/%s/%s/" % (cf.pk, patch.pk)},
+                {"title": cf.title, "href": f"/{cf.pk}/"},
+                {"title": "View patch", "href": f"/{cf.pk}/{patch.pk}/"},
             ],
         },
     )
@@ -1084,7 +1084,7 @@ def newpatch(request, cfid):
                         raise ThreadAttachFailed(
                             "An error occurred looking up the thread in the archives."
                         ) from e
-                return HttpResponseRedirect("/patch/%s/" % (patch.id,))
+                return HttpResponseRedirect(f"/patch/{patch.id}/")
             except ThreadAttachFailed as e:
                 form._errors["threadmsgid"] = form.error_class((str(e),))
     else:
@@ -1098,7 +1098,7 @@ def newpatch(request, cfid):
             "title": "New patch",
             "tags_data": get_tags_data(),
             "breadcrumbs": [
-                {"title": f"{cf.title} ({cf.periodstring})", "href": "/%s/" % cf.pk},
+                {"title": f"{cf.title} ({cf.periodstring})", "href": f"/{cf.pk}/"},
             ],
             "savebutton": "Create patch",
             "threadbrowse": True,
@@ -1129,10 +1129,10 @@ def status(request, patchid, status):
     if new_status != poc.status:
         poc.set_status(new_status)
         PatchHistory(
-            patch=poc.patch, by=request.user, what="New status: %s" % poc.statusstring
+            patch=poc.patch, by=request.user, what=f"New status: {poc.statusstring}"
         ).save_and_notify()
 
-    return HttpResponseRedirect("/patch/%s/" % (poc.patch.id))
+    return HttpResponseRedirect(f"/patch/{poc.patch.id}/")
 
 
 @require_POST
@@ -1205,7 +1205,7 @@ def close(request, patchid, status):
             PatchHistory(
                 patch=poc.patch,
                 by=request.user,
-                what="Changed committer to %s" % committer,
+                what=f"Changed committer to {committer}",
             ).save_and_notify(prevcommitter=prevcommitter)
 
         poc.status = PatchOnCommitFest.STATUS_COMMITTED
@@ -1221,8 +1221,7 @@ def close(request, patchid, status):
     PatchHistory(
         patch=poc.patch,
         by=request.user,
-        what="Closed in commitfest %s with status: %s"
-        % (poc.commitfest, poc.statusstring),
+        what=f"Closed in commitfest {poc.commitfest} with status: {poc.statusstring}",
     ).save_and_notify()
 
     return HttpResponseRedirect(f"/patch/{patchid}")
@@ -1276,7 +1275,7 @@ def reviewer(request, patchid, status):
         PatchHistory(
             patch=patch,
             by=request.user,
-            what="Added %s as reviewer" % request.user.username,
+            what=f"Added {request.user.username} as reviewer",
         ).save_and_notify()
     elif status == "remove" and is_reviewer:
         patch.reviewers.remove(request.user)
@@ -1284,7 +1283,7 @@ def reviewer(request, patchid, status):
         PatchHistory(
             patch=patch,
             by=request.user,
-            what="Removed %s from reviewers" % request.user.username,
+            what=f"Removed {request.user.username} from reviewers",
         ).save_and_notify()
     return HttpResponseRedirect("../../")
 
@@ -1335,7 +1334,7 @@ def committer(request, patchid, status):
         PatchHistory(
             patch=patch,
             by=request.user,
-            what="Added %s as committer" % request.user.username,
+            what=f"Added {request.user.username} as committer",
         ).save_and_notify(prevcommitter=prevcommitter)
     elif status == "remove" and is_committer:
         patch.committer = None
@@ -1343,7 +1342,7 @@ def committer(request, patchid, status):
         PatchHistory(
             patch=patch,
             by=request.user,
-            what="Removed %s from committers" % request.user.username,
+            what=f"Removed {request.user.username} from committers",
         ).save_and_notify(prevcommitter=prevcommitter)
     patch.save()
     return HttpResponseRedirect("../../")
@@ -1406,13 +1405,10 @@ def send_email(request, cfid):
                     form.cleaned_data["subject"],
                     form.cleaned_data["body"],
                     request.user.username,
-                    sendername="%s %s via PostgreSQL Commitfest"
-                    % (request.user.first_name, request.user.last_name),
+                    sendername=f"{request.user.first_name} {request.user.last_name} via PostgreSQL Commitfest",
                     replyto=uw.encoded_email_header,
                 )
-                messages.add_message(
-                    request, messages.INFO, "Sent email to %s" % r.email
-                )
+                messages.add_message(request, messages.INFO, f"Sent email to {r.email}")
             return HttpResponseRedirect("..")
     else:
         authoridstring = request.GET.get("authors", None)
@@ -1447,26 +1443,25 @@ def send_email(request, cfid):
     messages.add_message(
         request,
         messages.INFO,
-        "Email will be sent from %s, with replies going to: %s"
-        % (settings.NOTIFICATION_FROM, UserWrapper(request.user).email),
+        f"Email will be sent from {settings.NOTIFICATION_FROM}, with replies going to: {UserWrapper(request.user).email}",
     )
 
     def _user_and_mail(u):
-        return "%s %s (%s)" % (u.first_name, u.last_name, u.email)
+        return f"{u.first_name} {u.last_name} ({u.email})"
 
     if len(authors):
         messages.add_message(
             request,
             messages.INFO,
-            "The email will be sent to the following authors: %s"
-            % ", ".join([_user_and_mail(u) for u in authors]),
+            "The email will be sent to the following authors: "
+            + ", ".join([_user_and_mail(u) for u in authors]),
         )
     if len(reviewers):
         messages.add_message(
             request,
             messages.INFO,
-            "The email will be sent to the following reviewers: %s"
-            % ", ".join([_user_and_mail(u) for u in reviewers]),
+            "The email will be sent to the following reviewers: "
+            + ", ".join([_user_and_mail(u) for u in reviewers]),
         )
 
     return render(
@@ -1477,7 +1472,7 @@ def send_email(request, cfid):
             "form": form,
             "title": "Send email",
             "breadcrumbs": [
-                {"title": cf.title, "href": "/%s/" % cf.pk},
+                {"title": cf.title, "href": f"/{cf.pk}/"},
             ],
             "savebutton": "Send email",
         },
