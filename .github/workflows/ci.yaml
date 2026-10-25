@@ -15,24 +15,24 @@ jobs:
       - name: Run ruff check
         uses: astral-sh/ruff-action@v2
         with:
-          version: 0.15.20
+          version: 0.17.2
 
       - name: Run ruff format --check
         uses: astral-sh/ruff-action@v2
         with:
-          version: 0.15.20
+          version: 0.17.2
           args: "format --check"
 
       - name: Setup Biome
         uses: biomejs/setup-biome@v2
         with:
-          version: 1.9.4
+          version: 2.6.3
 
       - name: Run Biome
         run: biome ci .
 
       - name: Install djhtml
-        run: pip install djhtml
+        run: pip install djhtml==3.0.11
 
       - name: Run djhtml
         run: djhtml pgcommitfest/*/templates/*.html pgcommitfest/*/templates/*.inc --tabwidth=1 --check

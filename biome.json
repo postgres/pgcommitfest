@@ -1,5 +1,5 @@
 {
-    "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.6.3/schema.json",
     "vcs": {
         "enabled": false,
         "clientKind": "git",
@@ -7,12 +7,11 @@
     },
     "files": {
         "ignoreUnknown": true,
-        "ignore": [],
-        "include": [
-            "media/commitfest/js/commitfest.js",
-            "media/commitfest/js/change_tag.js",
-            "media/commitfest/css/commitfest.css",
-            "biome.json"
+        "includes": [
+            "**/media/commitfest/js/commitfest.js",
+            "**/media/commitfest/js/change_tag.js",
+            "**/media/commitfest/css/commitfest.css",
+            "**/biome.json"
         ]
     },
     "formatter": {
@@ -20,13 +19,11 @@
         "indentStyle": "space",
         "indentWidth": 4
     },
-    "organizeImports": {
-        "enabled": true
-    },
+    "assist": { "actions": { "source": { "organizeImports": "on" } } },
     "linter": {
         "enabled": true,
         "rules": {
-            "recommended": true
+            "preset": "recommended"
         }
     },
     "javascript": {
