@@ -1,6 +1,6 @@
 """Test settings for pgcommitfest."""
 
-from pgcommitfest.settings import *  # noqa: F403
+from pgcommitfest.settings import *
 
 # Disable automatic creation of commitfests during tests
 # Tests should explicitly create the commitfests they need

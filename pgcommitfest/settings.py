@@ -176,6 +176,6 @@ AUTO_MOVE_MAX_FAILING_DAYS = 21
 
 # Load local settings overrides
 try:
-    from .local_settings import *  # noqa: F403
+    from .local_settings import *
 except ImportError:
     pass
