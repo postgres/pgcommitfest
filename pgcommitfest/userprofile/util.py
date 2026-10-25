@@ -40,6 +40,6 @@ def handle_user_data(sender, **kwargs):
     UserExtraEmail.objects.filter(user=user).exclude(email__in=secondary).delete()
 
     # Then add back any of the ones that aren't there
-    current = set([e.email for e in UserExtraEmail.objects.filter(user=user)])
+    current = {e.email for e in UserExtraEmail.objects.filter(user=user)}
     for e in set(secondary).difference(current):
         UserExtraEmail(user=user, email=e).save()
