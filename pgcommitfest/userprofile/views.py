@@ -11,7 +11,7 @@ from .models import UserProfile
 @login_required
 @transaction.atomic
 def userprofile(request):
-    (profile, created) = UserProfile.objects.get_or_create(user=request.user)
+    (profile, _created) = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
         form = UserProfileForm(request.user, request.POST, instance=profile)
