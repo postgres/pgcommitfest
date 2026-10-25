@@ -68,7 +68,7 @@ class CommitFest(models.Model):
 
     @property
     def periodstring(self):
-        return "{0} – {1}".format(self.startdate, self.enddate)
+        return f"{self.startdate} – {self.enddate}"
 
     @property
     def last_open_date(self):

@@ -23,7 +23,7 @@ class ActivityFeed(Feed):
         if cf:
             self.cfid = cf.id
             self.title = self.description = (
-                "PostgreSQL Commitfest {0} Activity Log".format(cf.name)
+                f"PostgreSQL Commitfest {cf.name} Activity Log"
             )
         else:
             self.cfid = None

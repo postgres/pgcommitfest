@@ -257,16 +257,12 @@ def activity(request, cfid=None, rss=None):
         # we're evil.  And also because the number has been verified
         # when looking up the cf itself, so nothing can be injected
         # there.
-        where = "WHERE EXISTS (SELECT 1 FROM commitfest_patchoncommitfest poc2 WHERE poc2.patch_id=p.id AND poc2.commitfest_id={0})".format(
-            cf.id
-        )
+        where = f"WHERE EXISTS (SELECT 1 FROM commitfest_patchoncommitfest poc2 WHERE poc2.patch_id=p.id AND poc2.commitfest_id={cf.id})"
     else:
         cf = None
         where = ""
 
-    sql = "SELECT ph.date, auth_user.username AS by, ph.what, p.id AS patchid, p.name, (SELECT max(commitfest_id) FROM commitfest_patchoncommitfest poc WHERE poc.patch_id=p.id) AS cfid FROM commitfest_patchhistory ph INNER JOIN commitfest_patch p ON ph.patch_id=p.id INNER JOIN auth_user on auth_user.id=ph.by_id {0} ORDER BY ph.date DESC LIMIT {1}".format(
-        where, num
-    )
+    sql = f"SELECT ph.date, auth_user.username AS by, ph.what, p.id AS patchid, p.name, (SELECT max(commitfest_id) FROM commitfest_patchoncommitfest poc WHERE poc.patch_id=p.id) AS cfid FROM commitfest_patchhistory ph INNER JOIN commitfest_patch p ON ph.patch_id=p.id INNER JOIN auth_user on auth_user.id=ph.by_id {where} ORDER BY ph.date DESC LIMIT {num}"
 
     curs = connection.cursor()
     curs.execute(sql)
@@ -284,9 +280,7 @@ def activity(request, cfid=None, rss=None):
                 "commitfest": cf,
                 "activity": activity,
                 "title": cf and "Commitfest activity" or "Global Commitfest activity",
-                "rss_alternate": cf
-                and "/{0}/activity.rss/".format(cf.id)
-                or "/activity.rss/",
+                "rss_alternate": cf and f"/{cf.id}/activity.rss/" or "/activity.rss/",
                 "rss_alternate_title": "PostgreSQL Commitfest Activity Log",
                 "breadcrumbs": cf
                 and [
@@ -317,15 +311,13 @@ def redir(request, what, end):
 
     if len(cfs) == 0:
         messages.warning(
-            request, "No {0} commitfests exist, redirecting to startpage.".format(what)
+            request, f"No {what} commitfests exist, redirecting to startpage."
         )
         return HttpResponseRedirect("/")
     if len(cfs) != 1:
         messages.warning(
             request,
-            "More than one {0} commitfest exists, redirecting to startpage instead.".format(
-                what
-            ),
+            f"More than one {what} commitfest exists, redirecting to startpage instead.",
         )
         return HttpResponseRedirect("/")
 
