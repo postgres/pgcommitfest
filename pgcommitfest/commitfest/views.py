@@ -15,6 +15,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 import collections
 import functools
@@ -1113,6 +1114,7 @@ def newpatch(request, cfid):
     )
 
 
+@require_POST
 @login_required
 @transaction.atomic
 def status(request, patchid, status):
@@ -1141,6 +1143,7 @@ def status(request, patchid, status):
     return HttpResponseRedirect("/patch/%s/" % (poc.patch.id))
 
 
+@require_POST
 @login_required
 @transaction.atomic
 def close(request, patchid, status):
@@ -1235,6 +1238,7 @@ def int_param_or_none(request, param):
         return None
 
 
+@require_POST
 @login_required
 @transaction.atomic
 def move(request, patchid):
@@ -1260,6 +1264,7 @@ def move(request, patchid):
     return HttpResponseRedirect(f"/patch/{patchid}/")
 
 
+@require_POST
 @login_required
 @transaction.atomic
 def reviewer(request, patchid, status):
@@ -1286,6 +1291,7 @@ def reviewer(request, patchid, status):
     return HttpResponseRedirect("../../")
 
 
+@require_POST
 @login_required
 @transaction.atomic
 def remove_all_reviewers(request, patchid):
@@ -1311,6 +1317,7 @@ def remove_all_reviewers(request, patchid):
     return HttpResponseRedirect(f"/patch/{patchid}/")
 
 
+@require_POST
 @login_required
 @transaction.atomic
 def committer(request, patchid, status):
@@ -1344,6 +1351,7 @@ def committer(request, patchid, status):
     return HttpResponseRedirect("../../")
 
 
+@require_POST
 @login_required
 @transaction.atomic
 def subscribe(request, patchid, sub):
