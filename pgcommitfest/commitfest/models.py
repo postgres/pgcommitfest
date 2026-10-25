@@ -5,6 +5,7 @@ from django.db.models import Exists, OuterRef, Q
 from django.shortcuts import get_object_or_404
 
 from datetime import UTC, datetime, timedelta
+from typing import ClassVar
 
 from pgcommitfest.mailqueue.util import send_template_mail
 from pgcommitfest.userprofile.models import UserProfile
@@ -435,7 +436,7 @@ class TargetVersion(models.Model):
     version = models.CharField(max_length=8, blank=False, null=False, unique=True)
 
     class Meta:
-        ordering = [
+        ordering: ClassVar[list] = [
             "-version",
         ]
 
@@ -527,7 +528,7 @@ class Patch(models.Model, DiffableModel):
     # that's attached to this message.
     lastmail = models.DateTimeField(blank=True, null=True)
 
-    map_manytomany_for_diff = {
+    map_manytomany_for_diff: ClassVar[dict] = {
         "authors": "authors_string",
         "reviewers": "reviewers_string",
     }
@@ -692,7 +693,7 @@ class PatchOnCommitFest(models.Model):
         (STATUS_RETURNED, "danger"),
         (STATUS_WITHDRAWN, "danger"),
     )
-    OPEN_STATUSES = [STATUS_REVIEW, STATUS_AUTHOR, STATUS_COMMITTER]
+    OPEN_STATUSES: ClassVar[list] = [STATUS_REVIEW, STATUS_AUTHOR, STATUS_COMMITTER]
 
     @classmethod
     def OPEN_STATUS_CHOICES(cls):
@@ -788,7 +789,7 @@ class PatchHistory(models.Model):
 
     class Meta:
         ordering = ("-date",)
-        constraints = [
+        constraints: ClassVar[list] = [
             models.CheckConstraint(
                 check=(models.Q(by_cfbot=True) & models.Q(by__isnull=True))
                 | (models.Q(by_cfbot=False) & models.Q(by__isnull=False)),
@@ -962,7 +963,7 @@ class PendingNotification(models.Model):
 
 
 class CfbotBranch(models.Model):
-    STATUS_CHOICES = [
+    STATUS_CHOICES: ClassVar[list] = [
         ("testing", "Testing"),
         ("finished", "Finished"),
         ("failed", "Failed"),
@@ -1005,7 +1006,7 @@ class CfbotBranch(models.Model):
 
 
 class CfbotTask(models.Model):
-    STATUS_CHOICES = [
+    STATUS_CHOICES: ClassVar[list] = [
         ("CREATED", "Created"),
         ("PAUSED", "Paused"),
         ("NEEDS_APPROVAL", "Needs Approval"),
@@ -1042,7 +1043,7 @@ class CfbotTask(models.Model):
     modified = models.DateTimeField(auto_now=True)
 
     class Meta:
-        constraints = [
+        constraints: ClassVar[list] = [
             models.UniqueConstraint(
                 fields=["branch_id", "position"],
                 name="commitfest_cfbottask_branch_position_unique",

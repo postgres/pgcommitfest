@@ -4,13 +4,15 @@ from django.forms import ValidationError
 from django.forms.widgets import HiddenInput
 from django.http import Http404
 
+from typing import ClassVar
+
 from .ajax import _archivesAPI
 from .models import Patch, PatchOnCommitFest, Tag, TargetVersion
 from .widgets import ThreadPickWidget
 
 
 class CommitFestFilterForm(forms.Form):
-    selectize_fields = {
+    selectize_fields: ClassVar[dict] = {
         "author": "/lookups/user",
         "reviewer": "/lookups/user",
         "tag": None,
@@ -85,7 +87,7 @@ CHECKBOX_TAG_NAMES = ["Bugfix", "Security", "Performance"]
 
 
 class PatchForm(forms.ModelForm):
-    selectize_fields = {
+    selectize_fields: ClassVar[dict] = {
         "authors": "/lookups/user",
         "reviewers": "/lookups/user",
         "tags": None,
@@ -157,7 +159,7 @@ class PatchForm(forms.ModelForm):
 
 class NewPatchForm(PatchForm):
     # Put threadmsgid first
-    field_order = ["threadmsgid"]
+    field_order: ClassVar[list] = ["threadmsgid"]
 
     threadmsgid = forms.CharField(
         max_length=200,
