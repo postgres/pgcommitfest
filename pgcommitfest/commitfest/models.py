@@ -628,11 +628,11 @@ class Patch(models.Model, DiffableModel):
         new_poc, _ = PatchOnCommitFest.objects.update_or_create(
             patch=current_poc.patch,
             commitfest=to_cf,
-            defaults=dict(
-                status=old_status,
-                enterdate=now,
-                leavedate=now if was_closed else None,
-            ),
+            defaults={
+                "status": old_status,
+                "enterdate": now,
+                "leavedate": now if was_closed else None,
+            },
         )
         new_poc.save()
         self.set_modified()
