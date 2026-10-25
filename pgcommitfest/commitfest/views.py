@@ -6,8 +6,10 @@ from django.db import OperationalError, connection, transaction
 from django.db.models import Count, Q
 from django.http import (
     Http404,
+    HttpRequest,
     HttpResponse,
     HttpResponseForbidden,
+    HttpResponsePermanentRedirect,
     HttpResponseRedirect,
 )
 from django.shortcuts import get_object_or_404, render
@@ -26,7 +28,7 @@ from pgcommitfest.userprofile.models import UserProfile
 from pgcommitfest.userprofile.util import UserWrapper
 
 from .ajax import _archivesAPI, doAttachThread, refresh_single_thread
-from .feeds import ActivityFeed
+from .feeds import ActivityFeed, calendar
 from .forms import (
     BulkEmailForm,
     CommitFestFilterForm,
@@ -212,12 +214,19 @@ def me_legacy_redirect(request):
     return HttpResponseRedirect("/#dashboard")
 
 
-def commitfest_history(request):
+def commitfest_history_legacy_redirect(request):
+    # For a while the list of all commitfests lived here, next to an unsorted
+    # duplicate at /archive/. The two were merged under /archive/ since that's
+    # the shorter URL, but links to this one should keep working.
+    return HttpResponsePermanentRedirect("/archive/")
+
+
+def archive(request):
     cfs = list(CommitFest.objects.order_by("-enddate"))
 
     return render(
         request,
-        "all_commitfests.html",
+        "archive.html",
         {
             "commitfests": cfs,
             "title": "Commitfest history",
@@ -239,19 +248,17 @@ def help(request):
     )
 
 
-def archive(request):
-    commitfests = list(CommitFest.objects.all())
+def commitfests_ics(_: HttpRequest) -> HttpResponse:
+    """
+    Calendar feed of all non-draft commitfests in iCalendar format (RFC 5545).
+    """
+    commitfests = CommitFest.objects.filter(draft=False).order_by("startdate")
 
-    return render(
-        request,
-        "archive.html",
-        {
-            "commitfests": commitfests,
-            "title": "Commitfests",
-            "header_activity": "Activity log",
-            "header_activity_link": "activity/",
-        },
+    response = HttpResponse(
+        calendar(commitfests).to_ical(), content_type="text/calendar; charset=utf-8"
     )
+    response["Content-Disposition"] = 'inline; filename="commitfests.ics"'
+    return response
 
 
 def activity(request, cfid=None, rss=None):
