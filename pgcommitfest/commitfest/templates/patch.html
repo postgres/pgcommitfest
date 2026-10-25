@@ -265,6 +265,33 @@
   </div>
  </div>
 
+{%comment%}review instructions dialog{%endcomment%}
+ <div class="modal fade" id="reviewModal" role="dialog">
+  <div class="modal-dialog">
+   <div class="modal-content">
+    <div class="modal-header">
+     <h4 class="modal-title">Review</h4>
+     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+     <p>Reviews are posted by replying to the patch's thread on the mailinglist. If the thread isn't in your inbox:</p>
+     <ol>
+      <li>Open the latest message in the archives:
+       <ul>
+        {%for t in patch.mailthread_set.all%}
+         <li><a href="https://www.postgresql.org/message-id/{{t.latestmsgid}}">{{t.subject}}</a></li>
+        {%endfor%}
+       </ul>
+      </li>
+      <li>Log in and click "Resend email" to get a copy in your inbox.</li>
+      <li>Reply all to that email with your review.</li>
+     </ol>
+     <p class="mb-0">Afterwards, use "Change Status" if needed.</p>
+    </div>
+   </div>
+  </div>
+ </div>
+
  {%include "thread_attach.inc"%}
 {%comment%}Modal dialog for adding annotation{%endcomment%}
  <div class="modal fade" id="annotateModal" role="dialog">

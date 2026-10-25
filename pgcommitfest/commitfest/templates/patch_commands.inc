@@ -1,5 +1,6 @@
 <div style="margin-bottom:5px;">
  <a class="btn btn-secondary" href="edit/">Edit</a>
+ <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#reviewModal">Review</button>
 
  <div class="btn-group">
   <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Change Status</button>
