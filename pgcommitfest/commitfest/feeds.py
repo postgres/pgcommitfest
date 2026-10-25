@@ -18,7 +18,7 @@ class ActivityFeed(Feed):
     link = "https://commitfest.postgresql.org/"
 
     def __init__(self, activity, cf, *args, **kwargs):
-        super(ActivityFeed, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.activity = activity
         if cf:
             self.cfid = cf.id

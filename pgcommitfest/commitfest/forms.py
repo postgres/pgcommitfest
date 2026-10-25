@@ -25,7 +25,7 @@ class CommitFestFilterForm(forms.Form):
     sortkey = forms.IntegerField(required=False)
 
     def __init__(self, data, commitfest=None, *args, **kwargs):
-        super(CommitFestFilterForm, self).__init__(data, *args, **kwargs)
+        super().__init__(data, *args, **kwargs)
         self.commitfest = commitfest
 
         # Update selectize_fields with cf parameter if commitfest is provided
@@ -104,7 +104,7 @@ class PatchForm(forms.ModelForm):
         )
 
     def __init__(self, *args, **kwargs):
-        super(PatchForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["authors"].help_text = "Enter part of name to see list"
         self.fields["reviewers"].help_text = "Enter part of name to see list"
         self.fields["committer"].label_from_instance = lambda x: (
@@ -180,7 +180,7 @@ class NewPatchForm(PatchForm):
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop("request", None)
-        super(NewPatchForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if request:
             self.fields["authors"].queryset = User.objects.filter(pk=request.user.id)
@@ -222,4 +222,4 @@ class BulkEmailForm(forms.Form):
     confirm = forms.BooleanField(required=True, label="Check to confirm sending")
 
     def __init__(self, *args, **kwargs):
-        super(BulkEmailForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)

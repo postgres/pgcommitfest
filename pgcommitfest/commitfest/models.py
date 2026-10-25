@@ -1015,7 +1015,7 @@ class CfbotBranch(models.Model):
 
         if not self.commit_id:
             self.commit_id = None
-        super(CfbotBranch, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class CfbotTask(models.Model):

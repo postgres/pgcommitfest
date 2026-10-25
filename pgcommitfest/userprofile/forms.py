@@ -9,7 +9,7 @@ class UserProfileForm(forms.ModelForm):
         exclude = ("user",)
 
     def __init__(self, user, *args, **kwargs):
-        super(UserProfileForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.user = user
 
         mailhelp = 'To add a new address to choose from, update your user profile on <a href="https://www.postgresql.org/account/profile/">postgresql.org</a>.'

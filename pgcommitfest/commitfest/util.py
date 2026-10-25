@@ -8,7 +8,7 @@ class DiffableModel:
     """
 
     def __init__(self, *args, **kwargs):
-        super(DiffableModel, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.__initial = self._dict
 
     @property
@@ -36,7 +36,7 @@ class DiffableModel:
         return diffs
 
     def save(self, *args, **kwargs):
-        super(DiffableModel, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         self.__initial = self._dict
 
     @property
