@@ -6,7 +6,7 @@ from django.http import Http404
 
 from typing import ClassVar
 
-from .ajax import _archivesAPI
+from .ajax import Http503, _archivesAPI
 from .models import Patch, PatchOnCommitFest, Tag, TargetVersion
 from .widgets import ThreadPickWidget
 
@@ -206,7 +206,7 @@ class NewPatchForm(PatchForm):
             _archivesAPI(f"/message-id.json/{self.cleaned_data['threadmsgid']}")
         except Http404:
             raise ValidationError("Message not found in archives")
-        except Exception:
+        except Http503:
             raise ValidationError("Error in API call to validate thread")
         return self.cleaned_data["threadmsgid"]
 

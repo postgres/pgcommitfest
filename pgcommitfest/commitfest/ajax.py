@@ -62,16 +62,19 @@ def _archivesAPI(suburl, params=None):
             },
             timeout=settings.ARCHIVES_TIMEOUT,
         )
+        if resp.status_code == 404:
+            raise Http404()
         if resp.status_code != 200:
-            if resp.status_code == 404:
-                raise Http404()
-            raise Exception(f"JSON call failed: {resp.status_code}")
+            raise Http503(
+                "Failed to communicate with archives backend: "
+                f"JSON call failed: {resp.status_code}"
+            )
 
         return resp.json()
-    except Http404:
-        raise
-    except Exception as e:
-        raise Http503(f"Failed to communicate with archives backend: {e}")
+    except requests.RequestException as e:
+        # This includes invalid JSON, because requests' JSONDecodeError is
+        # also a RequestException.
+        raise Http503(f"Failed to communicate with archives backend: {e}") from e
 
 
 def getThreads(request):
