@@ -62,9 +62,11 @@ def send_template_mail(
     receiver,
     subject,
     templatename,
-    templateattr={},
+    templateattr=None,
     usergenerated=False,
 ):
+    if templateattr is None:
+        templateattr = {}
     send_simple_mail(
         sender,
         receiver,
