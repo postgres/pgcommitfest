@@ -273,7 +273,7 @@ function flagCommitted(committer) {
 
 // biome-ignore lint/correctness/noUnusedVariables: called from templates
 function sortpatches(sortby) {
-    const sortkey = Number.parseInt($("#id_sortkey").val());
+    const sortkey = Number.parseInt($("#id_sortkey").val(), 10);
     if (sortkey === sortby) {
         $("#id_sortkey").val(-sortby);
     } else if (-sortkey === sortby) {
