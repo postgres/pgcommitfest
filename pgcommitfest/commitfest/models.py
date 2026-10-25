@@ -245,10 +245,7 @@ class CommitFest(models.Model):
         if cfs["open"].startdate <= current_date:
             return False
 
-        if not cfs["draft"] or cfs["draft"].enddate < current_date:
-            return False
-
-        return True
+        return bool(cfs["draft"]) and cfs["draft"].enddate >= current_date
 
     @classmethod
     def _refresh_relevant_commitfests(cls, for_update):
