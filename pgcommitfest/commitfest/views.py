@@ -693,7 +693,7 @@ def commitfest(request, cfid):
         },
     )
     statussummary = curs.fetchall()
-    statussummary.append([-1, "Total", sum((r[2] for r in statussummary))])
+    statussummary.append([-1, "Total", sum(r[2] for r in statussummary)])
 
     # Generates a fairly expensive query, which we shouldn't do unless
     # the user is logged in. XXX: Figure out how to avoid doing that..
