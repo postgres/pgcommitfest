@@ -129,19 +129,19 @@ nav[aria-label="breadcrumb"] .float-end {
 
 /* Remove underlines from tag links */
 a:has(.badge) {
-    text-decoration: none !important;
+    text-decoration: none;
 }
 
 a:has(.badge):hover {
-    text-decoration: none !important;
+    text-decoration: none;
 }
 
 a .badge {
-    text-decoration: none !important;
+    text-decoration: none;
 }
 
 a:hover .badge {
-    text-decoration: none !important;
+    text-decoration: none;
 }
 
 /* Simple close button without float */
@@ -185,13 +185,18 @@ a:hover .badge {
 }
 
 /* Mobile: stack actions vertically, tablet+: horizontal */
+/* The !important is needed to override Bootstrap's gap-2 and
+ * align-items-center utility classes, which use !important themselves. */
 .navbar-actions {
     flex-direction: column;
+    /* biome-ignore lint/complexity/noImportantStyles: see above */
     gap: 0.5rem !important;
+    /* biome-ignore lint/complexity/noImportantStyles: see above */
     align-items: stretch !important;
 }
 
 .navbar-actions .input-group {
+    /* biome-ignore lint/complexity/noImportantStyles: overrides the inline width in base.html */
     width: 100% !important;
 }
 
@@ -254,7 +259,7 @@ a:hover .badge {
         to bottom,
         rgba(248, 249, 250, 0) 0%,
         rgba(248, 249, 250, 1) 50%
-    ) !important;
-    border-top: none !important;
+    );
+    border-top: none;
     pointer-events: none;
 }
