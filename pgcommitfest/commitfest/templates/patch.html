@@ -125,10 +125,14 @@
     <th>Reviewers</th>
     <td>
      {{patch.reviewers_string}}
-     <form method="post">{%csrf_token%}
-      {%if is_reviewer%}<button formaction="reviewer/remove/" class="btn btn-secondary float-end">Remove from reviewers</button>{%else%}<button formaction="reviewer/become/" class="btn btn-secondary float-end">Become reviewer</button>{%endif%}
-      {%if patch.can_remove_all_reviewers and patch.reviewers.all%}<button formaction="reviewer/remove_all/" class="btn btn-secondary float-end me-1">Remove all reviewers</button>{%endif%}
-     </form>
+     {%if not user.is_authenticated%}
+      <a class="btn btn-secondary float-end" href="/account/login/?next=/patch/{{patch.id}}/">Log in to become reviewer</a>
+     {%else%}
+      <form method="post">{%csrf_token%}
+       {%if is_reviewer%}<button formaction="reviewer/remove/" class="btn btn-secondary float-end">Remove from reviewers</button>{%else%}<button formaction="reviewer/become/" class="btn btn-secondary float-end">Become reviewer</button>{%endif%}
+       {%if patch.can_remove_all_reviewers and patch.reviewers.all%}<button formaction="reviewer/remove_all/" class="btn btn-secondary float-end me-1">Remove all reviewers</button>{%endif%}
+      </form>
+     {%endif%}
     </td>
    </tr>
    <tr>

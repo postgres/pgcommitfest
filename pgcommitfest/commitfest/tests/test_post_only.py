@@ -20,8 +20,7 @@ def test_get_does_not_modify_patch(client, open_cf, alice, logged_in):
         client.force_login(alice)
 
     response = client.get(f"/patch/{patch.id}/status/author/")
-    assert response.status_code == 302
-    assert response["Location"] == f"/patch/{patch.id}/"
+    assert response.status_code == 405
     poc.refresh_from_db()
     assert poc.status == PatchOnCommitFest.STATUS_REVIEW
 

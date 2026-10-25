@@ -15,6 +15,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 import collections
 import functools
@@ -86,25 +87,6 @@ def retry_on_serialization_failure(view_func):
         # conflict with. If the retry fails anyway, something else is going on
         # and we'd rather surface the error than keep hammering the database.
         return view_func(*args, **kwargs)
-
-    return wrapper
-
-
-def patch_modification(view_func):
-    """Only allow POST requests for views that modify a patch.
-
-    Other requests are redirected to the patch page instead of being rejected,
-    so that someone logging in after clicking one of these buttons ends up
-    somewhere useful. This has to sit outside login_required, so that crawlers
-    that still have these URLs from when they were plain links don't cause a
-    login redirect.
-    """
-
-    @functools.wraps(view_func)
-    def wrapper(request, patchid, *args, **kwargs):
-        if request.method != "POST":
-            return HttpResponseRedirect(f"/patch/{patchid}/")
-        return view_func(request, patchid, *args, **kwargs)
 
     return wrapper
 
@@ -1132,7 +1114,7 @@ def newpatch(request, cfid):
     )
 
 
-@patch_modification
+@require_POST
 @login_required
 @transaction.atomic
 def status(request, patchid, status):
@@ -1161,7 +1143,7 @@ def status(request, patchid, status):
     return HttpResponseRedirect("/patch/%s/" % (poc.patch.id))
 
 
-@patch_modification
+@require_POST
 @login_required
 @transaction.atomic
 def close(request, patchid, status):
@@ -1256,7 +1238,7 @@ def int_param_or_none(request, param):
         return None
 
 
-@patch_modification
+@require_POST
 @login_required
 @transaction.atomic
 def move(request, patchid):
@@ -1282,7 +1264,7 @@ def move(request, patchid):
     return HttpResponseRedirect(f"/patch/{patchid}/")
 
 
-@patch_modification
+@require_POST
 @login_required
 @transaction.atomic
 def reviewer(request, patchid, status):
@@ -1309,7 +1291,7 @@ def reviewer(request, patchid, status):
     return HttpResponseRedirect("../../")
 
 
-@patch_modification
+@require_POST
 @login_required
 @transaction.atomic
 def remove_all_reviewers(request, patchid):
@@ -1335,7 +1317,7 @@ def remove_all_reviewers(request, patchid):
     return HttpResponseRedirect(f"/patch/{patchid}/")
 
 
-@patch_modification
+@require_POST
 @login_required
 @transaction.atomic
 def committer(request, patchid, status):
@@ -1369,7 +1351,7 @@ def committer(request, patchid, status):
     return HttpResponseRedirect("../../")
 
 
-@patch_modification
+@require_POST
 @login_required
 @transaction.atomic
 def subscribe(request, patchid, sub):
