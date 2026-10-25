@@ -276,7 +276,7 @@
     <div class="modal-body">
      <p>Reviews are posted by replying to the patch's thread on the mailinglist. If the thread isn't in your inbox:</p>
      <ol>
-      <li>Open the latest message in the archives:
+      <li>Open the latest message in the archives (or whichever message you want to reply to):
        <ul>
         {%for t in patch.mailthread_set.all%}
          <li><a href="https://www.postgresql.org/message-id/{{t.latestmsgid}}">{{t.subject}}</a></li>
