@@ -60,7 +60,7 @@ class CommitFest(models.Model):
 
     @property
     def statusstring(self):
-        return [v for k, v in self._STATUS_CHOICES if k == self.status][0]
+        return next(v for k, v in self._STATUS_CHOICES if k == self.status)
 
     @property
     def periodstring(self):
@@ -730,7 +730,7 @@ class PatchOnCommitFest(models.Model):
 
     @property
     def statusstring(self):
-        return [v for k, v in self._STATUS_CHOICES if k == self.status][0]
+        return next(v for k, v in self._STATUS_CHOICES if k == self.status)
 
     def to_json(self):
         return {

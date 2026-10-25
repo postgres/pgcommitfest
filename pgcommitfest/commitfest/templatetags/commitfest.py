@@ -18,28 +18,28 @@ register = template.Library()
 @stringfilter
 def commitfeststatusstring(value):
     i = int(value)
-    return [v for k, v in CommitFest._STATUS_CHOICES if k == i][0]
+    return next(v for k, v in CommitFest._STATUS_CHOICES if k == i)
 
 
 @register.filter(name="commitfeststatuslabel")
 @stringfilter
 def commitfeststatuslabel(value):
     i = int(value)
-    return [v for k, v in CommitFest._STATUS_LABELS if k == i][0]
+    return next(v for k, v in CommitFest._STATUS_LABELS if k == i)
 
 
 @register.filter(name="patchstatusstring")
 @stringfilter
 def patchstatusstring(value):
     i = int(value)
-    return [v for k, v in PatchOnCommitFest._STATUS_CHOICES if k == i][0]
+    return next(v for k, v in PatchOnCommitFest._STATUS_CHOICES if k == i)
 
 
 @register.filter(name="patchstatuslabel")
 @stringfilter
 def patchstatuslabel(value):
     i = int(value)
-    return [v for k, v in PatchOnCommitFest._STATUS_LABELS if k == i][0]
+    return next(v for k, v in PatchOnCommitFest._STATUS_LABELS if k == i)
 
 
 @register.filter(name="tagname")
