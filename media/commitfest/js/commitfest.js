@@ -26,7 +26,7 @@ function findLatestThreads() {
         .success((data) => {
             sel = $("#attachThreadList");
             sel.find("option").remove();
-            $.each(data, (m, i) => {
+            $.each(data, (_m, i) => {
                 sel.append(
                     $("<option/>")
                         .text(`${i.from}: ${i.subj} (${i.date})`)
@@ -47,7 +47,7 @@ function browseThreads(attachfunc, closefunc) {
     $("#attachThreadList").find("option").remove();
     $("#attachThreadMessageId").val("");
     $("#attachModal").off("hidden.bs.modal");
-    $("#attachModal").on("hidden.bs.modal", (e) => {
+    $("#attachModal").on("hidden.bs.modal", () => {
         if (closefunc) closefunc();
     });
     const attachModal = new bootstrap.Modal(
@@ -114,10 +114,10 @@ function detachThread(cfid, patchid, msgid) {
             p: patchid,
             msg: msgid,
         })
-            .success((data) => {
+            .success(() => {
                 location.reload();
             })
-            .fail((data) => {
+            .fail(() => {
                 alert("Failed to detach thread!");
             });
     }
@@ -166,7 +166,7 @@ function updateAnnotationMessages(threadid) {
             sel = $("#annotateMessageList");
             sel.find("option").remove();
             sel.append('<option value="">---</option>');
-            $.each(data, (i, m) => {
+            $.each(data, (_i, m) => {
                 sel.append(
                     `<option value="${m.msgid}">${m.from}: ${m.subj} (${m.date})</option>`,
                 );
@@ -210,7 +210,7 @@ function addAnnotation(threadid) {
                     location.reload();
                 }
             })
-            .fail((data) => {
+            .fail(() => {
                 alert("Failed to annotate message");
                 $("#annotateMessageBody").removeClass("loading");
             });
@@ -241,10 +241,10 @@ function deleteAnnotation(annid) {
         $.post("/ajax/deleteAnnotation/", {
             id: annid,
         })
-            .success((data) => {
+            .success(() => {
                 location.reload();
             })
-            .fail((data) => {
+            .fail(() => {
                 alert("Failed to delete annotation!");
             });
     }
@@ -337,7 +337,7 @@ function search_and_store_user() {
                     alert(`Failed to import user: ${data}`);
                 }
             })
-            .fail((data, statustxt) => {
+            .fail((_data, statustxt) => {
                 alert(`Failed to import user: ${statustxt}`);
             });
 
@@ -361,7 +361,7 @@ function findUsers() {
         .success((data) => {
             sel = $("#searchUserList");
             sel.find("option").remove();
-            $.each(data, (i, u) => {
+            $.each(data, (_i, u) => {
                 sel.append(
                     `<option value="${u.u}">${u.u} (${u.f} ${u.l})</option>`,
                 );
@@ -401,7 +401,7 @@ $(document).ready(() => {
         new bootstrap.Tooltip(tooltipTriggerEl);
     }
 
-    $("button.attachThreadButton").each((i, o) => {
+    $("button.attachThreadButton").each((_i, o) => {
         const b = $(o);
         b.click(() => {
             $("#attachThreadAttachOnly").val("1");
