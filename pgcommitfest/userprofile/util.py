@@ -4,7 +4,7 @@ from email.utils import formataddr
 from .models import UserExtraEmail, UserProfile
 
 
-class UserWrapper(object):
+class UserWrapper:
     def __init__(self, user):
         self.user = user
 

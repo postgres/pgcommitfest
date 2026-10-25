@@ -2,7 +2,7 @@ import django.db.models.fields.related
 from django.forms.models import model_to_dict
 
 
-class DiffableModel(object):
+class DiffableModel:
     """
     Make it possible to diff a model.
     """
