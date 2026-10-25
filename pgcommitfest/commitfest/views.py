@@ -593,7 +593,7 @@ def patchlist(request, cf, personalized=False):
         )
 
     if whereclauses:
-        where_str = "({0})".format(") AND (".join(whereclauses))
+        where_str = "(" + ") AND (".join(whereclauses) + ")"
     else:
         where_str = "true"
     params = {

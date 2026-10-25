@@ -51,12 +51,8 @@ if __name__ == "__main__":
         logging.debug(f"Checking attachment {a.attachmentid}")
 
         resp = requests.get(
-            "http{0}://{1}:{2}{3}".format(
-                settings.ARCHIVES_PORT == 443 and "s" or "",
-                settings.ARCHIVES_SERVER,
-                settings.ARCHIVES_PORT,
-                url,
-            ),
+            f"{'https' if settings.ARCHIVES_PORT == 443 else 'http'}://"
+            f"{settings.ARCHIVES_SERVER}:{settings.ARCHIVES_PORT}{url}",
             headers={
                 "Host": settings.ARCHIVES_HOST,
             },
