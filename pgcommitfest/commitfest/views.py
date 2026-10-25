@@ -20,10 +20,8 @@ import hmac
 import json
 import urllib
 from datetime import datetime, timedelta
-from email.mime.text import MIMEText
-from email.utils import formatdate, make_msgid
 
-from pgcommitfest.mailqueue.util import send_mail, send_simple_mail
+from pgcommitfest.mailqueue.util import send_simple_mail
 from pgcommitfest.userprofile.models import UserProfile
 from pgcommitfest.userprofile.util import UserWrapper
 
@@ -31,7 +29,6 @@ from .ajax import _archivesAPI, doAttachThread, refresh_single_thread
 from .feeds import ActivityFeed
 from .forms import (
     BulkEmailForm,
-    CommentForm,
     CommitFestFilterForm,
     NewPatchForm,
     PatchForm,
@@ -1109,147 +1106,6 @@ def newpatch(request, cfid):
     )
 
 
-def _review_status_string(reviewstatus):
-    if "0" in reviewstatus:
-        if "1" in reviewstatus:
-            return "tested, passed"
-        else:
-            return "tested, failed"
-    else:
-        return "not tested"
-
-
-@login_required
-@transaction.atomic
-def comment(request, patchid, what):
-    patch = get_object_or_404(Patch, pk=patchid)
-    cf = patch.current_commitfest()
-    poc = get_object_or_404(PatchOnCommitFest, patch=patch, commitfest=cf)
-    is_review = what == "review"
-
-    if request.method == "POST":
-        try:
-            form = CommentForm(patch, poc, is_review, data=request.POST)
-        except Exception as e:
-            messages.add_message(
-                request,
-                messages.ERROR,
-                "Failed to build list of response options from the archives: %s" % e,
-            )
-            return HttpResponseRedirect("/%s/%s/" % (cf.id, patch.id))
-
-        if form.is_valid():
-            if is_review:
-                txt = (
-                    "The following review has been posted through the commitfest application:\n%s\n\n%s"
-                    % (
-                        "\n".join(
-                            [
-                                "%-25s %s"
-                                % (
-                                    f.label + ":",
-                                    _review_status_string(form.cleaned_data[fn]),
-                                )
-                                for (fn, f) in form.fields.items()
-                                if fn.startswith("review_")
-                            ]
-                        ),
-                        form.cleaned_data["message"],
-                    )
-                )
-            else:
-                txt = form.cleaned_data["message"]
-
-            if int(form.cleaned_data["newstatus"]) != poc.status:
-                poc.status = int(form.cleaned_data["newstatus"])
-                poc.save()
-                PatchHistory(
-                    patch=poc.patch,
-                    by=request.user,
-                    what="New status: %s" % poc.statusstring,
-                ).save_and_notify()
-                txt += "\n\nThe new status of this patch is: %s\n" % poc.statusstring
-
-            msg = MIMEText(txt, _charset="utf-8")
-
-            if form.thread.subject.startswith("Re:"):
-                msg["Subject"] = form.thread.subject
-            else:
-                msg["Subject"] = "Re: %s" % form.thread.subject
-
-            msg["To"] = settings.HACKERS_EMAIL
-            msg["From"] = UserWrapper(request.user).encoded_email_header
-
-            # CC the authors of a patch, if there are any
-            authors = list(patch.authors.all())
-            if len(authors):
-                msg["Cc"] = ", ".join(
-                    [UserWrapper(a).encoded_email_header for a in authors]
-                )
-
-            msg["Date"] = formatdate(localtime=True)
-            msg["User-Agent"] = "pgcommitfest"
-            msg["X-cfsender"] = request.user.username
-            msg["In-Reply-To"] = "<%s>" % form.respid
-            # We just add the "top" messageid and the one we're responding to.
-            # This along with in-reply-to should indicate clearly enough where
-            # in the thread the message belongs.
-            msg["References"] = "<%s> <%s>" % (form.thread.messageid, form.respid)
-            msg["Message-ID"] = make_msgid("pgcf")
-
-            uw = UserWrapper(request.user)
-            msgstring = msg.as_string()
-            send_mail(uw.email, settings.HACKERS_EMAIL, msgstring)
-            for a in authors:
-                # Actually send a copy directly to the author. Just setting the Cc field doesn't
-                # make it deliver the email...
-                send_mail(uw.email, UserWrapper(a).email, msgstring)
-
-            PatchHistory(
-                patch=patch,
-                by=request.user,
-                what="Posted %s with messageid %s" % (what, msg["Message-ID"]),
-            ).save()
-
-            messages.add_message(
-                request,
-                messages.INFO,
-                "Your email has been queued for %s, and will be sent within a few minutes."
-                % (settings.HACKERS_EMAIL),
-            )
-
-            return HttpResponseRedirect("/%s/%s/" % (cf.id, patch.id))
-    else:
-        try:
-            form = CommentForm(patch, poc, is_review)
-        except Exception as e:
-            messages.add_message(
-                request,
-                messages.ERROR,
-                "Failed to build list of response options from the archives: %s" % e,
-            )
-            return HttpResponseRedirect("/%s/%s/" % (cf.id, patch.id))
-
-    return render(
-        request,
-        "base_form.html",
-        {
-            "cf": cf,
-            "form": form,
-            "patch": patch,
-            "extraformclass": "patchcommentform",
-            "breadcrumbs": [
-                {"title": cf.title, "href": "/%s/" % cf.pk},
-                {"title": "View patch", "href": "/%s/%s/" % (cf.pk, patch.pk)},
-            ],
-            "title": "Add %s" % what,
-            "note": '<b>Note!</b> This form will generate an email to the public mailinglist <i>%s</i>, with sender set to <i>%s</i>!<br/>Please ensure that the email settings for your domain (<a href="https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail" target="_blank">DKIM</a>, <a href="https://en.wikipedia.org/wiki/SPF" target="_blank">SPF</a>) allow emails from external sources.'
-            % (settings.HACKERS_EMAIL, UserWrapper(request.user).email),
-            "savebutton": "Send %s" % what,
-        },
-    )
-
-
 @login_required
 @transaction.atomic
 def status(request, patchid, status):
@@ -1524,13 +1380,22 @@ def send_email(request, cfid):
 
             recipients = User.objects.filter(q).distinct()
 
+            # We send from our own address instead of the manager's, because
+            # many domains have a DMARC policy that causes emails with their
+            # address in the From header to be rejected when they're not sent
+            # through their own mail servers. Reply-To makes replies still go
+            # to the manager.
+            uw = UserWrapper(request.user)
             for r in recipients:
                 send_simple_mail(
-                    UserWrapper(request.user).email,
+                    settings.NOTIFICATION_FROM,
                     r.email,
                     form.cleaned_data["subject"],
                     form.cleaned_data["body"],
                     request.user.username,
+                    sendername="%s %s via PostgreSQL Commitfest"
+                    % (request.user.first_name, request.user.last_name),
+                    replyto=uw.encoded_email_header,
                 )
                 messages.add_message(
                     request, messages.INFO, "Sent email to %s" % r.email
@@ -1569,7 +1434,8 @@ def send_email(request, cfid):
     messages.add_message(
         request,
         messages.INFO,
-        "Email will be sent from: %s" % UserWrapper(request.user).email,
+        "Email will be sent from %s, with replies going to: %s"
+        % (settings.NOTIFICATION_FROM, UserWrapper(request.user).email),
     )
 
     def _user_and_mail(u):
