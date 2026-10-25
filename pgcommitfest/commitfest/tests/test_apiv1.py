@@ -1,3 +1,6 @@
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+
 import json
 from datetime import datetime, timezone
 
@@ -5,6 +8,7 @@ import pytest
 
 from pgcommitfest.commitfest.models import (
     MailThread,
+    MailThreadAttachment,
     Patch,
     PatchOnCommitFest,
 )
@@ -136,17 +140,42 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
     PatchOnCommitFest.objects.create(
         patch=patch1,
         commitfest=open_cf,
-        enterdate=datetime.now(),
+        enterdate=datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
     PatchOnCommitFest.objects.create(
         patch=patch2,
         commitfest=open_cf,
-        enterdate=datetime.now(),
-        status=PatchOnCommitFest.STATUS_AUTHOR,
+        enterdate=datetime(2025, 1, 2, 8, 0, 0, tzinfo=timezone.utc),
+        # leavedate is only allowed on statuses that close the patch out
+        leavedate=datetime(2025, 1, 20, 16, 45, 0, tzinfo=timezone.utc),
+        status=PatchOnCommitFest.STATUS_COMMITTED,
     )
 
-    response = client.get(f"/api/v1/commitfests/{open_cf.id}/patches")
+    thread = MailThread.objects.create(
+        messageid="abc123@example.com",
+        subject="[PATCH] Add feature X",
+        firstmessage=datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
+        firstauthor="alice@example.com",
+        latestmessage=datetime(2025, 1, 12, 14, 30, 0, tzinfo=timezone.utc),
+        latestauthor="bob@example.com",
+        latestsubject="Re: [PATCH] Add feature X",
+        latestmsgid="def456@example.com",
+    )
+    patch1.mailthread_set.add(thread)
+    MailThreadAttachment.objects.create(
+        mailthread=thread,
+        messageid="abc123@example.com",
+        attachmentid=1,
+        filename="v1.patch",
+        date=datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
+        author="alice@example.com",
+        ispatch=True,
+    )
+
+    url = f"/api/v1/commitfests/{open_cf.id}/patches"
+    with CaptureQueriesContext(connection) as queries_without_threads:
+        response = client.get(url)
 
     assert response.status_code == 200
     assert response["Content-Type"] == "application/json"
@@ -164,13 +193,55 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
     assert p1["status"] == "Needs review"
     assert p1["authors"] == ["Alice Anderson"]
     assert p1["last_email_time"] == "2025-01-15T10:30:00+00:00"
+    assert p1["enterdate"] == "2025-01-01T12:00:00+00:00"
+    assert p1["leavedate"] is None
 
     p2 = data["patches"][1]
     assert p2["id"] == patch2.id
     assert p2["name"] == "Fix bug Y"
-    assert p2["status"] == "Waiting on Author"
+    assert p2["status"] == "Committed"
     assert sorted(p2["authors"]) == ["Alice Anderson", "Bob Brown"]
     assert p2["last_email_time"] is None
+    assert p2["enterdate"] == "2025-01-02T08:00:00+00:00"
+    assert p2["leavedate"] == "2025-01-20T16:45:00+00:00"
+
+    # Threads are opt-in
+    assert "threads" not in p1
+
+    with CaptureQueriesContext(connection) as queries_with_threads:
+        response = client.get(f"{url}?include=threads")
+
+    assert response.status_code == 200
+    p1, p2 = json.loads(response.content)["patches"]
+    assert p1["threads"] == [
+        {
+            "messageid": "abc123@example.com",
+            "subject": "[PATCH] Add feature X",
+            "latest_message_id": "def456@example.com",
+            "latest_message_time": "2025-01-12T14:30:00+00:00",
+            "has_attachment": True,
+        }
+    ]
+    assert p2["threads"] == []
+    # A single prefetch query for all patches, not one per patch
+    assert len(queries_with_threads) == len(queries_without_threads) + 1
+
+
+def test_commitfest_patches_endpoint_include_parsing(client, open_cf):
+    """Unknown include tokens are ignored and spaces around tokens allowed."""
+    PatchOnCommitFest.objects.create(
+        patch=Patch.objects.create(name="Add feature X"),
+        commitfest=open_cf,
+        enterdate=datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+    )
+    url = f"/api/v1/commitfests/{open_cf.id}/patches"
+
+    response = client.get(f"{url}?include=bogus")
+    assert response.status_code == 200
+    assert "threads" not in json.loads(response.content)["patches"][0]
+
+    response = client.get(f"{url}?include=bogus, threads")
+    assert json.loads(response.content)["patches"][0]["threads"] == []
 
 
 def test_commitfest_patches_endpoint_not_found(client, commitfests):
@@ -187,7 +258,7 @@ def test_patch_threads_endpoint(client, open_cf, alice):
     PatchOnCommitFest.objects.create(
         patch=patch,
         commitfest=open_cf,
-        enterdate=datetime.now(),
+        enterdate=datetime(2025, 1, 1, tzinfo=timezone.utc),
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
 

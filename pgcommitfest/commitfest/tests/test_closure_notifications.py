@@ -13,6 +13,7 @@ from pgcommitfest.commitfest.models import (
     PatchHistory,
     PatchOnCommitFest,
     PendingNotification,
+    Tag,
 )
 from pgcommitfest.mailqueue.models import QueuedMail
 from pgcommitfest.userprofile.models import UserProfile
@@ -308,6 +309,43 @@ def test_no_auto_move_when_failing_too_long(alice, in_progress_cf, open_cf):
     mail = QueuedMail.objects.first()
     body = get_email_body(mail)
     assert "Failing Patch" in body
+
+
+def test_auto_move_bugfix_even_when_inactive_and_failing(
+    alice, in_progress_cf, open_cf
+):
+    """Patches tagged Bugfix should be auto-moved even without recent email
+    activity and with CI failing for too long."""
+    patch = Patch.objects.create(
+        name="Inactive Failing Bugfix",
+        lastmail=datetime.now()
+        - timedelta(days=settings.AUTO_MOVE_EMAIL_ACTIVITY_DAYS + 10),
+    )
+    patch.authors.add(alice)
+    patch.tags.add(Tag.objects.get(name="Bugfix"))
+    PatchOnCommitFest.objects.create(
+        patch=patch,
+        commitfest=in_progress_cf,
+        enterdate=datetime.now(),
+        status=PatchOnCommitFest.STATUS_REVIEW,
+    )
+    CfbotBranch.objects.create(
+        patch=patch,
+        branch_id=3,
+        branch_name="test-branch-3",
+        apply_url="https://example.com",
+        build_url="https://example.com/build/3",
+        status="failed",
+        failing_since=datetime.now()
+        - timedelta(days=settings.AUTO_MOVE_MAX_FAILING_DAYS + 10),
+    )
+
+    in_progress_cf.auto_move_active_patches()
+    in_progress_cf.send_closure_notifications()
+
+    patch.refresh_from_db()
+    assert patch.current_commitfest().id == open_cf.id
+    assert QueuedMail.objects.count() == 0
 
 
 def test_auto_move_when_failing_within_threshold(alice, in_progress_cf, open_cf):

@@ -5,7 +5,7 @@ from django.forms.widgets import HiddenInput
 from django.http import Http404
 
 from .ajax import _archivesAPI
-from .models import MailThread, Patch, PatchOnCommitFest, Tag, TargetVersion
+from .models import Patch, PatchOnCommitFest, Tag, TargetVersion
 from .widgets import ThreadPickWidget
 
 
@@ -212,91 +212,6 @@ class NewPatchForm(PatchForm):
         except Exception:
             raise ValidationError("Error in API call to validate thread")
         return self.cleaned_data["threadmsgid"]
-
-
-def _fetch_thread_choices(patch):
-    for mt in patch.mailthread_set.order_by("-latestmessage"):
-        ti = sorted(
-            _archivesAPI("/message-id.json/%s" % mt.messageid),
-            key=lambda x: x["date"],
-            reverse=True,
-        )
-        yield [
-            mt.subject,
-            [
-                (
-                    "%s,%s" % (mt.messageid, t["msgid"]),
-                    "From %s at %s" % (t["from"], t["date"]),
-                )
-                for t in ti
-            ],
-        ]
-
-
-review_state_choices = (
-    (0, "Tested"),
-    (1, "Passed"),
-)
-
-
-def reviewfield(label):
-    return forms.MultipleChoiceField(
-        choices=review_state_choices,
-        label=label,
-        widget=forms.CheckboxSelectMultiple,
-        required=False,
-    )
-
-
-class CommentForm(forms.Form):
-    responseto = forms.ChoiceField(choices=[], required=True, label="In response to")
-
-    # Specific checkbox fields for reviews
-    review_installcheck = reviewfield("make installcheck-world")
-    review_implements = reviewfield("Implements feature")
-    review_spec = reviewfield("Spec compliant")
-    review_doc = reviewfield("Documentation")
-
-    message = forms.CharField(required=True, widget=forms.Textarea)
-    newstatus = forms.ChoiceField(
-        choices=PatchOnCommitFest.OPEN_STATUS_CHOICES(), label="New status"
-    )
-
-    def __init__(self, patch, poc, is_review, *args, **kwargs):
-        super(CommentForm, self).__init__(*args, **kwargs)
-        self.is_review = is_review
-
-        self.fields["responseto"].choices = _fetch_thread_choices(patch)
-        self.fields["newstatus"].initial = poc.status
-        if not is_review:
-            del self.fields["review_installcheck"]
-            del self.fields["review_implements"]
-            del self.fields["review_spec"]
-            del self.fields["review_doc"]
-
-    def clean_responseto(self):
-        try:
-            (threadid, respid) = self.cleaned_data["responseto"].split(",")
-            self.thread = MailThread.objects.get(messageid=threadid)
-            self.respid = respid
-        except MailThread.DoesNotExist:
-            raise ValidationError("Selected thread appears to no longer exist")
-        except Exception:
-            raise ValidationError("Invalid message selected")
-        return self.cleaned_data["responseto"]
-
-    def clean(self):
-        if self.is_review:
-            for fn, f in self.fields.items():
-                if fn.startswith("review_") and fn in self.cleaned_data:
-                    if (
-                        "1" in self.cleaned_data[fn]
-                        and "0" not in self.cleaned_data[fn]
-                    ):
-                        self.errors[fn] = (
-                            ("Cannot pass a test without performing it!"),
-                        )
-        return self.cleaned_data
 
 
 class BulkEmailForm(forms.Form):

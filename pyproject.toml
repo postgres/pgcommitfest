@@ -15,6 +15,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "django-stubs",
     "uwsgi",
     "pycodestyle",
     "ruff",

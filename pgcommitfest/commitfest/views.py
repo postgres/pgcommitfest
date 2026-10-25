@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db import connection, transaction
+from django.db import OperationalError, connection, transaction
 from django.db.models import Count, Q
 from django.http import (
     Http404,
@@ -16,14 +16,13 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 import collections
+import functools
 import hmac
 import json
 import urllib
 from datetime import datetime, timedelta
-from email.mime.text import MIMEText
-from email.utils import formatdate, make_msgid
 
-from pgcommitfest.mailqueue.util import send_mail, send_simple_mail
+from pgcommitfest.mailqueue.util import send_simple_mail
 from pgcommitfest.userprofile.models import UserProfile
 from pgcommitfest.userprofile.util import UserWrapper
 
@@ -31,7 +30,6 @@ from .ajax import _archivesAPI, doAttachThread, refresh_single_thread
 from .feeds import ActivityFeed, calendar
 from .forms import (
     BulkEmailForm,
-    CommentForm,
     CommitFestFilterForm,
     NewPatchForm,
     PatchForm,
@@ -49,6 +47,47 @@ from .models import (
     UserInputError,
 )
 
+# PostgreSQL SQLSTATEs for transient conflicts that are safe to retry once the
+# aborted transaction has been rolled back: serialization_failure and
+# deadlock_detected.
+RETRYABLE_PGCODES = {"40001", "40P01"}
+
+
+def retry_on_serialization_failure(view_func):
+    """Re-run a view when its transaction hits a serialization failure.
+
+    A few views (home, commitfest) run the whole request at REPEATABLE READ so
+    that all of their queries observe a single consistent snapshot. Rendering
+    also triggers the lazy, roughly-once-a-month commitfest refresh in
+    CommitFest.relevant_commitfests(), which locks and updates rows with
+    SELECT ... FOR UPDATE. When two such requests race during a rollover, the
+    one that loses the race cannot re-read the newer row under REPEATABLE READ,
+    so PostgreSQL aborts it with "could not serialize access due to concurrent
+    update" (SQLSTATE 40001) instead of blocking and continuing.
+
+    Once that happens the transaction is dead, so the only way to recover is to
+    roll it back and run the view again from scratch. That is why this decorator
+    has to sit *outside* transaction.atomic: each attempt then runs in a brand
+    new transaction with a fresh snapshot. By the time we retry, the request
+    that won the race has already committed the refresh, so the cheap
+    up-to-date check short-circuits and the retry neither writes nor conflicts.
+    """
+
+    @functools.wraps(view_func)
+    def wrapper(*args, **kwargs):
+        try:
+            return view_func(*args, **kwargs)
+        except OperationalError as e:
+            if getattr(e.__cause__, "pgcode", None) not in RETRYABLE_PGCODES:
+                raise
+        # A single retry is enough: the refresh only writes once per rollover,
+        # so after the winning request commits there is nothing left to
+        # conflict with. If the retry fails anyway, something else is going on
+        # and we'd rather surface the error than keep hammering the database.
+        return view_func(*args, **kwargs)
+
+    return wrapper
+
 
 def get_tags_data():
     """Generate JSON data for enhanced selectize dropdown with tag colors and descriptions."""
@@ -65,6 +104,7 @@ def get_tags_data():
     )
 
 
+@retry_on_serialization_failure
 @transaction.atomic
 def home(request):
     curs = connection.cursor()
@@ -521,6 +561,18 @@ def patchlist(request, cf, personalized=False):
         orderby_str = "poc.commitfest_id, lastmail DESC"
     elif sortkey == -8:
         orderby_str = "poc.commitfest_id DESC, lastmail"
+    elif sortkey == 9 and not personalized:
+        # PostgreSQL sorts NULLs last when ascending and first when
+        # descending, so patches without a committer end up at the bottom in
+        # this order and at the top in the reverse one.
+        orderby_str = (
+            "committer.last_name, committer.first_name, committer.username, p.id"
+        )
+    elif sortkey == -9 and not personalized:
+        orderby_str = (
+            "committer.last_name DESC, committer.first_name DESC, "
+            "committer.username DESC, p.id DESC"
+        )
     else:
         if personalized:
             # First we sort by group_name, to have the grouping work.
@@ -621,6 +673,7 @@ ORDER BY is_open DESC, {orderby_str}""",
     )
 
 
+@retry_on_serialization_failure
 @transaction.atomic
 def commitfest(request, cfid):
     curs = connection.cursor()
@@ -1002,8 +1055,11 @@ def patchform(request, patchid):
     )
 
 
+class ThreadAttachFailed(Exception):
+    pass
+
+
 @login_required
-@transaction.atomic
 def newpatch(request, cfid):
     cf = get_object_or_404(CommitFest, pk=cfid)
     if not cf.status == CommitFest.STATUS_OPEN and not request.user.is_staff:
@@ -1012,33 +1068,39 @@ def newpatch(request, cfid):
     if request.method == "POST":
         form = NewPatchForm(data=request.POST)
         if form.is_valid():
-            patch = form.save()
-            poc = PatchOnCommitFest(
-                patch=patch, commitfest=cf, enterdate=datetime.now()
-            )
-            poc.save()
-            PatchHistory(
-                patch=patch, by=request.user, what="Created patch record"
-            ).save()
-            # Now add the thread
+            # A failure to attach the thread is re-raised as
+            # ThreadAttachFailed so that it still propagates out of the
+            # atomic block, which rolls back the patch and everything else
+            # created here. The form error is only set after leaving the
+            # block, so the queries needed to re-render the form still work
+            # even if the failure was a database error that aborted the
+            # transaction. Failures in the other statements are not caught
+            # here, so they still result in a logged 500.
             try:
-                doAttachThread(
-                    cf, patch, form.cleaned_data["threadmsgid"], request.user
-                )
+                with transaction.atomic():
+                    patch = form.save()
+                    PatchOnCommitFest(
+                        patch=patch, commitfest=cf, enterdate=datetime.now()
+                    ).save()
+                    PatchHistory(
+                        patch=patch, by=request.user, what="Created patch record"
+                    ).save()
+                    try:
+                        doAttachThread(
+                            cf, patch, form.cleaned_data["threadmsgid"], request.user
+                        )
+                    except Http404 as e:
+                        # This is a horrible breakage of API layers
+                        raise ThreadAttachFailed(
+                            "Selected thread did not exist in the archives"
+                        ) from e
+                    except Exception as e:
+                        raise ThreadAttachFailed(
+                            "An error occurred looking up the thread in the archives."
+                        ) from e
                 return HttpResponseRedirect("/patch/%s/" % (patch.id,))
-            except Http404:
-                # Thread not found!
-                # This is a horrible breakage of API layers
-                form._errors["threadmsgid"] = form.error_class(
-                    ("Selected thread did not exist in the archives",)
-                )
-            except Exception:
-                form._errors["threadmsgid"] = form.error_class(
-                    ("An error occurred looking up the thread in the archives.",)
-                )
-            # In this case, we have created a patch - delete it. This causes a agp in id's, but it should
-            # not happen very often. If we successfully attached to it, we will have already returned.
-            patch.delete()
+            except ThreadAttachFailed as e:
+                form._errors["threadmsgid"] = form.error_class((str(e),))
     else:
         form = NewPatchForm(request=request)
 
@@ -1054,147 +1116,6 @@ def newpatch(request, cfid):
             ],
             "savebutton": "Create patch",
             "threadbrowse": True,
-        },
-    )
-
-
-def _review_status_string(reviewstatus):
-    if "0" in reviewstatus:
-        if "1" in reviewstatus:
-            return "tested, passed"
-        else:
-            return "tested, failed"
-    else:
-        return "not tested"
-
-
-@login_required
-@transaction.atomic
-def comment(request, patchid, what):
-    patch = get_object_or_404(Patch, pk=patchid)
-    cf = patch.current_commitfest()
-    poc = get_object_or_404(PatchOnCommitFest, patch=patch, commitfest=cf)
-    is_review = what == "review"
-
-    if request.method == "POST":
-        try:
-            form = CommentForm(patch, poc, is_review, data=request.POST)
-        except Exception as e:
-            messages.add_message(
-                request,
-                messages.ERROR,
-                "Failed to build list of response options from the archives: %s" % e,
-            )
-            return HttpResponseRedirect("/%s/%s/" % (cf.id, patch.id))
-
-        if form.is_valid():
-            if is_review:
-                txt = (
-                    "The following review has been posted through the commitfest application:\n%s\n\n%s"
-                    % (
-                        "\n".join(
-                            [
-                                "%-25s %s"
-                                % (
-                                    f.label + ":",
-                                    _review_status_string(form.cleaned_data[fn]),
-                                )
-                                for (fn, f) in form.fields.items()
-                                if fn.startswith("review_")
-                            ]
-                        ),
-                        form.cleaned_data["message"],
-                    )
-                )
-            else:
-                txt = form.cleaned_data["message"]
-
-            if int(form.cleaned_data["newstatus"]) != poc.status:
-                poc.status = int(form.cleaned_data["newstatus"])
-                poc.save()
-                PatchHistory(
-                    patch=poc.patch,
-                    by=request.user,
-                    what="New status: %s" % poc.statusstring,
-                ).save_and_notify()
-                txt += "\n\nThe new status of this patch is: %s\n" % poc.statusstring
-
-            msg = MIMEText(txt, _charset="utf-8")
-
-            if form.thread.subject.startswith("Re:"):
-                msg["Subject"] = form.thread.subject
-            else:
-                msg["Subject"] = "Re: %s" % form.thread.subject
-
-            msg["To"] = settings.HACKERS_EMAIL
-            msg["From"] = UserWrapper(request.user).encoded_email_header
-
-            # CC the authors of a patch, if there are any
-            authors = list(patch.authors.all())
-            if len(authors):
-                msg["Cc"] = ", ".join(
-                    [UserWrapper(a).encoded_email_header for a in authors]
-                )
-
-            msg["Date"] = formatdate(localtime=True)
-            msg["User-Agent"] = "pgcommitfest"
-            msg["X-cfsender"] = request.user.username
-            msg["In-Reply-To"] = "<%s>" % form.respid
-            # We just add the "top" messageid and the one we're responding to.
-            # This along with in-reply-to should indicate clearly enough where
-            # in the thread the message belongs.
-            msg["References"] = "<%s> <%s>" % (form.thread.messageid, form.respid)
-            msg["Message-ID"] = make_msgid("pgcf")
-
-            uw = UserWrapper(request.user)
-            msgstring = msg.as_string()
-            send_mail(uw.email, settings.HACKERS_EMAIL, msgstring)
-            for a in authors:
-                # Actually send a copy directly to the author. Just setting the Cc field doesn't
-                # make it deliver the email...
-                send_mail(uw.email, UserWrapper(a).email, msgstring)
-
-            PatchHistory(
-                patch=patch,
-                by=request.user,
-                what="Posted %s with messageid %s" % (what, msg["Message-ID"]),
-            ).save()
-
-            messages.add_message(
-                request,
-                messages.INFO,
-                "Your email has been queued for %s, and will be sent within a few minutes."
-                % (settings.HACKERS_EMAIL),
-            )
-
-            return HttpResponseRedirect("/%s/%s/" % (cf.id, patch.id))
-    else:
-        try:
-            form = CommentForm(patch, poc, is_review)
-        except Exception as e:
-            messages.add_message(
-                request,
-                messages.ERROR,
-                "Failed to build list of response options from the archives: %s" % e,
-            )
-            return HttpResponseRedirect("/%s/%s/" % (cf.id, patch.id))
-
-    return render(
-        request,
-        "base_form.html",
-        {
-            "cf": cf,
-            "form": form,
-            "patch": patch,
-            "extraformclass": "patchcommentform",
-            "breadcrumbs": [
-                {"title": cf.title, "href": "/%s/" % cf.pk},
-                {"title": "View patch", "href": "/%s/%s/" % (cf.pk, patch.pk)},
-            ],
-            "title": "Add %s" % what,
-            "note": '<b>Note!</b> This form will generate an email to the public mailinglist <i>%s</i>, with sender set to <i>%s</i>!<br/>Please ensure that the email settings for your domain (<a href="https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail" target="_blank">DKIM</a>, <a href="https://en.wikipedia.org/wiki/SPF" target="_blank">SPF</a>) allow emails from external sources.'
-            % (settings.HACKERS_EMAIL, UserWrapper(request.user).email),
-            "savebutton": "Send %s" % what,
         },
     )
 
@@ -1473,13 +1394,22 @@ def send_email(request, cfid):
 
             recipients = User.objects.filter(q).distinct()
 
+            # We send from our own address instead of the manager's, because
+            # many domains have a DMARC policy that causes emails with their
+            # address in the From header to be rejected when they're not sent
+            # through their own mail servers. Reply-To makes replies still go
+            # to the manager.
+            uw = UserWrapper(request.user)
             for r in recipients:
                 send_simple_mail(
-                    UserWrapper(request.user).email,
+                    settings.NOTIFICATION_FROM,
                     r.email,
                     form.cleaned_data["subject"],
                     form.cleaned_data["body"],
                     request.user.username,
+                    sendername="%s %s via PostgreSQL Commitfest"
+                    % (request.user.first_name, request.user.last_name),
+                    replyto=uw.encoded_email_header,
                 )
                 messages.add_message(
                     request, messages.INFO, "Sent email to %s" % r.email
@@ -1518,7 +1448,8 @@ def send_email(request, cfid):
     messages.add_message(
         request,
         messages.INFO,
-        "Email will be sent from: %s" % UserWrapper(request.user).email,
+        "Email will be sent from %s, with replies going to: %s"
+        % (settings.NOTIFICATION_FROM, UserWrapper(request.user).email),
     )
 
     def _user_and_mail(u):

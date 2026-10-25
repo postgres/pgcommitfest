@@ -1,13 +1,6 @@
 <div style="margin-bottom:5px;">
  <a class="btn btn-secondary" href="edit/">Edit</a>
-
- <div class="btn-group">
-  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Comment/Review</button>
-  <ul class="dropdown-menu">
-   <li><a class="dropdown-item" href="comment/">Comment</a></li>
-   <li><a class="dropdown-item" href="review/">Review</a></li>
-  </ul>
- </div>
+ <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#reviewModal">Review</button>
 
  <div class="btn-group">
   <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Change Status</button>

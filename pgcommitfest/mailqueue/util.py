@@ -1,23 +1,36 @@
 from django.template.loader import get_template
 
 from email import encoders
+from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.nonmultipart import MIMENonMultipart
 from email.mime.text import MIMEText
-from email.utils import formatdate
+from email.utils import formataddr, formatdate
 
 from .models import QueuedMail
 
 
 def send_simple_mail(
-    sender, receiver, subject, msgtxt, sending_username, attachments=None
+    sender,
+    receiver,
+    subject,
+    msgtxt,
+    sending_username,
+    attachments=None,
+    sendername=None,
+    replyto=None,
 ):
     # attachment format, each is a tuple of (name, mimetype,contents)
     # content should already be base64 encoded
     msg = MIMEMultipart()
     msg["Subject"] = subject
     msg["To"] = receiver
-    msg["From"] = sender
+    if sendername:
+        msg["From"] = formataddr((str(Header(sendername, "utf-8")), sender))
+    else:
+        msg["From"] = sender
+    if replyto:
+        msg["Reply-To"] = replyto
     msg["Date"] = formatdate(localtime=True)
     msg["User-Agent"] = "pgcommitfest"
     if sending_username:

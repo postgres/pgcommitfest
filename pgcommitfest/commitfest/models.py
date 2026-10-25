@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.shortcuts import get_object_or_404
 
 from datetime import datetime, timedelta, timezone
@@ -10,6 +10,10 @@ from pgcommitfest.mailqueue.util import send_template_mail
 from pgcommitfest.userprofile.models import UserProfile
 
 from .util import DiffableModel
+
+# Patches with one of these tags are always moved to the next commitfest when
+# their commitfest closes.
+AUTO_MOVE_ALWAYS_TAG_NAMES = ["Bugfix"]
 
 
 # We have few enough of these, and it's really the only thing we
@@ -114,10 +118,15 @@ class CommitFest(models.Model):
     def _should_auto_move_patch(self, patch, current_date):
         """Determine if a patch should be automatically moved to the next commitfest.
 
-        A patch qualifies for auto-move if it both:
+        A patch tagged as a bug fix is always moved, so that it doesn't get
+        lost in a closed commitfest. Any other patch qualifies for auto-move
+        if it both:
         1. Has had email activity within the configured number of days
         2. Hasn't been failing CI for longer than the configured threshold
         """
+        if any(tag.name in AUTO_MOVE_ALWAYS_TAG_NAMES for tag in patch.tags.all()):
+            return True
+
         activity_cutoff = current_date - timedelta(
             days=settings.AUTO_MOVE_EMAIL_ACTIVITY_DAYS
         )
@@ -148,8 +157,8 @@ class CommitFest(models.Model):
     def auto_move_active_patches(self):
         """Automatically move active patches to the next commitfest.
 
-        A patch is moved if it has recent email activity and hasn't been
-        failing CI for too long.
+        A patch is moved if it is tagged as a bug fix, or if it has recent
+        email activity and hasn't been failing CI for too long.
         """
         current_date = datetime.now()
 
@@ -170,9 +179,13 @@ class CommitFest(models.Model):
             ).order_by("startdate")[0]
 
         # Get all patches with open status in this commitfest
-        open_pocs = self.patchoncommitfest_set.filter(
-            status__in=PatchOnCommitFest.OPEN_STATUSES
-        ).select_related("patch")
+        open_pocs = (
+            self.patchoncommitfest_set.filter(
+                status__in=PatchOnCommitFest.OPEN_STATUSES
+            )
+            .select_related("patch")
+            .prefetch_related("patch__tags")
+        )
 
         for poc in open_pocs:
             if self._should_auto_move_patch(poc.patch, current_date):
@@ -637,6 +650,14 @@ class Patch(models.Model, DiffableModel):
 
         return new_poc
 
+    def to_json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "authors": [f"{a.first_name} {a.last_name}" for a in self.authors.all()],
+            "last_email_time": self.lastmail,
+        }
+
     def __str__(self):
         return self.name
 
@@ -713,6 +734,14 @@ class PatchOnCommitFest(models.Model):
     @property
     def statusstring(self):
         return [v for k, v in self._STATUS_CHOICES if k == self.status][0]
+
+    def to_json(self):
+        return {
+            **self.patch.to_json(),
+            "status": self.statusstring,
+            "enterdate": self.enterdate,
+            "leavedate": self.leavedate,
+        }
 
     @classmethod
     def current_for_patch(cls, patch_id):
@@ -833,6 +862,18 @@ class PatchHistory(models.Model):
                 PendingNotification(history=self, user=u).save()
 
 
+class MailThreadQuerySet(models.QuerySet):
+    def with_has_attachment(self):
+        # An annotation rather than checking each thread's attachments
+        # separately keeps the number of queries constant when listing many
+        # threads.
+        return self.annotate(
+            has_attachment=Exists(
+                MailThreadAttachment.objects.filter(mailthread=OuterRef("pk"))
+            )
+        )
+
+
 class MailThread(models.Model):
     # This class tracks mail threads from the main postgresql.org
     # mailinglist archives. For each thread, we store *one* messageid.
@@ -852,8 +893,21 @@ class MailThread(models.Model):
     latestsubject = models.CharField(max_length=500, null=False, blank=False)
     latestmsgid = models.CharField(max_length=1000, null=False, blank=False)
 
+    objects = MailThreadQuerySet.as_manager()
+
     def __str__(self):
         return self.subject
+
+    def to_json(self):
+        # Only works on threads fetched with with_has_attachment(), since
+        # has_attachment is an annotation, not a field.
+        return {
+            "messageid": self.messageid,
+            "subject": self.subject,
+            "latest_message_id": self.latestmsgid,
+            "latest_message_time": self.latestmessage,
+            "has_attachment": self.has_attachment,
+        }
 
     class Meta:
         ordering = ("firstmessage",)

@@ -41,7 +41,7 @@
       <th><a href="#" style="color:#333333;" onclick="return sortpatches(6);">Stats</a>{%if sortkey == 6%}<div style="float:right;"><i class="bi bi-sort-numeric-down"></i></div>{%elif sortkey == -6%}<div style="float:right;"><i class="bi bi-sort-numeric-up"></i></div>{%endif%}</th>
       <th>Author</th>
       <th>Reviewers</th>
-      <th>Committer</th>
+      <th><a href="#" style="color:#333333;" onclick="return sortpatches(9);">Committer</a>{%if sortkey == 9%}<div style="float:right;"><i class="bi bi-sort-alpha-down"></i></div>{%elif sortkey == -9%}<div style="float:right;"><i class="bi bi-sort-alpha-up"></i></div>{%endif%}</th>
       <th><a href="#" style="color:#333333;" onclick="return sortpatches(3);">Num cfs</a>{%if sortkey == 3%}<div style="float:right;"><i class="bi bi-sort-numeric-down-alt"></i></div>{%elif sortkey == -3%}<div style="float:right;"><i class="bi bi-sort-numeric-up-alt"></i></div>{%endif%}</th>
       <th><a href="#" style="color:#333333;" onclick="return sortpatches(2);">Latest mail</a>{%if sortkey == 2%}<div style="float:right;"><i class="bi bi-sort-down"></i></div>{%elif sortkey == -2%}<div style="float:right;"><i class="bi bi-sort-up"></i></div>{%endif%}</th>
       {%if user.is_staff%}
