@@ -1,0 +1,36 @@
+{%extends "base.html"%}
+{%load commitfest%}
+{%block contents%}
+ <p>
+  Discussion about patches happens on the <i>{{hackers_email}}</i> mailinglist. To post a {%if is_review%}review{%else%}comment{%endif%}, reply to the email thread of this patch from your own email client:
+ </p>
+ <ol>
+  <li>Open the message you want to reply to in the archives, using one of the links below.</li>
+  <li>Log in on the archives page and click <b>Resend email</b>. This sends a copy of the message to your own email address.</li>
+  <li>Reply to that email from your email client, using "Reply All" so that the mailinglist and everyone involved in the discussion are included.</li>
+ </ol>
+ {%if threads%}
+  <dl>
+   {%for t in threads%}
+    <dt><a href="https://www.postgresql.org/message-id/flat/{{t.messageid}}">{{t.subject}}</a></dt>
+    <dd>
+     Latest message: <a href="https://www.postgresql.org/message-id/{{t.latestmsgid}}">{{t.latestmessage}}</a> by {{t.latestauthor|hidemail}}
+    </dd>
+   {%endfor%}
+  </dl>
+ {%else%}
+  <div class="alert alert-warning">This patch has no email threads attached.</div>
+ {%endif%}
+ {%if is_review%}
+  <p>
+   Reviews traditionally start with the following summary of what you tested. Each line should say either <i>not tested</i>, <i>tested, passed</i> or <i>tested, failed</i>:
+  </p>
+  <pre>make installcheck-world:  not tested
+Implements feature:       not tested
+Spec compliant:           not tested
+Documentation:            not tested</pre>
+ {%endif%}
+ <p>
+  If your {%if is_review%}review{%else%}comment{%endif%} means that the status of the patch should change, then use the <b>Change Status</b> button on the <a href="/{{cf.id}}/{{patch.id}}/">patch page</a> after sending your email.
+ </p>
+{%endblock%}
