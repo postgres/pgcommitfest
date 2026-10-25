@@ -26,6 +26,8 @@ from django.db import connection  # noqa: E402
 
 from pgcommitfest.commitfest.models import MailThreadAttachment  # noqa: E402
 
+logger = logging.getLogger(__name__)
+
 if __name__ == "__main__":
     debug = "--debug" in sys.argv
 
@@ -39,7 +41,7 @@ if __name__ == "__main__":
     mag = magic.open(magic.MIME)
     mag.load()
 
-    logging.debug("Updating attachment metadata from archives")
+    logger.debug("Updating attachment metadata from archives")
 
     # Try to fetch/scan all attachments that haven't already been scanned.
     # If they have already been scanned, we don't bother.
@@ -48,7 +50,7 @@ if __name__ == "__main__":
     # downloading a lot...
     for a in MailThreadAttachment.objects.filter(ispatch__isnull=True):
         url = f"/message-id/attachment/{a.attachmentid}/attach"
-        logging.debug(f"Checking attachment {a.attachmentid}")
+        logger.debug(f"Checking attachment {a.attachmentid}")
 
         resp = requests.get(
             f"{'https' if settings.ARCHIVES_PORT == 443 else 'http'}://"
@@ -60,12 +62,12 @@ if __name__ == "__main__":
         )
 
         if resp.status_code != 200:
-            logging.error(f"Failed to get {url}: {resp.status_code}")
+            logger.error(f"Failed to get {url}: {resp.status_code}")
             continue
 
         # Attempt to identify the file using magic information
         mtype = mag.buffer(resp.content)
-        logging.debug(f"Detected MIME type is {mtype}")
+        logger.debug(f"Detected MIME type is {mtype}")
 
         # We don't support gzipped or tar:ed patches or anything like
         # that at this point - just plain patches.
@@ -73,8 +75,8 @@ if __name__ == "__main__":
             a.ispatch = True
         else:
             a.ispatch = False
-        logging.info(f"Attachment {a.id} is patch: {a.ispatch}")
+        logger.info(f"Attachment {a.id} is patch: {a.ispatch}")
         a.save()
 
     connection.close()
-    logging.debug("Done.")
+    logger.debug("Done.")

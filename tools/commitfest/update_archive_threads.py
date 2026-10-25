@@ -22,6 +22,8 @@ from django.db import connection  # noqa: E402
 from pgcommitfest.commitfest.ajax import refresh_single_thread  # noqa: E402
 from pgcommitfest.commitfest.models import MailThread  # noqa: E402
 
+logger = logging.getLogger(__name__)
+
 if __name__ == "__main__":
     debug = "--debug" in sys.argv
 
@@ -32,12 +34,12 @@ if __name__ == "__main__":
         stream=sys.stdout,
     )
 
-    logging.debug("Checking for updated mail threads in the archives")
+    logger.debug("Checking for updated mail threads in the archives")
     for thread in MailThread.objects.filter(
         patches__commitfests__status__in=(1, 2, 3)
     ).distinct():
-        logging.debug(f"Checking {thread.messageid} in the archives")
+        logger.debug(f"Checking {thread.messageid} in the archives")
         refresh_single_thread(thread)
 
     connection.close()
-    logging.debug("Done.")
+    logger.debug("Done.")
