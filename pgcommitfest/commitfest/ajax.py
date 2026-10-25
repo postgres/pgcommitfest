@@ -306,8 +306,8 @@ def importUser(request):
     if not request.user.is_staff:
         raise Http404()
 
-    if request.GET.get("u", ""):
-        u = user_search(userid=request.GET["u"])
+    if request.POST.get("u", ""):
+        u = user_search(userid=request.POST["u"])
         if len(u) != 1:
             return "Internal error, duplicate user found"
 

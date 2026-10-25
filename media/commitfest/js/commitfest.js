@@ -260,7 +260,9 @@ function flagCommitted(committer) {
             );
             return;
         }
-        document.location.href = `close/committed/?c=${c}`;
+        const form = $("#commitForm");
+        form.attr("action", `close/committed/?c=${encodeURIComponent(c)}`);
+        form.submit();
     });
     return false;
 }
@@ -317,7 +319,7 @@ function search_and_store_user() {
         }
 
         /* Create this user locally */
-        $.get("/ajax/importUser/", {
+        $.post("/ajax/importUser/", {
             u: $("#searchUserList").val(),
         })
             .success((data) => {
