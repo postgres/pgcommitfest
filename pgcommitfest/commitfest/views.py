@@ -9,6 +9,7 @@ from django.http import (
     HttpRequest,
     HttpResponse,
     HttpResponseForbidden,
+    HttpResponsePermanentRedirect,
     HttpResponseRedirect,
 )
 from django.shortcuts import get_object_or_404, render
@@ -194,12 +195,19 @@ def me_legacy_redirect(request):
     return HttpResponseRedirect("/#dashboard")
 
 
-def commitfest_history(request):
+def commitfest_history_legacy_redirect(request):
+    # For a while the list of all commitfests lived here, next to an unsorted
+    # duplicate at /archive/. The two were merged under /archive/ since that's
+    # the shorter URL, but links to this one should keep working.
+    return HttpResponsePermanentRedirect("/archive/")
+
+
+def archive(request):
     cfs = list(CommitFest.objects.order_by("-enddate"))
 
     return render(
         request,
-        "all_commitfests.html",
+        "archive.html",
         {
             "commitfests": cfs,
             "title": "Commitfest history",
@@ -217,21 +225,6 @@ def help(request):
             "title": "What is the Commitfest app?",
             "auto_move_email_activity_days": settings.AUTO_MOVE_EMAIL_ACTIVITY_DAYS,
             "auto_move_max_failing_days": settings.AUTO_MOVE_MAX_FAILING_DAYS,
-        },
-    )
-
-
-def archive(request):
-    commitfests = list(CommitFest.objects.all())
-
-    return render(
-        request,
-        "archive.html",
-        {
-            "commitfests": commitfests,
-            "title": "Commitfests",
-            "header_activity": "Activity log",
-            "header_activity_link": "activity/",
         },
     )
 
