@@ -1139,9 +1139,6 @@ def status(request, patchid, status):
 @login_required
 @transaction.atomic
 def close(request, patchid, status):
-    if status == "next":
-        raise Exception("Can't happen, use transition/ endpoint")
-
     patch = get_object_or_404(Patch.objects.select_related(), pk=patchid)
     cf = patch.current_commitfest()
 
