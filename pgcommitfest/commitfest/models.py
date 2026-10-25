@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.db.models import Exists, OuterRef, Q
 from django.shortcuts import get_object_or_404
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from pgcommitfest.mailqueue.util import send_template_mail
 from pgcommitfest.userprofile.models import UserProfile
@@ -257,7 +257,7 @@ class CommitFest(models.Model):
     @classmethod
     def _refresh_relevant_commitfests(cls, for_update):
         cfs = CommitFest.relevant_commitfests(for_update=for_update, refresh=False)
-        current_date = datetime.now(timezone.utc).date()
+        current_date = datetime.now(UTC).date()
 
         if cls._are_relevant_commitfests_up_to_date(cfs, current_date):
             return cfs

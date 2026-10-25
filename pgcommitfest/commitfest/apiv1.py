@@ -5,7 +5,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404
 
 import json
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 
 from .models import (
     CommitFest,
@@ -18,7 +18,7 @@ from .models import (
 def datetime_serializer(obj):
     # datetime must be checked before date, since datetime is a subclass of date
     if isinstance(obj, datetime):
-        return obj.replace(tzinfo=timezone.utc).isoformat()
+        return obj.replace(tzinfo=UTC).isoformat()
 
     if isinstance(obj, date):
         return obj.isoformat()
@@ -51,7 +51,7 @@ def commitfestst_that_need_ci(request):
 
     # We continue to run CI on the previous commitfest for a week after it ends
     # to give people some time to move patches over to the next one.
-    if cfs["previous"].enddate <= datetime.now(timezone.utc).date() - timedelta(days=7):
+    if cfs["previous"].enddate <= datetime.now(UTC).date() - timedelta(days=7):
         del cfs["previous"]
 
     del cfs["next_open"]

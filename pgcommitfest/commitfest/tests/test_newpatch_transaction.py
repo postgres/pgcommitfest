@@ -1,6 +1,6 @@
 from django.db import connection
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import patch
 
 import pytest
@@ -26,7 +26,7 @@ def test_newpatch_thread_attach(
     client.force_login(alice)
     message = {
         "msgid": MSGID,
-        "date": datetime(2025, 1, 10, 12, tzinfo=timezone.utc),
+        "date": datetime(2025, 1, 10, 12, tzinfo=UTC),
         "from": "author@example.com",
         "subj": "[PATCH] Test",
         "atts": [],
