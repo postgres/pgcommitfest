@@ -598,7 +598,13 @@ class Patch(models.Model, DiffableModel):
             self.lastmail = max(threads, key=lambda t: t.latestmessage).latestmessage
 
     def move(
-        self, from_cf, to_cf, by_user, allow_move_to_in_progress=False, by_cfbot=False
+        self,
+        from_cf,
+        to_cf,
+        by_user,
+        allow_move_to_in_progress=False,
+        allow_move_closed=False,
+        by_cfbot=False,
     ):
         """Returns the new PatchOnCommitFest object, or raises UserInputError"""
 
@@ -609,11 +615,7 @@ class Patch(models.Model, DiffableModel):
         if from_cf.id == to_cf.id:
             raise UserInputError("Source and target commitfest are the same.")
 
-        if current_poc.status not in (
-            PatchOnCommitFest.STATUS_REVIEW,
-            PatchOnCommitFest.STATUS_AUTHOR,
-            PatchOnCommitFest.STATUS_COMMITTER,
-        ):
+        if current_poc.is_closed and not allow_move_closed:
             raise UserInputError(
                 f"Patch in state {current_poc.statusstring} cannot be moved."
             )
@@ -625,16 +627,18 @@ class Patch(models.Model, DiffableModel):
             raise UserInputError("Patch can only be moved to an open commitfest")
 
         old_status = current_poc.status
+        was_closed = current_poc.is_closed
 
         current_poc.set_status(PatchOnCommitFest.STATUS_MOVED)
 
+        now = datetime.now()
         new_poc, _ = PatchOnCommitFest.objects.update_or_create(
             patch=current_poc.patch,
             commitfest=to_cf,
             defaults=dict(
                 status=old_status,
-                enterdate=datetime.now(),
-                leavedate=None,
+                enterdate=now,
+                leavedate=now if was_closed else None,
             ),
         )
         new_poc.save()

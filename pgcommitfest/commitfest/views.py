@@ -1179,6 +1179,10 @@ def close(request, patchid, status):
         if poc.commitfest.is_open:
             # Needs to be done before the next if condition, so the committer
             # that's set there is set on the correct poc.
+            #
+            # A patch that was already closed (e.g. returned with feedback)
+            # might still get committed later, and then it should also end up
+            # in the commitfest it was committed in.
             in_progress_cf = CommitFest.get_in_progress()
             if in_progress_cf is not None:
                 poc = patch.move(
@@ -1186,6 +1190,7 @@ def close(request, patchid, status):
                     in_progress_cf,
                     request.user,
                     allow_move_to_in_progress=True,
+                    allow_move_closed=True,
                 )
             elif poc.commitfest.draft:
                 open_cf = CommitFest.get_open_regular()
@@ -1193,6 +1198,7 @@ def close(request, patchid, status):
                     poc.commitfest,
                     open_cf,
                     request.user,
+                    allow_move_closed=True,
                 )
 
         committer_username = request.GET.get("c")
