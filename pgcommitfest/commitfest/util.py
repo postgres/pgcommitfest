@@ -16,7 +16,7 @@ class DiffableModel:
         manytomanyfieldnames = [f.name for f in self._meta.many_to_many]
         d1 = self.__initial
         d2 = self._dict
-        diffs = dict([(k, (v, d2[k])) for k, v in d1.items() if v != d2[k]])
+        diffs = {k: (v, d2[k]) for k, v in d1.items() if v != d2[k]}
         # Foreign key lookups
         for k, v in diffs.items():
             if (
