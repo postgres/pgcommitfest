@@ -49,9 +49,7 @@ def mockArchivesAPI(path):
 
 
 def _archivesAPI(suburl, params=None):
-    if getattr(settings, "MOCK_ARCHIVES", False) and getattr(
-        settings, "MOCK_ARCHIVE_DATA"
-    ):
+    if getattr(settings, "MOCK_ARCHIVES", False) and settings.MOCK_ARCHIVE_DATA:
         return mockArchivesAPI(suburl)
 
     try:
