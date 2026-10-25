@@ -1,21 +1,19 @@
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function verify_reject() {
     return confirm(
         'Are you sure you want to close this patch as Rejected?\n\nThis should only be done when a patch will never be applied - if more work is needed, it should instead be set to "Returned with Feedback" or "Moved to next CF".\n\nSo - are you sure?',
     );
 }
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function verify_withdrawn() {
     return confirm(
         "Are you sure you want to close this patch as Withdrawn?\n\nThis should only be done when the author voluntarily withdraws the patch.\n\nSo - are you sure?",
     );
 }
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function verify_returned() {
     return confirm(
         'Are you sure you want to close this patch as Returned with Feedback?\n\nThis should be done if the patch is expected to be finished at some future time, but not necessarily in the next commitfest. If work is undergoing and expected in the next commitfest, it should instead be set to "Moved to next CF".\n\nSo - are you sure?',
-    );
-}
-function verify_next() {
-    return confirm(
-        'Are you sure you want to move this patch to the next commitfest?\n\nThis means the patch will be marked as closed in this commitfest, but will automatically be moved to the next one. If no further work is expected on this patch, it should be closed with "Rejected" or "Returned with Feedback" instead.\n\nSo - are you sure?',
     );
 }
 function findLatestThreads() {
@@ -88,6 +86,7 @@ function browseThreads(attachfunc, closefunc) {
     });
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function attachThread(cfid, patchid, closefunc) {
     browseThreads(
         (msgid) => {
@@ -103,6 +102,7 @@ function attachThread(cfid, patchid, closefunc) {
     );
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function detachThread(cfid, patchid, msgid) {
     if (
         confirm(
@@ -176,6 +176,7 @@ function updateAnnotationMessages(threadid) {
             $("#annotateMessageBody").removeClass("loading");
         });
 }
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function addAnnotation(threadid) {
     $("#annotateThreadList").find("option").remove();
     $("#annotateMessage").val("");
@@ -216,6 +217,7 @@ function addAnnotation(threadid) {
     });
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function annotateMsgPicked() {
     const val = $("#annotateMessageList").val();
     if (val) {
@@ -233,6 +235,7 @@ function annotateChanged() {
     }
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function deleteAnnotation(annid) {
     if (confirm("Are you sure you want to delete this annotation?")) {
         $.post("/ajax/deleteAnnotation/", {
@@ -247,6 +250,7 @@ function deleteAnnotation(annid) {
     }
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function flagCommitted(committer) {
     const modal = new bootstrap.Modal(document.getElementById("commitModal"));
     modal.show();
@@ -267,6 +271,7 @@ function flagCommitted(committer) {
     return false;
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function sortpatches(sortby) {
     const sortkey = Number.parseInt($("#id_sortkey").val());
     if (sortkey === sortby) {
@@ -285,11 +290,12 @@ function toggleButtonCollapse(buttonId, collapseId) {
     const button = document.getElementById(buttonId);
     const collapse = document.getElementById(collapseId);
     button.classList.toggle("active");
-    const bsCollapse = new bootstrap.Collapse(collapse, {
+    new bootstrap.Collapse(collapse, {
         toggle: true,
     });
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function togglePatchFilterButton(buttonId, collapseId) {
     const collapse = document.getElementById(collapseId);
 
@@ -308,6 +314,7 @@ function togglePatchFilterButton(buttonId, collapseId) {
 /*
  * Upstream user search dialog
  */
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function search_and_store_user() {
     const modal = new bootstrap.Modal(
         document.getElementById("searchUserModal"),
@@ -340,6 +347,7 @@ function search_and_store_user() {
     modal.show();
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function findUsers() {
     if (!$("#searchUserSearchField").val()) {
         alert("No search term specified");
@@ -375,6 +383,7 @@ function searchUserListChanged() {
     }
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: called from templates
 function addGitCheckoutToClipboard(patchId) {
     navigator.clipboard.writeText(`git remote add commitfest https://github.com/postgresql-cfbot/postgresql.git
 git fetch commitfest cf/${patchId}
@@ -388,9 +397,9 @@ $(document).ready(() => {
     const tooltipTriggerList = [].slice.call(
         document.querySelectorAll('[data-bs-toggle="tooltip"]'),
     );
-    const tooltipList = tooltipTriggerList.map(
-        (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl),
-    );
+    for (const tooltipTriggerEl of tooltipTriggerList) {
+        new bootstrap.Tooltip(tooltipTriggerEl);
+    }
 
     $("button.attachThreadButton").each((i, o) => {
         const b = $(o);
