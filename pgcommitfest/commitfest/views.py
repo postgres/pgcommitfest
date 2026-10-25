@@ -1106,33 +1106,6 @@ def newpatch(request, cfid):
     )
 
 
-def comment(request, patchid, what):
-    # We used to send comments and reviews to the mailinglist from here, with
-    # the user's address in the From header. That broke for any domain with a
-    # strict DMARC policy, since we can't DKIM sign on behalf of that domain.
-    # Instead we now point people to the archives, which can resend a message
-    # to them so they can reply to it from their own email client.
-    patch = get_object_or_404(Patch, pk=patchid)
-    cf = patch.current_commitfest()
-
-    return render(
-        request,
-        "patch_reply.html",
-        {
-            "cf": cf,
-            "patch": patch,
-            "threads": patch.mailthread_set.order_by("-latestmessage"),
-            "is_review": what == "review",
-            "hackers_email": settings.HACKERS_EMAIL,
-            "breadcrumbs": [
-                {"title": cf.title, "href": "/%s/" % cf.pk},
-                {"title": "View patch", "href": "/%s/%s/" % (cf.pk, patch.pk)},
-            ],
-            "title": "Add %s" % what,
-        },
-    )
-
-
 @login_required
 @transaction.atomic
 def status(request, patchid, status):

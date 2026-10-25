@@ -2,14 +2,6 @@
  <a class="btn btn-secondary" href="edit/">Edit</a>
 
  <div class="btn-group">
-  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Comment/Review</button>
-  <ul class="dropdown-menu">
-   <li><a class="dropdown-item" href="comment/">Comment</a></li>
-   <li><a class="dropdown-item" href="review/">Review</a></li>
-  </ul>
- </div>
-
- <div class="btn-group">
   <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Change Status</button>
   <ul class="dropdown-menu">
    <li><h6 class="dropdown-header">Open statuses</h6></li>
