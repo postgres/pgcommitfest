@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.forms import widgets
 
+from typing import ClassVar
+
 from .models import (
     CfbotBranch,
     CfbotTask,
@@ -63,7 +65,7 @@ class ColorInput(widgets.Input):
 class TagAdmin(admin.ModelAdmin):
     # Customize the Tag form with a color picker and soft validation.
     change_form_template = "change_tag_form.html"
-    formfield_overrides = {
+    formfield_overrides: ClassVar[dict] = {
         ColorField: {"widget": ColorInput},
     }
 

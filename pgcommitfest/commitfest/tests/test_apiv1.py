@@ -2,7 +2,7 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -129,7 +129,7 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
     # Create test patches
     patch1 = Patch.objects.create(name="Add feature X")
     patch1.authors.add(alice)
-    patch1.lastmail = datetime(2025, 1, 15, 10, 30, 0, tzinfo=timezone.utc)
+    patch1.lastmail = datetime(2025, 1, 15, 10, 30, 0, tzinfo=UTC)
     patch1.save()
 
     patch2 = Patch.objects.create(name="Fix bug Y")
@@ -140,24 +140,24 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
     PatchOnCommitFest.objects.create(
         patch=patch1,
         commitfest=open_cf,
-        enterdate=datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+        enterdate=datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC),
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
     PatchOnCommitFest.objects.create(
         patch=patch2,
         commitfest=open_cf,
-        enterdate=datetime(2025, 1, 2, 8, 0, 0, tzinfo=timezone.utc),
+        enterdate=datetime(2025, 1, 2, 8, 0, 0, tzinfo=UTC),
         # leavedate is only allowed on statuses that close the patch out
-        leavedate=datetime(2025, 1, 20, 16, 45, 0, tzinfo=timezone.utc),
+        leavedate=datetime(2025, 1, 20, 16, 45, 0, tzinfo=UTC),
         status=PatchOnCommitFest.STATUS_COMMITTED,
     )
 
     thread = MailThread.objects.create(
         messageid="abc123@example.com",
         subject="[PATCH] Add feature X",
-        firstmessage=datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
+        firstmessage=datetime(2025, 1, 10, 9, 0, 0, tzinfo=UTC),
         firstauthor="alice@example.com",
-        latestmessage=datetime(2025, 1, 12, 14, 30, 0, tzinfo=timezone.utc),
+        latestmessage=datetime(2025, 1, 12, 14, 30, 0, tzinfo=UTC),
         latestauthor="bob@example.com",
         latestsubject="Re: [PATCH] Add feature X",
         latestmsgid="def456@example.com",
@@ -168,7 +168,7 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
         messageid="abc123@example.com",
         attachmentid=1,
         filename="v1.patch",
-        date=datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
+        date=datetime(2025, 1, 10, 9, 0, 0, tzinfo=UTC),
         author="alice@example.com",
         ispatch=True,
     )
@@ -232,7 +232,7 @@ def test_commitfest_patches_endpoint_include_parsing(client, open_cf):
     PatchOnCommitFest.objects.create(
         patch=Patch.objects.create(name="Add feature X"),
         commitfest=open_cf,
-        enterdate=datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+        enterdate=datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC),
     )
     url = f"/api/v1/commitfests/{open_cf.id}/patches"
 
@@ -258,7 +258,7 @@ def test_patch_threads_endpoint(client, open_cf, alice):
     PatchOnCommitFest.objects.create(
         patch=patch,
         commitfest=open_cf,
-        enterdate=datetime(2025, 1, 1, tzinfo=timezone.utc),
+        enterdate=datetime(2025, 1, 1, tzinfo=UTC),
         status=PatchOnCommitFest.STATUS_REVIEW,
     )
 
@@ -266,9 +266,9 @@ def test_patch_threads_endpoint(client, open_cf, alice):
     thread1 = MailThread.objects.create(
         messageid="abc123@example.com",
         subject="[PATCH] Test patch v1",
-        firstmessage=datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
+        firstmessage=datetime(2025, 1, 10, 9, 0, 0, tzinfo=UTC),
         firstauthor="alice@example.com",
-        latestmessage=datetime(2025, 1, 12, 14, 30, 0, tzinfo=timezone.utc),
+        latestmessage=datetime(2025, 1, 12, 14, 30, 0, tzinfo=UTC),
         latestauthor="bob@example.com",
         latestsubject="Re: [PATCH] Test patch v1",
         latestmsgid="def456@example.com",

@@ -31,5 +31,8 @@ subprocess.run(
         "--static-map",
         f"/media/admin={django_path}/contrib/admin/static/admin",
         ini_file,
-    ]
+    ],
+    # Stopping the dev server with Ctrl-C makes uwsgi exit non-zero, which is
+    # not worth a traceback.
+    check=False,
 )

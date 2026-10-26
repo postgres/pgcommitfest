@@ -50,7 +50,7 @@ ORDER BY last_name, first_name
             "report": cursor.fetchall(),
             "title": "Author stats",
             "breadcrumbs": [
-                {"title": cf.title, "href": "/%s/" % cf.pk},
+                {"title": cf.title, "href": f"/{cf.pk}/"},
             ],
         },
     )

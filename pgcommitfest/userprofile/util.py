@@ -4,7 +4,7 @@ from email.utils import formataddr
 from .models import UserExtraEmail, UserProfile
 
 
-class UserWrapper(object):
+class UserWrapper:
     def __init__(self, user):
         self.user = user
 
@@ -23,11 +23,7 @@ class UserWrapper(object):
     def encoded_email_header(self):
         return formataddr(
             (
-                str(
-                    Header(
-                        "%s %s" % (self.user.first_name, self.user.last_name), "utf-8"
-                    )
-                ),
+                str(Header(f"{self.user.first_name} {self.user.last_name}", "utf-8")),
                 self.email,
             )
         )
@@ -44,6 +40,6 @@ def handle_user_data(sender, **kwargs):
     UserExtraEmail.objects.filter(user=user).exclude(email__in=secondary).delete()
 
     # Then add back any of the ones that aren't there
-    current = set([e.email for e in UserExtraEmail.objects.filter(user=user)])
+    current = {e.email for e in UserExtraEmail.objects.filter(user=user)}
     for e in set(secondary).difference(current):
         UserExtraEmail(user=user, email=e).save()

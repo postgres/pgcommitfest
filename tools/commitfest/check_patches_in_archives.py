@@ -17,14 +17,16 @@ import requests
 # Set up for accessing django
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../../"))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pgcommitfest.settings")
-import django  # noqa: E402
+import django
 
 django.setup()
 
-from django.conf import settings  # noqa: E402
-from django.db import connection  # noqa: E402
+from django.conf import settings
+from django.db import connection
 
-from pgcommitfest.commitfest.models import MailThreadAttachment  # noqa: E402
+from pgcommitfest.commitfest.models import MailThreadAttachment
+
+logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     debug = "--debug" in sys.argv
@@ -39,7 +41,7 @@ if __name__ == "__main__":
     mag = magic.open(magic.MIME)
     mag.load()
 
-    logging.debug("Updating attachment metadata from archives")
+    logger.debug("Updating attachment metadata from archives")
 
     # Try to fetch/scan all attachments that haven't already been scanned.
     # If they have already been scanned, we don't bother.
@@ -47,16 +49,12 @@ if __name__ == "__main__":
     # should generally not be a problem because it's not going to be
     # downloading a lot...
     for a in MailThreadAttachment.objects.filter(ispatch__isnull=True):
-        url = "/message-id/attachment/%s/attach" % a.attachmentid
-        logging.debug("Checking attachment %s" % a.attachmentid)
+        url = f"/message-id/attachment/{a.attachmentid}/attach"
+        logger.debug(f"Checking attachment {a.attachmentid}")
 
         resp = requests.get(
-            "http{0}://{1}:{2}{3}".format(
-                settings.ARCHIVES_PORT == 443 and "s" or "",
-                settings.ARCHIVES_SERVER,
-                settings.ARCHIVES_PORT,
-                url,
-            ),
+            f"{'https' if settings.ARCHIVES_PORT == 443 else 'http'}://"
+            f"{settings.ARCHIVES_SERVER}:{settings.ARCHIVES_PORT}{url}",
             headers={
                 "Host": settings.ARCHIVES_HOST,
             },
@@ -64,12 +62,12 @@ if __name__ == "__main__":
         )
 
         if resp.status_code != 200:
-            logging.error("Failed to get %s: %s" % (url, resp.status_code))
+            logger.error(f"Failed to get {url}: {resp.status_code}")
             continue
 
         # Attempt to identify the file using magic information
         mtype = mag.buffer(resp.content)
-        logging.debug("Detected MIME type is %s" % mtype)
+        logger.debug(f"Detected MIME type is {mtype}")
 
         # We don't support gzipped or tar:ed patches or anything like
         # that at this point - just plain patches.
@@ -77,8 +75,8 @@ if __name__ == "__main__":
             a.ispatch = True
         else:
             a.ispatch = False
-        logging.info("Attachment %s is patch: %s" % (a.id, a.ispatch))
+        logger.info(f"Attachment {a.id} is patch: {a.ispatch}")
         a.save()
 
     connection.close()
-    logging.debug("Done.")
+    logger.debug("Done.")

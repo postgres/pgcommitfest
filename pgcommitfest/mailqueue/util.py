@@ -43,9 +43,7 @@ def send_simple_mail(
             main, sub = contenttype.split("/")
             part = MIMENonMultipart(main, sub)
             part.set_payload(content)
-            part.add_header(
-                "Content-Disposition", 'attachment; filename="%s"' % filename
-            )
+            part.add_header("Content-Disposition", f'attachment; filename="{filename}"')
             encoders.encode_base64(part)
             msg.attach(part)
 
@@ -64,9 +62,11 @@ def send_template_mail(
     receiver,
     subject,
     templatename,
-    templateattr={},
+    templateattr=None,
     usergenerated=False,
 ):
+    if templateattr is None:
+        templateattr = {}
     send_simple_mail(
         sender,
         receiver,

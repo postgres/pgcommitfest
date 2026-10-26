@@ -4,7 +4,8 @@ from django.db import models, transaction
 from django.db.models import Exists, OuterRef, Q
 from django.shortcuts import get_object_or_404
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from typing import ClassVar
 
 from pgcommitfest.mailqueue.util import send_template_mail
 from pgcommitfest.userprofile.models import UserProfile
@@ -30,11 +31,7 @@ class Committer(models.Model):
 
     @property
     def fullname(self):
-        return "%s %s (%s)" % (
-            self.user.first_name,
-            self.user.last_name,
-            self.user.username,
-        )
+        return f"{self.user.first_name} {self.user.last_name} ({self.user.username})"
 
     class Meta:
         ordering = ("user__last_name", "user__first_name")
@@ -64,11 +61,11 @@ class CommitFest(models.Model):
 
     @property
     def statusstring(self):
-        return [v for k, v in self._STATUS_CHOICES if k == self.status][0]
+        return next(v for k, v in self._STATUS_CHOICES if k == self.status)
 
     @property
     def periodstring(self):
-        return "{0} – {1}".format(self.startdate, self.enddate)
+        return f"{self.startdate} – {self.enddate}"
 
     @property
     def last_open_date(self):
@@ -83,7 +80,7 @@ class CommitFest(models.Model):
 
     @property
     def title(self):
-        return "Commitfest %s" % self.name
+        return f"Commitfest {self.name}"
 
     @property
     def is_closed(self):
@@ -249,15 +246,12 @@ class CommitFest(models.Model):
         if cfs["open"].startdate <= current_date:
             return False
 
-        if not cfs["draft"] or cfs["draft"].enddate < current_date:
-            return False
-
-        return True
+        return bool(cfs["draft"]) and cfs["draft"].enddate >= current_date
 
     @classmethod
     def _refresh_relevant_commitfests(cls, for_update):
         cfs = CommitFest.relevant_commitfests(for_update=for_update, refresh=False)
-        current_date = datetime.now(timezone.utc).date()
+        current_date = datetime.now(UTC).date()
 
         if cls._are_relevant_commitfests_up_to_date(cfs, current_date):
             return cfs
@@ -442,7 +436,7 @@ class TargetVersion(models.Model):
     version = models.CharField(max_length=8, blank=False, null=False, unique=True)
 
     class Meta:
-        ordering = [
+        ordering: ClassVar[list] = [
             "-version",
         ]
 
@@ -534,7 +528,7 @@ class Patch(models.Model, DiffableModel):
     # that's attached to this message.
     lastmail = models.DateTimeField(blank=True, null=True)
 
-    map_manytomany_for_diff = {
+    map_manytomany_for_diff: ClassVar[dict] = {
         "authors": "authors_string",
         "reviewers": "reviewers_string",
     }
@@ -558,17 +552,14 @@ class Patch(models.Model, DiffableModel):
     @property
     def authors_string(self):
         return ", ".join(
-            [
-                "%s %s (%s)" % (a.first_name, a.last_name, a.username)
-                for a in self.authors.all()
-            ]
+            [f"{a.first_name} {a.last_name} ({a.username})" for a in self.authors.all()]
         )
 
     @property
     def reviewers_string(self):
         return ", ".join(
             [
-                "%s %s (%s)" % (a.first_name, a.last_name, a.username)
+                f"{a.first_name} {a.last_name} ({a.username})"
                 for a in self.reviewers.all()
             ]
         )
@@ -635,11 +626,11 @@ class Patch(models.Model, DiffableModel):
         new_poc, _ = PatchOnCommitFest.objects.update_or_create(
             patch=current_poc.patch,
             commitfest=to_cf,
-            defaults=dict(
-                status=old_status,
-                enterdate=now,
-                leavedate=now if was_closed else None,
-            ),
+            defaults={
+                "status": old_status,
+                "enterdate": now,
+                "leavedate": now if was_closed else None,
+            },
         )
         new_poc.save()
         self.set_modified()
@@ -702,7 +693,7 @@ class PatchOnCommitFest(models.Model):
         (STATUS_RETURNED, "danger"),
         (STATUS_WITHDRAWN, "danger"),
     )
-    OPEN_STATUSES = [STATUS_REVIEW, STATUS_AUTHOR, STATUS_COMMITTER]
+    OPEN_STATUSES: ClassVar[list] = [STATUS_REVIEW, STATUS_AUTHOR, STATUS_COMMITTER]
 
     @classmethod
     def OPEN_STATUS_CHOICES(cls):
@@ -737,7 +728,7 @@ class PatchOnCommitFest(models.Model):
 
     @property
     def statusstring(self):
-        return [v for k, v in self._STATUS_CHOICES if k == self.status][0]
+        return next(v for k, v in self._STATUS_CHOICES if k == self.status)
 
     def to_json(self):
         return {
@@ -791,14 +782,14 @@ class PatchHistory(models.Model):
         if self.by_cfbot:
             return "CFbot"
 
-        return "%s %s (%s)" % (self.by.first_name, self.by.last_name, self.by.username)
+        return f"{self.by.first_name} {self.by.last_name} ({self.by.username})"
 
     def __str__(self):
-        return "%s - %s" % (self.patch.name, self.date)
+        return f"{self.patch.name} - {self.date}"
 
     class Meta:
         ordering = ("-date",)
-        constraints = [
+        constraints: ClassVar[list] = [
             models.CheckConstraint(
                 check=(models.Q(by_cfbot=True) & models.Q(by__isnull=True))
                 | (models.Q(by_cfbot=False) & models.Q(by__isnull=False)),
@@ -952,11 +943,7 @@ class MailThreadAnnotation(models.Model):
 
     @property
     def user_string(self):
-        return "%s %s (%s)" % (
-            self.user.first_name,
-            self.user.last_name,
-            self.user.username,
-        )
+        return f"{self.user.first_name} {self.user.last_name} ({self.user.username})"
 
     class Meta:
         ordering = ("date",)
@@ -976,7 +963,7 @@ class PendingNotification(models.Model):
 
 
 class CfbotBranch(models.Model):
-    STATUS_CHOICES = [
+    STATUS_CHOICES: ClassVar[list] = [
         ("testing", "Testing"),
         ("finished", "Finished"),
         ("failed", "Failed"),
@@ -1015,11 +1002,11 @@ class CfbotBranch(models.Model):
 
         if not self.commit_id:
             self.commit_id = None
-        super(CfbotBranch, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class CfbotTask(models.Model):
-    STATUS_CHOICES = [
+    STATUS_CHOICES: ClassVar[list] = [
         ("CREATED", "Created"),
         ("PAUSED", "Paused"),
         ("NEEDS_APPROVAL", "Needs Approval"),
@@ -1056,7 +1043,7 @@ class CfbotTask(models.Model):
     modified = models.DateTimeField(auto_now=True)
 
     class Meta:
-        constraints = [
+        constraints: ClassVar[list] = [
             models.UniqueConstraint(
                 fields=["branch_id", "position"],
                 name="commitfest_cfbottask_branch_position_unique",

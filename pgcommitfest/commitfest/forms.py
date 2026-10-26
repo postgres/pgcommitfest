@@ -4,13 +4,15 @@ from django.forms import ValidationError
 from django.forms.widgets import HiddenInput
 from django.http import Http404
 
-from .ajax import _archivesAPI
+from typing import ClassVar
+
+from .ajax import Http503, _archivesAPI
 from .models import Patch, PatchOnCommitFest, Tag, TargetVersion
 from .widgets import ThreadPickWidget
 
 
 class CommitFestFilterForm(forms.Form):
-    selectize_fields = {
+    selectize_fields: ClassVar[dict] = {
         "author": "/lookups/user",
         "reviewer": "/lookups/user",
         "tag": None,
@@ -25,7 +27,7 @@ class CommitFestFilterForm(forms.Form):
     sortkey = forms.IntegerField(required=False)
 
     def __init__(self, data, commitfest=None, *args, **kwargs):
-        super(CommitFestFilterForm, self).__init__(data, *args, **kwargs)
+        super().__init__(data, *args, **kwargs)
         self.commitfest = commitfest
 
         # Update selectize_fields with cf parameter if commitfest is provided
@@ -85,7 +87,7 @@ CHECKBOX_TAG_NAMES = ["Bugfix", "Security", "Performance"]
 
 
 class PatchForm(forms.ModelForm):
-    selectize_fields = {
+    selectize_fields: ClassVar[dict] = {
         "authors": "/lookups/user",
         "reviewers": "/lookups/user",
         "tags": None,
@@ -104,16 +106,11 @@ class PatchForm(forms.ModelForm):
         )
 
     def __init__(self, *args, **kwargs):
-        super(PatchForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["authors"].help_text = "Enter part of name to see list"
         self.fields["reviewers"].help_text = "Enter part of name to see list"
         self.fields["committer"].label_from_instance = lambda x: (
-            "%s %s (%s)"
-            % (
-                x.user.first_name,
-                x.user.last_name,
-                x.user.username,
-            )
+            f"{x.user.first_name} {x.user.last_name} ({x.user.username})"
         )
 
         self.fields["authors"].widget.attrs["class"] = "add-user-picker"
@@ -162,7 +159,7 @@ class PatchForm(forms.ModelForm):
 
 class NewPatchForm(PatchForm):
     # Put threadmsgid first
-    field_order = ["threadmsgid"]
+    field_order: ClassVar[list] = ["threadmsgid"]
 
     threadmsgid = forms.CharField(
         max_length=200,
@@ -180,7 +177,7 @@ class NewPatchForm(PatchForm):
 
     def __init__(self, *args, **kwargs):
         request = kwargs.pop("request", None)
-        super(NewPatchForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if request:
             self.fields["authors"].queryset = User.objects.filter(pk=request.user.id)
@@ -206,10 +203,10 @@ class NewPatchForm(PatchForm):
 
     def clean_threadmsgid(self):
         try:
-            _archivesAPI("/message-id.json/%s" % self.cleaned_data["threadmsgid"])
+            _archivesAPI(f"/message-id.json/{self.cleaned_data['threadmsgid']}")
         except Http404:
             raise ValidationError("Message not found in archives")
-        except Exception:
+        except Http503:
             raise ValidationError("Error in API call to validate thread")
         return self.cleaned_data["threadmsgid"]
 
@@ -222,4 +219,4 @@ class BulkEmailForm(forms.Form):
     confirm = forms.BooleanField(required=True, label="Check to confirm sending")
 
     def __init__(self, *args, **kwargs):
-        super(BulkEmailForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)

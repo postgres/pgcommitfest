@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.conf import settings
 from django.db import migrations, models
 
@@ -318,10 +315,10 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name="patchoncommitfest",
-            unique_together=set([("patch", "commitfest")]),
+            unique_together={("patch", "commitfest")},
         ),
         migrations.AlterUniqueTogether(
             name="mailthreadattachment",
-            unique_together=set([("mailthread", "messageid")]),
+            unique_together={("mailthread", "messageid")},
         ),
     ]
