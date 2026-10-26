@@ -66,34 +66,28 @@ def commitfest_patches(request, cfid):
     This endpoint provides the data that cfbot previously scraped from the
     commitfest HTML page.
 
-    Threads for every patch can be included with ?include=threads. Unknown
-    tokens are ignored.
+    Each patch includes its threads, in the same shape as
+    /patches/<id>/threads.
     """
     cf = get_object_or_404(CommitFest, pk=cfid)
-
-    include = {i.strip() for i in request.GET.get("include", "").split(",")}
-    include_threads = "threads" in include
 
     pocs = (
         PatchOnCommitFest.objects.filter(commitfest=cf)
         .select_related("patch")
-        .prefetch_related("patch__authors")
-        .order_by("patch__id")
-    )
-
-    if include_threads:
-        pocs = pocs.prefetch_related(
+        .prefetch_related(
+            "patch__authors",
             Prefetch(
                 "patch__mailthread_set",
                 queryset=MailThread.objects.with_has_attachment(),
-            )
+            ),
         )
+        .order_by("patch__id")
+    )
 
     patches = []
     for poc in pocs:
         entry = poc.to_json()
-        if include_threads:
-            entry["threads"] = poc.patch.mailthread_set.all()
+        entry["threads"] = poc.patch.mailthread_set.all()
         patches.append(entry)
 
     return api_response(
