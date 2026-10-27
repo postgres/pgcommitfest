@@ -174,7 +174,7 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
     )
 
     url = f"/api/v1/commitfests/{open_cf.id}/patches"
-    with CaptureQueriesContext(connection) as queries_without_threads:
+    with CaptureQueriesContext(connection) as queries:
         response = client.get(url)
 
     assert response.status_code == 200
@@ -205,14 +205,6 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
     assert p2["enterdate"] == "2025-01-02T08:00:00+00:00"
     assert p2["leavedate"] == "2025-01-20T16:45:00+00:00"
 
-    # Threads are opt-in
-    assert "threads" not in p1
-
-    with CaptureQueriesContext(connection) as queries_with_threads:
-        response = client.get(f"{url}?include=threads")
-
-    assert response.status_code == 200
-    p1, p2 = json.loads(response.content)["patches"]
     assert p1["threads"] == [
         {
             "messageid": "abc123@example.com",
@@ -223,25 +215,14 @@ def test_commitfest_patches_endpoint(client, open_cf, alice, bob):
         }
     ]
     assert p2["threads"] == []
-    # A single prefetch query for all patches, not one per patch
-    assert len(queries_with_threads) == len(queries_without_threads) + 1
-
-
-def test_commitfest_patches_endpoint_include_parsing(client, open_cf):
-    """Unknown include tokens are ignored and spaces around tokens allowed."""
-    PatchOnCommitFest.objects.create(
-        patch=Patch.objects.create(name="Add feature X"),
-        commitfest=open_cf,
-        enterdate=datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
-    )
-    url = f"/api/v1/commitfests/{open_cf.id}/patches"
-
-    response = client.get(f"{url}?include=bogus")
-    assert response.status_code == 200
-    assert "threads" not in json.loads(response.content)["patches"][0]
-
-    response = client.get(f"{url}?include=bogus, threads")
-    assert json.loads(response.content)["patches"][0]["threads"] == []
+    # Threads (with has_attachment) are fetched in a single prefetch query for
+    # all patches, not one per patch
+    thread_queries = [
+        q
+        for q in queries.captured_queries
+        if "commitfest_mailthreadattachment" in q["sql"]
+    ]
+    assert len(thread_queries) == 1
 
 
 def test_commitfest_patches_endpoint_not_found(client, commitfests):
