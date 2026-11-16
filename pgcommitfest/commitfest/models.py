@@ -673,6 +673,7 @@ class Patch(models.Model, DiffableModel):
             "topic": self.topic.topic if self.topic else None,
             "tags": [t.name for t in self.tags.all()],
             "wiki_link": self.wikilink or None,
+            "git_link": self.gitlink or None,
             "last_email_time": self.lastmail,
             "created": self.created,
             "modified": self.modified,
