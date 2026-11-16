@@ -130,13 +130,8 @@ def patch_threads(request, patch_id):
 
 
 def patch_history(request, patch_id):
-    """Return the activity history of a patch, oldest first.
-
-    This is the same history shown on the patch page, including the entries
-    made by cfbot.
-    """
-    # Checking existence avoids loading the patch itself, which also loads
-    # all of its many-to-many relations.
+    """Return the activity history of a patch, oldest first."""
+    # Checking existence avoids loading relations.
     if not Patch.objects.filter(pk=patch_id).exists():
         raise Http404("Patch not found")
 
@@ -157,10 +152,10 @@ def patch_history(request, patch_id):
 def history(request):
     """Return the activity history of all patches, oldest first.
 
-    ?since=<iso8601> returns entries from that time on. Pages hold at most
-    HISTORY_PAGE_SIZE entries; when there are more, "next" is the URL of the
-    following page, otherwise it is null. Entries can share a timestamp, so
-    the cursor also carries the id of the last entry returned (?after=<id>).
+    ?since=<iso8601> returns entries from that time on; ?after=<id> breaks
+    ties between entries sharing a timestamp. "next" is the URL of the
+    following page, or null on the last one. Malformed parameters return
+    400 with {"error": "<message>"}.
     """
     since = request.GET.get("since")
     after = request.GET.get("after")
@@ -172,7 +167,7 @@ def history(request):
             since = datetime.fromisoformat(since)
         except ValueError:
             return api_response({"error": "since must be an ISO 8601 date"}, 400)
-        # Dates are stored in UTC without a timezone
+        # Dates are stored as naive UTC
         if since.tzinfo is not None:
             since = since.astimezone(timezone.utc).replace(tzinfo=None)
         entries = entries.filter(date__gte=since)
