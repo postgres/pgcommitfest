@@ -85,7 +85,7 @@ def commitfest_patches(request, cfid):
         .select_related(
             "patch__committer__user", "patch__targetversion", "patch__topic"
         )
-        .prefetch_related("patch__authors", "patch__reviewers")
+        .prefetch_related("patch__authors", "patch__reviewers", "patch__tags")
         .order_by("patch__id")
     )
 
