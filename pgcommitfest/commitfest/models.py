@@ -670,6 +670,7 @@ class Patch(models.Model, DiffableModel):
             "target_version": (
                 self.targetversion.version if self.targetversion else None
             ),
+            "topic": self.topic.topic if self.topic else None,
             "last_email_time": self.lastmail,
             "created": self.created,
             "modified": self.modified,
