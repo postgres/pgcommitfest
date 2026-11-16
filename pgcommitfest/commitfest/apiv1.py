@@ -82,9 +82,7 @@ def commitfest_patches(request, cfid):
 
     pocs = (
         PatchOnCommitFest.objects.filter(commitfest=cf)
-        .select_related(
-            "patch__committer__user", "patch__targetversion", "patch__topic"
-        )
+        .select_related("patch__committer__user", "patch__targetversion")
         .prefetch_related("patch__authors", "patch__reviewers", "patch__tags")
         .order_by("patch__id")
     )

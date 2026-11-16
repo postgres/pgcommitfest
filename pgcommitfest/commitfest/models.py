@@ -670,7 +670,6 @@ class Patch(models.Model, DiffableModel):
             "target_version": (
                 self.targetversion.version if self.targetversion else None
             ),
-            "topic": self.topic.topic if self.topic else None,
             "tags": [t.name for t in self.tags.all()],
             "wiki_link": self.wikilink or None,
             "git_link": self.gitlink or None,
