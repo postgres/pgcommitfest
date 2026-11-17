@@ -1,16 +1,19 @@
-from django.db.models import Prefetch, QuerySet
+from django.db.models import Prefetch, Q, QuerySet
 from django.http import (
+    Http404,
     HttpResponse,
 )
 from django.shortcuts import get_object_or_404
 
 import json
 from datetime import date, datetime, timedelta, timezone
+from urllib.parse import urlencode
 
 from .models import (
     CommitFest,
     MailThread,
     Patch,
+    PatchHistory,
     PatchOnCommitFest,
 )
 
@@ -39,6 +42,9 @@ def api_response(payload, status=200, content_type="application/json"):
     response["Content-Type"] = content_type
     response["Access-Control-Allow-Origin"] = "*"
     return response
+
+
+HISTORY_PAGE_SIZE = 500
 
 
 def all_commitfests(request):
@@ -76,8 +82,8 @@ def commitfest_patches(request, cfid):
 
     pocs = (
         PatchOnCommitFest.objects.filter(commitfest=cf)
-        .select_related("patch")
-        .prefetch_related("patch__authors")
+        .select_related("patch__committer__user", "patch__targetversion")
+        .prefetch_related("patch__authors", "patch__reviewers", "patch__tags")
         .order_by("patch__id")
     )
 
@@ -104,6 +110,28 @@ def commitfest_patches(request, cfid):
     )
 
 
+def patch(request, patch_id):
+    """Return a patch on its current commitfest, with its threads.
+
+    The patch has the same shape as in /commitfests/<id>/patches. A missing
+    patch returns 404 with {"error": "<message>"}.
+    """
+    poc = (
+        PatchOnCommitFest.objects.filter(patch_id=patch_id)
+        .exclude(status=PatchOnCommitFest.STATUS_MOVED)
+        .select_related("patch__committer__user", "patch__targetversion")
+        .prefetch_related("patch__authors", "patch__reviewers", "patch__tags")
+        .first()
+    )
+    if poc is None:
+        return api_response({"error": "Patch not found"}, 404)
+
+    entry = poc.to_json()
+    entry["threads"] = poc.patch.mailthread_set.with_has_attachment()
+
+    return api_response({"commitfest_id": poc.commitfest_id, "patch": entry})
+
+
 def patch_threads(request, patch_id):
     """Return thread information for a patch.
 
@@ -121,3 +149,68 @@ def patch_threads(request, patch_id):
             "threads": threads,
         }
     )
+
+
+def patch_history(request, patch_id):
+    """Return the activity history of a patch, oldest first."""
+    # Checking existence avoids loading relations.
+    if not Patch.objects.filter(pk=patch_id).exists():
+        raise Http404("Patch not found")
+
+    history = (
+        PatchHistory.objects.filter(patch_id=patch_id)
+        .select_related("by")
+        .order_by("date", "id")
+    )
+
+    return api_response(
+        {
+            "patch_id": int(patch_id),
+            "history": history,
+        }
+    )
+
+
+def history(request):
+    """Return the activity history of all patches, oldest first.
+
+    ?since=<iso8601> returns entries from that time on; ?after=<id> breaks
+    ties between entries sharing a timestamp. "next" is the URL of the
+    following page, or null on the last one. Malformed parameters return
+    400 with {"error": "<message>"}.
+    """
+    since = request.GET.get("since")
+    after = request.GET.get("after")
+
+    entries = PatchHistory.objects.select_related("by").order_by("date", "id")
+
+    if since is not None:
+        try:
+            since = datetime.fromisoformat(since)
+        except ValueError:
+            return api_response({"error": "since must be an ISO 8601 date"}, 400)
+        # Dates are stored as naive UTC
+        if since.tzinfo is not None:
+            since = since.astimezone(timezone.utc).replace(tzinfo=None)
+        entries = entries.filter(date__gte=since)
+
+    if after is not None:
+        if since is None:
+            return api_response({"error": "after requires since"}, 400)
+        try:
+            after = int(after)
+        except ValueError:
+            return api_response({"error": "after must be an integer"}, 400)
+        entries = entries.filter(Q(date__gt=since) | Q(id__gt=after))
+
+    page = list(entries[: HISTORY_PAGE_SIZE + 1])
+    next_url = None
+    if len(page) > HISTORY_PAGE_SIZE:
+        page = page[:HISTORY_PAGE_SIZE]
+        last = page[-1]
+        next_url = "{}?{}".format(
+            request.path,
+            urlencode({"since": datetime_serializer(last.date), "after": last.id}),
+        )
+
+    return api_response({"history": page, "next": next_url})

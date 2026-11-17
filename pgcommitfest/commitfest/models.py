@@ -659,7 +659,23 @@ class Patch(models.Model, DiffableModel):
             "id": self.id,
             "name": self.name,
             "authors": [f"{a.first_name} {a.last_name}" for a in self.authors.all()],
+            "reviewers": [
+                f"{r.first_name} {r.last_name}" for r in self.reviewers.all()
+            ],
+            "committer": (
+                f"{self.committer.user.first_name} {self.committer.user.last_name}"
+                if self.committer
+                else None
+            ),
+            "target_version": (
+                self.targetversion.version if self.targetversion else None
+            ),
+            "tags": [t.name for t in self.tags.all()],
+            "wiki_link": self.wikilink or None,
+            "git_link": self.gitlink or None,
             "last_email_time": self.lastmail,
+            "created": self.created,
+            "modified": self.modified,
         }
 
     def __str__(self):
@@ -795,6 +811,16 @@ class PatchHistory(models.Model):
 
     def __str__(self):
         return "%s - %s" % (self.patch.name, self.date)
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "patch_id": self.patch_id,
+            "date": self.date,
+            "by": f"{self.by.first_name} {self.by.last_name}" if self.by else None,
+            "by_cfbot": self.by_cfbot,
+            "what": self.what,
+        }
 
     class Meta:
         ordering = ("-date",)
