@@ -19,6 +19,7 @@ urlpatterns = [
     re_path(r"^api/v1/commitfests$", apiv1.all_commitfests),
     re_path(r"^api/v1/commitfests/needs_ci$", apiv1.commitfestst_that_need_ci),
     re_path(r"^api/v1/commitfests/(\d+)/patches$", apiv1.commitfest_patches),
+    re_path(r"^api/v1/patches/(\d+)$", apiv1.patch),
     re_path(r"^api/v1/patches/(\d+)/threads$", apiv1.patch_threads),
     re_path(r"^api/v1/patches/(\d+)/history$", apiv1.patch_history),
     re_path(r"^api/v1/history$", apiv1.history),

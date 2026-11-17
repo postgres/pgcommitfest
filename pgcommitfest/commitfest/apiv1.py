@@ -110,6 +110,28 @@ def commitfest_patches(request, cfid):
     )
 
 
+def patch(request, patch_id):
+    """Return a patch on its current commitfest, with its threads.
+
+    The patch has the same shape as in /commitfests/<id>/patches. A missing
+    patch returns 404 with {"error": "<message>"}.
+    """
+    poc = (
+        PatchOnCommitFest.objects.filter(patch_id=patch_id)
+        .exclude(status=PatchOnCommitFest.STATUS_MOVED)
+        .select_related("patch__committer__user", "patch__targetversion")
+        .prefetch_related("patch__authors", "patch__reviewers", "patch__tags")
+        .first()
+    )
+    if poc is None:
+        return api_response({"error": "Patch not found"}, 404)
+
+    entry = poc.to_json()
+    entry["threads"] = poc.patch.mailthread_set.with_has_attachment()
+
+    return api_response({"commitfest_id": poc.commitfest_id, "patch": entry})
+
+
 def patch_threads(request, patch_id):
     """Return thread information for a patch.
 

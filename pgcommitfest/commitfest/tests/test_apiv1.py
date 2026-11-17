@@ -280,6 +280,86 @@ def test_commitfest_patches_endpoint_not_found(client, commitfests):
     assert response.status_code == 404
 
 
+def test_patch_endpoint(client, commitfests, alice, bob):
+    """Test the /api/v1/patches/<id> endpoint."""
+    patch = Patch.objects.create(name="Add feature X")
+    patch.authors.add(alice)
+    patch.reviewers.add(bob)
+    patch.tags.add(Tag.objects.create(name="API tag A", color="#ff0000"))
+
+    # An earlier commitfest the patch moved out of
+    PatchOnCommitFest.objects.create(
+        patch=patch,
+        commitfest=commitfests["in_progress"],
+        enterdate=datetime(2024, 11, 1, 12, 0, 0, tzinfo=timezone.utc),
+        leavedate=datetime(2024, 11, 30, 12, 0, 0, tzinfo=timezone.utc),
+        status=PatchOnCommitFest.STATUS_MOVED,
+    )
+    PatchOnCommitFest.objects.create(
+        patch=patch,
+        commitfest=commitfests["open"],
+        enterdate=datetime(2025, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+        status=PatchOnCommitFest.STATUS_AUTHOR,
+    )
+
+    thread = MailThread.objects.create(
+        messageid="abc123@example.com",
+        subject="[PATCH] Add feature X",
+        firstmessage=datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
+        firstauthor="alice@example.com",
+        latestmessage=datetime(2025, 1, 12, 14, 30, 0, tzinfo=timezone.utc),
+        latestauthor="bob@example.com",
+        latestsubject="Re: [PATCH] Add feature X",
+        latestmsgid="def456@example.com",
+    )
+    patch.mailthread_set.add(thread)
+    MailThreadAttachment.objects.create(
+        mailthread=thread,
+        messageid="abc123@example.com",
+        attachmentid=1,
+        filename="v1.patch",
+        date=datetime(2025, 1, 10, 9, 0, 0, tzinfo=timezone.utc),
+        author="alice@example.com",
+        ispatch=True,
+    )
+
+    response = client.get(f"/api/v1/patches/{patch.id}")
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/json"
+    assert response["Access-Control-Allow-Origin"] == "*"
+
+    data = json.loads(response.content)
+
+    assert data["commitfest_id"] == commitfests["open"].id
+    p = data["patch"]
+    assert p["id"] == patch.id
+    assert p["name"] == "Add feature X"
+    assert p["status"] == "Waiting on Author"
+    assert p["authors"] == ["Alice Anderson"]
+    assert p["reviewers"] == ["Bob Brown"]
+    assert p["tags"] == ["API tag A"]
+    assert p["enterdate"] == "2025-01-01T12:00:00+00:00"
+    assert p["leavedate"] is None
+    assert p["threads"] == [
+        {
+            "messageid": "abc123@example.com",
+            "subject": "[PATCH] Add feature X",
+            "latest_message_id": "def456@example.com",
+            "latest_message_time": "2025-01-12T14:30:00+00:00",
+            "has_attachment": True,
+        }
+    ]
+
+
+def test_patch_endpoint_not_found(client, commitfests):
+    """Test the patch endpoint returns a JSON 404 for non-existent patch."""
+    response = client.get("/api/v1/patches/99999")
+    assert response.status_code == 404
+    assert response["Content-Type"] == "application/json"
+    assert json.loads(response.content) == {"error": "Patch not found"}
+
+
 def test_patch_threads_endpoint(client, open_cf, alice):
     """Test the /api/v1/patches/<id>/threads endpoint."""
     patch = Patch.objects.create(name="Test patch")
